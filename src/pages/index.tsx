@@ -1,5 +1,5 @@
-import TopScene from "~/app/components/TopScene";
+import PostListScene from "~/app/components/_provider/PostListScene";
 
-const PageIndex = () => <TopScene />;
+const PageIndex = () => <PostListScene />;
 
 export default PageIndex;
