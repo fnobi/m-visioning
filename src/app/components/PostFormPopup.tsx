@@ -17,7 +17,10 @@ import AutoLoginPopup from "~/app/components/AutoLoginPopup";
 
 const postFormOrganizer = new FormOrganizer<BoardPost>()
   .fieldValidator("nickname", requiredValidator())
-  .fieldValidator("nickname", stringMaxLengthValidator(10));
+  .fieldValidator("nickname", stringMaxLengthValidator(10))
+  .fieldValidator("body", requiredValidator())
+  .fieldValidator("body", stringMaxLengthValidator(140))
+  .fieldValidator("userId", requiredValidator());
 
 const PostFormPopup = ({
   defaultValue,
@@ -59,12 +62,14 @@ const PostFormPopup = ({
           value={nickname}
           onChange={setNickname}
           error={errors.nickname}
+          maxLength={postFormOrganizer.maxLengthes.nickname}
         />
         <MockTextFormRow
           label="本文"
           value={body}
           onChange={setBody}
           error={errors.body}
+          maxLength={postFormOrganizer.maxLengthes.body}
         />
       </MockFormFrame>
     </MockPopup>
