@@ -3,8 +3,7 @@ import MockActionButton from "~/common/components/MockActionButton";
 import MockStaticLayout from "~/common/components/MockStaticLayout";
 import MockLoadingPopup from "~/common/components/MockLoadingPopup";
 import MockLoadingScene from "~/common/components/MockLoadingScene";
-import { percent } from "~/common/lib/css-util";
-import { formatDateTimeLabel } from "~/common/lib/date-util";
+import PostListCell from "~/app/components/PostListCell";
 import ErrorScene from "~/app/components/ErrorScene";
 import { useBoardPostList } from "~/app/lib/database/board-post-database";
 import ErrorPopup from "~/app/components/ErrorPopup";
@@ -24,21 +23,21 @@ const PostListScene = () => {
   const { isLoading, runAsyncHandler } = useAsyncHandler({
     onError: setOperationError
   });
-  const { boarPostList, createPost } = useBoardPostList({
+  const { boardPostList, createPostItem, deletePostItem } = useBoardPostList({
     onError: setStatusError
   });
 
   const handlePostSubmit = useCallback(
     (v: BoardPost) =>
-      runAsyncHandler(() => createPost(v)).then(() => setFormFlag(false)),
-    [createPost, runAsyncHandler]
+      runAsyncHandler(() => createPostItem(v)).then(() => setFormFlag(false)),
+    [createPostItem, runAsyncHandler]
   );
 
   if (statusError) {
     return <ErrorScene error={statusError} />;
   }
 
-  if (!boarPostList) {
+  if (!boardPostList) {
     return <MockLoadingScene />;
   }
 
@@ -52,16 +51,12 @@ const PostListScene = () => {
             新規投稿
           </MockActionButton>
         </p>
-        {boarPostList.map(({ id, data }) => (
-          <div key={id}>
-            <p>{data.body}</p>
-            <p style={{ fontSize: percent(80) }}>
-              {data.nickname}&nbsp;|&nbsp;
-              {data.createdAt
-                ? formatDateTimeLabel(data.createdAt.toDate())
-                : null}
-            </p>
-          </div>
+        {boardPostList.map(({ id, data }) => (
+          <PostListCell
+            key={id}
+            post={data}
+            onDelete={() => deletePostItem(id)}
+          />
         ))}
       </MockStaticLayout>
       {formFlag ? (

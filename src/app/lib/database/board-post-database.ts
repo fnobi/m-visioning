@@ -35,7 +35,7 @@ export const useBoardPostList = ({
     });
   }, [limit, onError]);
 
-  const createPost = useCallback(
+  const createPostItem = useCallback(
     (v: BoardPost) =>
       boardPostDataStore.addItem({
         data: { ...v, createdAt: serverTimestamp() as Timestamp }
@@ -43,5 +43,13 @@ export const useBoardPostList = ({
     []
   );
 
-  return { boarPostList: list, createPost };
+  const deletePostItem = useCallback(
+    (id: string) =>
+      boardPostDataStore.deleteItem({
+        postId: id
+      }),
+    []
+  );
+
+  return { boardPostList: list, createPostItem, deletePostItem };
 };
