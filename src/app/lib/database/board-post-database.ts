@@ -6,14 +6,17 @@ import { boardPostDataStoreScheme } from "~/app/scheme/app-data-store-scheme";
 import { type AppErrorParameter } from "~/app/scheme/AppErrorParameter";
 import { extractClientError } from "~/app/lib/client-error-utils";
 import type BoardPost from "~/app/scheme/BoardPost";
+import AppError from "~/app/scheme/AppError";
 
 const boardPostDataStore = new ClientDataStoreAgent(boardPostDataStoreScheme);
 
 // eslint-disable-next-line import/prefer-default-export
 export const useBoardPostList = ({
+  boardId,
   limit = 20,
   onError
 }: {
+  boardId: string | null;
   limit?: number;
   onError: (e: AppErrorParameter) => void;
 }) => {
@@ -21,7 +24,11 @@ export const useBoardPostList = ({
 
   useEffect(() => {
     setList(null);
+    if (!boardId) {
+      return () => {};
+    }
     return boardPostDataStore.subscribeList({
+      boardId,
       queryChain: c => {
         let cc = c;
         cc = cc.orderBy("createdAt", "desc");
@@ -33,22 +40,33 @@ export const useBoardPostList = ({
       handler: setList,
       onError: e => onError(extractClientError(e))
     });
-  }, [limit, onError]);
+  }, [boardId, limit, onError]);
 
   const createPostItem = useCallback(
-    (v: BoardPost) =>
-      boardPostDataStore.addItem({
+    (v: BoardPost) => {
+      if (!boardId) {
+        throw new AppError({ type: "bad-parameter" });
+      }
+      return boardPostDataStore.addItem({
+        boardId,
         data: { ...v, createdAt: serverTimestamp() as Timestamp }
-      }),
-    []
+      });
+    },
+    [boardId]
   );
 
   const deletePostItem = useCallback(
-    (id: string) =>
-      boardPostDataStore.deleteItem({
+    (id: string) => {
+      if (!boardId) {
+        throw new AppError({ type: "bad-parameter" });
+      }
+
+      return boardPostDataStore.deleteItem({
+        boardId,
         postId: id
-      }),
-    []
+      });
+    },
+    [boardId]
   );
 
   return { boardPostList: list, createPostItem, deletePostItem };

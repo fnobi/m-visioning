@@ -13,7 +13,7 @@ import PostFormPopup from "~/app/components/PostFormPopup";
 import type BoardPost from "~/app/scheme/BoardPost";
 import { parseBoardPost } from "~/app/scheme/BoardPost";
 
-const PostListScene = () => {
+const PostListScene = ({ boardId }: { boardId: string }) => {
   const [formFlag, setFormFlag] = useState(false);
   const [statusError, setStatusError] = useState<AppErrorParameter | null>(
     null
@@ -24,6 +24,7 @@ const PostListScene = () => {
     onError: setOperationError
   });
   const { boardPostList, createPostItem, deletePostItem } = useBoardPostList({
+    boardId,
     onError: setStatusError
   });
 

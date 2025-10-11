@@ -13,11 +13,22 @@ export const ownerDataStoreScheme: DataStoreScheme<
   documentId: ({ userId }) => userId
 };
 
+export const boardEventDataStoreScheme: DataStoreScheme<
+  CommonPermission,
+  { boardId: string }
+> = {
+  name: "boardEvents",
+  parse: parseCommonPermission,
+  documentId: ({ boardId }) => boardId
+};
+
 export const boardPostDataStoreScheme: DataStoreScheme<
   BoardPost,
-  { postId: string }
+  { postId: string },
+  { boardId: string }
 > = {
   name: "boardPosts",
   parse: parseBoardPost,
-  documentId: ({ postId }) => postId
+  documentId: ({ postId }) => postId,
+  parentCollection: boardEventDataStoreScheme
 };

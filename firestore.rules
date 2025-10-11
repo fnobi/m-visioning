@@ -8,10 +8,13 @@ service cloud.firestore {
     match /admins/{userId} {
       allow read: if request.auth.uid == userId;
     }
-    match /boardPosts/{postId} {
+    match /boardEvents/{boardId} {
       allow read: if true;
-      allow create, delete: if request.auth != null;
-      allow write: if isAdmin();
+      match /boardPosts/{postId} {
+        allow read: if true;
+        allow create, delete: if request.auth != null;
+        allow write: if isAdmin();
+      }
     }
   }
 }
