@@ -12,8 +12,10 @@ import type BoardEvent from "~/app/scheme/BoardEvent";
 
 const boardEventDataStore = new ClientDataStoreAgent(boardEventDataStoreScheme);
 
+type BoardEventQueryParams = { limit?: number };
+
 const makeBoardEventQueryChain =
-  ({ limit }: { limit?: number }) =>
+  ({ limit }: BoardEventQueryParams) =>
   (c: QueryChain<BoardEvent>) => {
     let cc = c;
     cc = cc.orderBy("createdAt", "desc");
@@ -23,19 +25,17 @@ const makeBoardEventQueryChain =
     return cc;
   };
 
-export const fetchBoardEventList = (
-  ...params: Parameters<typeof makeBoardEventQueryChain>
-) =>
+export const fetchBoardEventList = (params: BoardEventQueryParams) =>
   boardEventDataStore.fetchList({
-    queryChain: makeBoardEventQueryChain(...params)
+    queryChain: makeBoardEventQueryChain(params)
   });
 
 export const useBoardEventList = ({
   onError,
-  ...params
+  limit
 }: {
   onError: (e: AppErrorParameter) => void;
-} & Parameters<typeof makeBoardEventQueryChain>[0]) => {
+} & BoardEventQueryParams) => {
   const [list, setList] = useState<TypedCollectionList<BoardEvent> | null>(
     null
   );
@@ -43,11 +43,11 @@ export const useBoardEventList = ({
   useEffect(() => {
     setList(null);
     return boardEventDataStore.subscribeList({
-      queryChain: makeBoardEventQueryChain(params),
+      queryChain: makeBoardEventQueryChain({ limit }),
       handler: setList,
       onError: e => onError(extractClientError(e))
     });
-  }, [onError, params]);
+  }, [limit, onError]);
 
   const createEventItem = useCallback(
     (v: BoardEvent) =>

@@ -1,8 +1,9 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import MockActionButton from "~/common/components/MockActionButton";
 import MockStaticLayout from "~/common/components/MockStaticLayout";
 import MockLoadingPopup from "~/common/components/MockLoadingPopup";
 import MockLoadingScene from "~/common/components/MockLoadingScene";
+import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
 import PostListCell from "~/app/components/PostListCell";
 import ErrorScene from "~/app/components/ErrorScene";
 import { useBoardPostList } from "~/app/lib/database/board-post-database";
@@ -14,6 +15,7 @@ import type BoardPost from "~/app/scheme/BoardPost";
 import { parseBoardPost } from "~/app/scheme/BoardPost";
 
 const PostListScene = ({ boardId }: { boardId: string }) => {
+  const { myId } = useAuthorizedUser();
   const [formFlag, setFormFlag] = useState(false);
   const [statusError, setStatusError] = useState<AppErrorParameter | null>(
     null
@@ -27,6 +29,20 @@ const PostListScene = ({ boardId }: { boardId: string }) => {
     boardId,
     onError: setStatusError
   });
+  const { boardPostList: latestMyPost } = useBoardPostList({
+    boardId,
+    userId: myId,
+    limit: 1,
+    onError: setStatusError
+  });
+
+  const defaultNickname = useMemo(() => {
+    if (!latestMyPost) {
+      return "";
+    }
+    const [first] = latestMyPost;
+    return first.data.nickname;
+  }, [latestMyPost]);
 
   const handlePostSubmit = useCallback(
     (v: BoardPost) =>
@@ -62,7 +78,7 @@ const PostListScene = ({ boardId }: { boardId: string }) => {
       </MockStaticLayout>
       {formFlag ? (
         <PostFormPopup
-          defaultValue={parseBoardPost(null)}
+          defaultValue={parseBoardPost({ nickname: defaultNickname })}
           onClose={() => setFormFlag(false)}
           onSubmit={handlePostSubmit}
         />
