@@ -5,6 +5,7 @@ import {
   type QueryChain,
   type TypedCollectionList
 } from "~/common/lib/DataStoreAgent";
+import type TimestampMock from "~/common/scheme/TimestampMock";
 import { boardPostDataStoreScheme } from "~/app/scheme/app-data-store-scheme";
 import { type AppErrorParameter } from "~/app/scheme/AppErrorParameter";
 import { extractClientError } from "~/app/lib/client-error-utils";
@@ -28,6 +29,31 @@ const makeBoardPostQueryChain =
     }
     return cc;
   };
+
+export const createBoardPostItem = async ({
+  boardId,
+  data: v
+}: Parameters<typeof boardPostDataStore.addItem>[0]) => {
+  if (!boardId) {
+    throw new AppError({ type: "bad-parameter" });
+  }
+  const data = { ...v, createdAt: serverTimestamp() as Timestamp };
+  const id = await boardPostDataStore.addItem({
+    boardId,
+    data
+  });
+  return { id, data };
+};
+
+export const deleteBoardPostItem = ({
+  boardId,
+  postId
+}: Parameters<typeof boardPostDataStore.deleteItem>[0]) => {
+  if (!boardId || !postId) {
+    throw new AppError({ type: "bad-parameter" });
+  }
+  return boardPostDataStore.deleteItem({ boardId, postId });
+};
 
 // eslint-disable-next-line import/prefer-default-export
 export const useBoardPostList = ({
@@ -53,32 +79,75 @@ export const useBoardPostList = ({
     });
   }, [boardId, limit, onError]);
 
-  const createPostItem = useCallback(
-    (v: BoardPost) => {
-      if (!boardId) {
-        throw new AppError({ type: "bad-parameter" });
-      }
-      return boardPostDataStore.addItem({
+  return { boardPostList: list };
+};
+
+export const useBoardPostMoreLoader = ({
+  boardId,
+  size = 10
+}: {
+  boardId: string;
+  size?: number;
+}) => {
+  const [list, setList] = useState<TypedCollectionList<BoardPost> | null>(null);
+  const [nextSortKey, setNextSortKey] = useState<TimestampMock | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const loadMore = useCallback(() => {
+    setIsLoading(true);
+    boardPostDataStore
+      .fetchList({
         boardId,
-        data: { ...v, createdAt: serverTimestamp() as Timestamp }
+        queryChain: c => {
+          let cc = c;
+          cc = cc.limit(size + 1);
+          cc = cc.orderBy("createdAt", "desc");
+          if (nextSortKey) {
+            cc = cc.where("createdAt", "<=", nextSortKey);
+          }
+          return cc;
+        }
+      })
+      .then(arr => {
+        const val = arr.slice(0, size);
+        const nex = arr[size];
+        setList(l => (l ? [...l, ...val] : val));
+        setNextSortKey(nex ? nex.data.createdAt : null);
+        setIsLoading(false);
       });
-    },
+  }, [boardId, nextSortKey, size]);
+
+  useEffect(() => {
+    if (!list) {
+      loadMore();
+    }
+  }, [list, loadMore]);
+
+  const resetList = useCallback(() => {
+    setList(null);
+    setNextSortKey(null);
+  }, []);
+
+  const createItem = useCallback(
+    (d: BoardPost) =>
+      createBoardPostItem({ boardId, data: d }).then(() => resetList()),
+    [boardId, resetList]
+  );
+
+  const deleteItem = useCallback(
+    (postId: string) =>
+      deleteBoardPostItem({ boardId, postId }).then(() =>
+        setList(l => (l ? l.filter(i => i.id !== postId) : null))
+      ),
     [boardId]
   );
 
-  const deletePostItem = useCallback(
-    (id: string) => {
-      if (!boardId) {
-        throw new AppError({ type: "bad-parameter" });
-      }
-
-      return boardPostDataStore.deleteItem({
-        boardId,
-        postId: id
-      });
-    },
-    [boardId]
-  );
-
-  return { boardPostList: list, createPostItem, deletePostItem };
+  return {
+    boardPostList: list,
+    isLoading,
+    loadMore,
+    hasNext: !!nextSortKey,
+    createItem,
+    deleteItem
+  };
 };

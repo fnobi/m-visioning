@@ -6,7 +6,10 @@ import MockLoadingScene from "~/common/components/MockLoadingScene";
 import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
 import PostListCell from "~/app/components/PostListCell";
 import ErrorScene from "~/app/components/ErrorScene";
-import { useBoardPostList } from "~/app/lib/database/board-post-database";
+import {
+  useBoardPostList,
+  useBoardPostMoreLoader
+} from "~/app/lib/database/board-post-database";
 import ErrorPopup from "~/app/components/ErrorPopup";
 import useAsyncHandler from "~/app/lib/useAsyncHandler";
 import { type AppErrorParameter } from "~/app/scheme/AppErrorParameter";
@@ -28,18 +31,25 @@ const PostListScene = ({
   );
   const [operationError, setOperationError] =
     useState<AppErrorParameter | null>(null);
-  const { isLoading, runAsyncHandler } = useAsyncHandler({
+  const { isLoading: isOperating, runAsyncHandler } = useAsyncHandler({
     onError: setOperationError
-  });
-  const { boardPostList, createPostItem, deletePostItem } = useBoardPostList({
-    boardId,
-    onError: setStatusError
   });
   const { boardPostList: latestMyPost } = useBoardPostList({
     boardId,
     userId: myId,
     limit: 1,
     onError: setStatusError
+  });
+
+  const {
+    boardPostList,
+    isLoading: isLoadingPostList,
+    hasNext,
+    loadMore,
+    createItem,
+    deleteItem
+  } = useBoardPostMoreLoader({
+    boardId
   });
 
   const defaultNickname = useMemo(() => {
@@ -52,8 +62,8 @@ const PostListScene = ({
 
   const handlePostSubmit = useCallback(
     (v: BoardPost) =>
-      runAsyncHandler(() => createPostItem(v)).then(() => setFormFlag(false)),
-    [createPostItem, runAsyncHandler]
+      runAsyncHandler(() => createItem(v)).then(() => setFormFlag(false)),
+    [createItem, runAsyncHandler]
   );
 
   if (statusError) {
@@ -75,12 +85,19 @@ const PostListScene = ({
           </MockActionButton>
         </p>
         {boardPostList.map(({ id, data }) => (
-          <PostListCell
-            key={id}
-            post={data}
-            onDelete={() => deletePostItem(id)}
-          />
+          <PostListCell key={id} post={data} onDelete={() => deleteItem(id)} />
         ))}
+        {hasNext ? (
+          <p>
+            <MockActionButton
+              action={
+                isLoadingPostList ? null : { type: "button", onClick: loadMore }
+              }
+            >
+              もっと読む
+            </MockActionButton>
+          </p>
+        ) : null}
       </MockStaticLayout>
       {formFlag ? (
         <PostFormPopup
@@ -89,7 +106,7 @@ const PostListScene = ({
           onSubmit={handlePostSubmit}
         />
       ) : null}
-      {isLoading ? <MockLoadingPopup /> : null}
+      {isOperating ? <MockLoadingPopup /> : null}
       {operationError ? (
         <ErrorPopup
           error={operationError}
