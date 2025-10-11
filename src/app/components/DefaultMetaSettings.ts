@@ -5,9 +5,9 @@ import { PAGE_TOP } from "~/app/lib/page-path";
 import ASSETS_OGP from "~/assets/meta/ogp.png";
 import ASSETS_FAVICON from "~/assets/meta/favicon.ico";
 
-const DEFAULT_TITLE = "hinagata-next";
-const DEFAULT_DESCRIPTION = "Awsome next.js project.";
-const DEFAULT_KEYWORDS = ["react", "typescript", "next.js"];
+const DEFAULT_TITLE = "fnobi-kakikaki";
+const DEFAULT_DESCRIPTION = "自由に感想を書いてください。";
+const DEFAULT_KEYWORDS: string[] = [];
 
 export const makePageMetaTitle = (...pageTitle: string[]) =>
   [...pageTitle, DEFAULT_TITLE].join(" | ");
