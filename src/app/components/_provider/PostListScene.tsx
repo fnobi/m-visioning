@@ -14,7 +14,13 @@ import PostFormPopup from "~/app/components/PostFormPopup";
 import type BoardPost from "~/app/scheme/BoardPost";
 import { parseBoardPost } from "~/app/scheme/BoardPost";
 
-const PostListScene = ({ boardId }: { boardId: string }) => {
+const PostListScene = ({
+  title,
+  boardId
+}: {
+  title: string;
+  boardId: string;
+}) => {
   const { myId } = useAuthorizedUser();
   const [formFlag, setFormFlag] = useState(false);
   const [statusError, setStatusError] = useState<AppErrorParameter | null>(
@@ -60,7 +66,7 @@ const PostListScene = ({ boardId }: { boardId: string }) => {
 
   return (
     <>
-      <MockStaticLayout title="post list">
+      <MockStaticLayout title={title}>
         <p>
           <MockActionButton
             action={{ type: "button", onClick: () => setFormFlag(true) }}

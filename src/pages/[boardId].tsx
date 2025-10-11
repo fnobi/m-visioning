@@ -17,7 +17,7 @@ type Props = {
 
 const PageBoard = ({ boardId, title }: Props) => (
   <MetaSettings title={makePageMetaTitle(title)} page={PAGE_TOP.child(boardId)}>
-    <PostListScene boardId={boardId} />
+    <PostListScene title={title} boardId={boardId} />
   </MetaSettings>
 );
 
