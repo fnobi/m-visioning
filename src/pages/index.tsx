@@ -1,5 +1,7 @@
-import PostListScene from "~/app/components/_provider/PostListScene";
+import MockCenteringLayout from "~/common/components/MockCenteringLayout";
 
-const PageIndex = () => <PostListScene boardId="xportrait-5" />;
+const PageIndex = () => (
+  <MockCenteringLayout>fnobi-kakikaki</MockCenteringLayout>
+);
 
 export default PageIndex;

@@ -10,6 +10,7 @@ service cloud.firestore {
     }
     match /boardEvents/{boardId} {
       allow read: if true;
+      allow write: if isAdmin();
       match /boardPosts/{postId} {
         allow read: if true;
         allow create, delete: if request.auth != null;

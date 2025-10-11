@@ -3,6 +3,8 @@ import type CommonPermission from "~/common/scheme/CommonPermission";
 import { parseCommonPermission } from "~/common/scheme/CommonPermission";
 import type BoardPost from "~/app/scheme/BoardPost";
 import { parseBoardPost } from "~/app/scheme/BoardPost";
+import type BoardEvent from "~/app/scheme/BoardEvent";
+import { parseBoardEvent } from "~/app/scheme/BoardEvent";
 
 export const ownerDataStoreScheme: DataStoreScheme<
   CommonPermission,
@@ -14,11 +16,11 @@ export const ownerDataStoreScheme: DataStoreScheme<
 };
 
 export const boardEventDataStoreScheme: DataStoreScheme<
-  CommonPermission,
+  BoardEvent,
   { boardId: string }
 > = {
   name: "boardEvents",
-  parse: parseCommonPermission,
+  parse: parseBoardEvent,
   documentId: ({ boardId }) => boardId
 };
 
