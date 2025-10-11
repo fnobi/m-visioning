@@ -47,8 +47,5 @@ jobs:
       - name: install firebase tools
         run: npm -g install firebase-tools
 
-      - name: whoami
-        run: firebase login:list
-
       - name: deploy
         run: firebase deploy --project ${{ env.NEXT_PUBLIC_FIREBASE_PROJECT_ID }} --only hosting,firestore
