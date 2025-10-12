@@ -12,13 +12,13 @@ jobs:
       ACTIONS_BUILD_DIST: dist
       ACTIONS_LOCK_FILE: package-lock.json
 
-      NEXT_PUBLIC_SITE_ORIGIN: "https://board.fnobi.com"
-      NEXT_PUBLIC_FIREBASE_API_KEY: "AIzaSyChgUANl0kHf8sZpfIlUbAeeHiDKKeIVUQ"
-      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: "fnobi-kakikaki.firebaseapp.com"
-      NEXT_PUBLIC_FIREBASE_PROJECT_ID: "fnobi-kakikaki"
-      NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: "fnobi-kakikaki.firebasestorage.app"
-      NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: "211652633359"
-      NEXT_PUBLIC_FIREBASE_APP_ID: "1:211652633359:web:255108644ffc13a51c147a"
+      NEXT_PUBLIC_SITE_ORIGIN: "https://m-visioning.web.app"
+      NEXT_PUBLIC_FIREBASE_API_KEY: "AIzaSyDcXGainNXgKNCFztf9lDf-Ga8HtU7TtM4"
+      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: "m-visioning.firebaseapp.com"
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: "m-visioning"
+      NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: "m-visioning.firebasestorage.app"
+      NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: "964843675967"
+      NEXT_PUBLIC_FIREBASE_APP_ID: "1:964843675967:web:929f1ff4a79631aa68f38a"
 
       GOOGLE_APPLICATION_CREDENTIALS: ./service-account.json
 
