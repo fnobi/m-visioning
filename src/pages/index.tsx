@@ -1,7 +1,7 @@
 import MockCenteringLayout from "~/common/components/MockCenteringLayout";
 
 const PageIndex = () => (
-  <MockCenteringLayout>fnobi-kakikaki</MockCenteringLayout>
+  <MockCenteringLayout>m-visioning</MockCenteringLayout>
 );
 
 export default PageIndex;

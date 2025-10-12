@@ -5,7 +5,7 @@ import { PAGE_TOP } from "~/app/lib/page-path";
 import ASSETS_OGP from "~/assets/meta/ogp.png";
 import ASSETS_FAVICON from "~/assets/meta/favicon.ico";
 
-const DEFAULT_TITLE = "fnobi-kakikaki";
+const DEFAULT_TITLE = "m-visioning";
 const DEFAULT_DESCRIPTION = "自由に感想を書いてください。";
 const DEFAULT_KEYWORDS: string[] = [];
 
