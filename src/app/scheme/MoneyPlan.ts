@@ -1,8 +1,8 @@
 type MoneyNode =
   | { type: "bank"; bankId: string }
   | { type: "card"; cardId: string };
-export type FromMoneyNode = MoneyNode | { type: "input" };
-export type ToMoneyNode = MoneyNode | { type: "output" };
+type FromMoneyNode = MoneyNode | { type: "input" };
+type ToMoneyNode = MoneyNode | { type: "output" };
 
 type MoneyPlan = {
   label: string;
