@@ -10,16 +10,18 @@ import {
   MASTER_PLANS
 } from "~/app/lib/master-data";
 
+type TabEntry = { tabId: string; label: string };
+
 const TABS = [
   {
     tabId: "balance-table",
     label: "短期シミュレーション"
   },
   {
-    id: "plan-list",
+    tabId: "plan-list",
     label: "入出金予定一覧"
   }
-];
+] as const satisfies TabEntry[];
 
 const PageIndex = () => {
   const [currentTab, setCurrentTab] =
