@@ -105,27 +105,26 @@ const BankTableScene = ({
 
       let amount = baseAmount;
       let minDate = 0;
-      const rows = snapshotList
-        .map<{
-          id: string;
-          date: number;
-          label: string;
-          amount: number;
-          price: number;
-        }>(({ id, data }) => {
-          amount = data.amount;
-          minDate = data.timestamp;
+      const rows = [...snapshotList].reverse().map<{
+        id: string;
+        date: number;
+        label: string;
+        amount: number;
+        price: number;
+      }>(({ id, data }) => {
+        const diff = data.amount - amount;
+        amount = data.amount;
+        minDate = Math.max(minDate, data.timestamp);
 
-          // TODO: ほんとは、snapshotにココ用のrowを覚えさせて再現させたい
-          return {
-            id,
-            date: data.timestamp,
-            label: "snapshot",
-            amount,
-            price: 0
-          };
-        })
-        .reverse();
+        // TODO: ほんとは、snapshotにココ用のrowを覚えさせて再現させたい
+        return {
+          id,
+          date: data.timestamp,
+          label: "(snapshot)",
+          amount,
+          price: diff
+        };
+      });
 
       calcDayArray(startDate, daysCount).forEach(
         ({ date, year: cy, month: cm, day: cd }) => {

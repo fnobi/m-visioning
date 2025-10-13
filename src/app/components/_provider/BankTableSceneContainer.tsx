@@ -58,7 +58,9 @@ const BankTableSceneContainer = ({
   }, [bankId, bankList]);
 
   useEffect(() => {
-    setBaseDate(Date.now());
+    const d = new Date();
+    d.setDate(1); // TODO: 設定可能にしたい
+    setBaseDate(d.getTime());
   }, []);
 
   if (!bankId || !baseDate) {
