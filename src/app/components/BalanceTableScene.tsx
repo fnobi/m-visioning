@@ -8,6 +8,7 @@ import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
 import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
 import type MoneyPlan from "~/app/scheme/MoneyPlan";
 import type BankSnapshot from "~/app/scheme/BankSnapshot";
+import { type FromMoneyNode, type ToMoneyNode } from "~/app/scheme/MoneyPlan";
 
 const BalanceTableScene = ({
   bankList,
@@ -49,30 +50,42 @@ const BalanceTableScene = ({
     []
   );
 
-  const calcCardPeriodResult = useCallback(
-    (cardId: string, paymentYear: number, paymentMonth: number) => {
-      const card = cardList.find(c => c.id === cardId);
-      if (!card) {
-        return 0;
+  const matchMoneyNode = useCallback(
+    (n1: FromMoneyNode | ToMoneyNode, n2: FromMoneyNode | ToMoneyNode) => {
+      if (n1.type === "bank") {
+        return n2.type === "bank" && n1.bankId === n2.bankId;
       }
-      const d = new Date(paymentYear, paymentMonth - 1, card.data.startDay);
-      const termEnd = new Date(d);
-      termEnd.setMonth(termEnd.getMonth() - 1);
-      const termStart = new Date(termEnd);
-      termStart.setMonth(termStart.getMonth() - 1);
-      const length =
-        (termEnd.getTime() - termStart.getTime()) / (1000 * 60 * 60 * 24);
+      if (n1.type === "card") {
+        return n2.type === "card" && n1.cardId === n2.cardId;
+      }
+      return false;
+    },
+    []
+  );
 
-      let amount = 0;
-      calcDayArray(termStart.getTime(), length)
+  const calcRows = useCallback(
+    ({
+      baseAmount,
+      da,
+      nodeFilter,
+      sourcePlanList: list
+    }: {
+      baseAmount: number;
+      da: { date: number; year: number; month: number; day: number }[];
+      nodeFilter: FromMoneyNode;
+      sourcePlanList: TypedCollectionList<MoneyPlan>;
+    }) => {
+      let amount = baseAmount;
+      const rows = da
         .map(({ date, year: cy, month: cm, day: cd }) => {
           // TODO: 最新スナップショットより古い日付のときだけ処理
-          const plans = compact([
-            ...planList.map(({ id, data }) => {
-              const { year, month, day, from } = data;
+          const plans = compact(
+            list.map(({ id, data }) => {
+              const { year, month, day, from, to } = data;
+              const fromMatch = matchMoneyNode(from, nodeFilter);
+              const toMatch = matchMoneyNode(to, nodeFilter);
               const flag =
-                from.type === "card" &&
-                from.cardId === cardId &&
+                (fromMatch || toMatch) &&
                 (!year || year === cy) &&
                 (!month || month === cm) &&
                 (!day || day === cd);
@@ -81,19 +94,42 @@ const BalanceTableScene = ({
               }
 
               const { label, price: rawPrice } = data;
-              const price = -1 * rawPrice;
+              const price = (fromMatch ? -1 : 1) * rawPrice;
               amount += price;
-              return { id, date, label, price };
+              return { id, date, label, amount, price };
             })
-          ]);
+          );
 
           return plans;
         })
         .flat();
 
-      return amount;
+      return { rows, amount };
     },
-    [calcDayArray, cardList, planList]
+    [matchMoneyNode]
+  );
+
+  const calcCardPeriodResult = useCallback(
+    (cardId: string, paymentYear: number, paymentMonth: number) => {
+      const card = cardList.find(c => c.id === cardId);
+      if (!card) {
+        return { amount: 0, rows: [] };
+      }
+      const d = new Date(paymentYear, paymentMonth - 1, card.data.startDay);
+      const termEnd = new Date(d);
+      termEnd.setMonth(termEnd.getMonth() - 1);
+      const termStart = new Date(termEnd);
+      termStart.setMonth(termStart.getMonth() - 1);
+      const length =
+        (termEnd.getTime() - termStart.getTime()) / (1000 * 60 * 60 * 24);
+      return calcRows({
+        baseAmount: 0, // TODO
+        da: calcDayArray(termStart.getTime(), length),
+        nodeFilter: { type: "card", cardId },
+        sourcePlanList: planList
+      });
+    },
+    [calcDayArray, calcRows, cardList, planList]
   );
 
   const periodDays = useMemo(
@@ -110,11 +146,12 @@ const BalanceTableScene = ({
               if (data.startDay !== p.day || data.bankId !== bankId) {
                 return null;
               }
+              const { amount } = calcCardPeriodResult(id, p.year, p.month);
               return {
                 ...p,
                 cardId: id,
                 card: data,
-                price: calcCardPeriodResult(id, p.year, p.month)
+                price: amount
               };
             })
           )
@@ -123,75 +160,47 @@ const BalanceTableScene = ({
     [bankId, calcCardPeriodResult, cardList, periodDays]
   );
 
-  const calcBalanceRows = useCallback(
-    ({ baseAmount }: { baseAmount: number }) => {
-      const cardPaymentPlanList = bankId
-        ? cardTerms.map<{ id: string; data: MoneyPlan }>(
-            ({ cardId, card, price, date, year, month, day }) => ({
-              id: [date, cardId].join("_"),
-              data: {
-                year,
-                month,
-                day,
-                hour: 0,
-                minute: 0,
-                label: card.label,
-                price,
-                from: {
-                  type: "bank",
-                  bankId
-                },
-                to: {
-                  type: "output"
-                }
-              }
-            })
-          )
-        : [];
-      let amount = baseAmount;
-      return periodDays
-        .map(({ date, year: cy, month: cm, day: cd }) => {
-          // TODO: 最新スナップショットより古い日付のときだけ処理
-          const plans = compact([
-            ...[...planList, ...cardPaymentPlanList].map(({ id, data }) => {
-              const { year, month, day, from, to } = data;
-              const flag =
-                ((from.type === "bank" && from.bankId === bankId) ||
-                  (to.type === "bank" && to.bankId === bankId)) &&
-                (!year || year === cy) &&
-                (!month || month === cm) &&
-                (!day || day === cd);
-              if (!flag) {
-                return null;
-              }
-
-              const { label, price: rawPrice } = data;
-              const price =
-                (from.type === "bank" && from.bankId === bankId ? -1 : 1) *
-                rawPrice;
-              amount += price;
-              return { id, date, label, amount, price };
-            })
-          ]);
-
-          return plans;
-        })
-        .flat();
-    },
-    [bankId, cardTerms, periodDays, planList]
-  );
-
   const bankEvents = useMemo(() => {
-    if (!baseDate) {
-      return [];
+    if (!baseDate || !bankId) {
+      return { amount: 0, rows: [] };
     }
     const lastSnapshot = bankSnapshotList.find(
       ({ data }) => data.bankId === bankId
     );
-    return calcBalanceRows({
-      baseAmount: lastSnapshot ? lastSnapshot.data.price : 0
+    const cardPaymentPlanList = cardTerms.map<{
+      id: string;
+      data: MoneyPlan;
+    }>(({ cardId, card, date, ...params }) => ({
+      id: [date, cardId].join("_"),
+      data: {
+        ...params,
+        hour: 0,
+        minute: 0,
+        label: card.label,
+        from: {
+          type: "bank",
+          bankId
+        },
+        to: {
+          type: "output"
+        }
+      }
+    }));
+    return calcRows({
+      baseAmount: lastSnapshot ? lastSnapshot.data.price : 0,
+      da: periodDays,
+      nodeFilter: { type: "bank", bankId },
+      sourcePlanList: [...planList, ...cardPaymentPlanList]
     });
-  }, [bankId, bankSnapshotList, baseDate, calcBalanceRows]);
+  }, [
+    bankId,
+    bankSnapshotList,
+    baseDate,
+    calcRows,
+    cardTerms,
+    periodDays,
+    planList
+  ]);
 
   useEffect(() => {
     setBaseDate(Date.now());
@@ -222,7 +231,7 @@ const BalanceTableScene = ({
             gridTemplateColumns: em(4, "auto", 6, 6)
           }}
         >
-          {bankEvents.map(({ date, id, label, price, amount }) => (
+          {bankEvents.rows.map(({ date, id, label, price, amount }) => (
             <Fragment key={[date, id].join("_")}>
               <p>{formatDateLabel(date)}</p>
               <p>{label}</p>
