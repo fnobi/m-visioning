@@ -1,59 +1,55 @@
-import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, useCallback, useMemo } from "react";
 import { compact, makeArray } from "~/common/lib/array-util";
 import { em } from "~/common/lib/css-util";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import { formatDateLabel } from "~/common/lib/date-util";
-import MockLoadingScene from "~/common/components/MockLoadingScene";
-import MockActionButton from "~/common/components/MockActionButton";
-import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
 import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
 import type MoneyPlan from "~/app/scheme/MoneyPlan";
 import type BankSnapshot from "~/app/scheme/BankSnapshot";
 import { type FromMoneyNode, type ToMoneyNode } from "~/app/scheme/MoneyPlan";
 import type CardSnapshot from "~/app/scheme/CardSnapshot";
 
-const BalanceTableScene = ({
-  bankList,
+export const calcDayArray = (st: number, length: number) =>
+  makeArray(length).map((z, i) => {
+    const date = st + 1000 * 60 * 60 * 24 * i;
+    const d = new Date(date);
+    return {
+      date,
+      year: d.getFullYear(),
+      month: d.getMonth() + 1,
+      day: d.getDate()
+    };
+  });
+
+const BankTableScene = ({
+  bankId,
+  cardTerms1,
+  periodDays,
   cardList,
   planList,
   bankSnapshotList,
   cardSnapshotList
 }: {
-  bankList: TypedCollectionList<MoneyBankAccount>;
+  bankId: string;
+  cardTerms1: {
+    cardId: string;
+    card: MoneyCardAccount;
+    year: number;
+    month: number;
+    day: number;
+    // date: number;
+  }[];
+  periodDays: {
+    year: number;
+    month: number;
+    day: number;
+    date: number;
+  }[];
   cardList: TypedCollectionList<MoneyCardAccount>;
   planList: TypedCollectionList<MoneyPlan>;
   bankSnapshotList: TypedCollectionList<BankSnapshot>;
   cardSnapshotList: TypedCollectionList<CardSnapshot>;
 }) => {
-  const [baseDate, setBaseDate] = useState(0);
-  const [periodLength, setPeriodLength] = useState(60);
-  const [bankId, setBankId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const [first] = bankList;
-    if (!first) {
-      return;
-    }
-    if (!bankId || !bankList.find(({ id }) => id === bankId)) {
-      setBankId(first.id);
-    }
-  }, [bankId, bankList]);
-
-  const calcDayArray = useCallback(
-    (st: number, length: number) =>
-      makeArray(length).map((z, i) => {
-        const date = st + 1000 * 60 * 60 * 24 * i;
-        const d = new Date(date);
-        return {
-          date,
-          year: d.getFullYear(),
-          month: d.getMonth() + 1,
-          day: d.getDate()
-        };
-      }),
-    []
-  );
-
   const matchMoneyNode = useCallback(
     (n1: FromMoneyNode | ToMoneyNode, n2: FromMoneyNode | ToMoneyNode) => {
       if (n1.type === "bank") {
@@ -143,54 +139,37 @@ const BalanceTableScene = ({
       });
       return { rows, amount };
     },
-    [calcDayArray, calcRows, cardList, cardSnapshotList, planList]
-  );
-
-  const periodDays = useMemo(
-    () => (baseDate ? calcDayArray(baseDate, periodLength) : []),
-    [baseDate, calcDayArray, periodLength]
+    [calcRows, cardList, cardSnapshotList, planList]
   );
 
   const cardTerms = useMemo(
     () =>
-      periodDays
-        .map(p =>
-          compact(
-            cardList.map(({ id, data }) => {
-              if (data.startDay !== p.day || data.bankId !== bankId) {
-                return null;
-              }
-              const { amount } = calcCardPeriodResult(id, p.year, p.month);
-              return {
-                ...p,
-                cardId: id,
-                card: data,
-                price: amount
-              };
-            })
-          )
-        )
-        .flat(),
-    [bankId, calcCardPeriodResult, cardList, periodDays]
+      cardTerms1.map(p => {
+        const { amount } = calcCardPeriodResult(p.cardId, p.year, p.month);
+        return {
+          ...p,
+          price: amount
+        };
+      }),
+    [calcCardPeriodResult, cardTerms1]
   );
 
   const bankEvents = useMemo(() => {
-    if (!baseDate || !bankId) {
-      return { amount: 0, rows: [] };
-    }
     const lastSnapshot = bankSnapshotList.find(
       ({ data }) => data.bankId === bankId
     );
     const cardPaymentPlanList = cardTerms.map<{
       id: string;
       data: MoneyPlan;
-    }>(({ cardId, card, date, price, ...params }) => ({
-      id: [date, cardId].join("_"),
+    }>(({ cardId, card, year, month, day, price }) => ({
+      id: [year, month, cardId].join("_"),
       data: {
-        ...params,
-        price: -price,
+        year,
+        month,
+        day,
         hour: 0,
         minute: 0,
+        price: -price,
         label: card.label,
         from: {
           type: "bank",
@@ -207,67 +186,25 @@ const BalanceTableScene = ({
       nodeFilter: { type: "bank", bankId },
       sourcePlanList: [...planList, ...cardPaymentPlanList]
     });
-  }, [
-    bankId,
-    bankSnapshotList,
-    baseDate,
-    calcRows,
-    cardTerms,
-    periodDays,
-    planList
-  ]);
-
-  useEffect(() => {
-    setBaseDate(Date.now());
-  }, []);
-
-  if (!baseDate) {
-    return <MockLoadingScene />;
-  }
+  }, [bankId, bankSnapshotList, calcRows, cardTerms, periodDays, planList]);
 
   return (
-    <>
-      {bankId ? (
-        <p>
-          <select value={bankId} onChange={e => setBankId(e.target.value)}>
-            {bankList.map(({ id, data }) => (
-              <option key={id} value={id}>
-                {data.label}
-              </option>
-            ))}
-          </select>
-        </p>
-      ) : null}
-      <div>
-        <p>▼通帳</p>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: em(4, "auto", 6, 6)
-          }}
-        >
-          {bankEvents.rows.map(({ date, id, label, price, amount }) => (
-            <Fragment key={[date, id].join("_")}>
-              <p>{formatDateLabel(date)}</p>
-              <p>{label}</p>
-              <p style={{ textAlign: "right" }}>{price}</p>
-              <p style={{ textAlign: "right" }}>{amount}</p>
-            </Fragment>
-          ))}
-        </div>
-      </div>
-      <div>
-        <MockActionButton
-          action={{
-            type: "button",
-            onClick: () => setPeriodLength(l => l + 30)
-          }}
-        >
-          30日分追加
-        </MockActionButton>
-      </div>
-    </>
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: em(4, "auto", 6, 6)
+      }}
+    >
+      {bankEvents.rows.map(({ date, id, label, price, amount }) => (
+        <Fragment key={[date, id].join("_")}>
+          <p>{formatDateLabel(date)}</p>
+          <p>{label}</p>
+          <p style={{ textAlign: "right" }}>{price}</p>
+          <p style={{ textAlign: "right" }}>{amount}</p>
+        </Fragment>
+      ))}
+    </div>
   );
 };
 
-export default BalanceTableScene;
+export default BankTableScene;

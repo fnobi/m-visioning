@@ -1,15 +1,13 @@
 import { Fragment, useState } from "react";
 import MockStaticLayout from "~/common/components/MockStaticLayout";
 import MockActionButton from "~/common/components/MockActionButton";
-import BalanceTableScene from "~/app/components/BalanceTableScene";
 import PlanListScene from "~/app/components/PlanListScene";
 import {
-  MASTER_BANK_SNAPSHOT,
-  MASTER_CARD_SNAPSHOT,
   MASTER_MONEY_BANKS,
   MASTER_MONEY_CARDS,
   MASTER_PLANS
 } from "~/app/lib/master-data";
+import BankTableSceneContainer from "~/app/components/_provider/BankTableSceneContainer";
 
 type TabEntry = { tabId: string; label: string };
 
@@ -46,12 +44,10 @@ const PageIndex = () => {
         ))}
       </p>
       {currentTab === "balance-table" ? (
-        <BalanceTableScene
+        <BankTableSceneContainer
           bankList={MASTER_MONEY_BANKS}
           cardList={MASTER_MONEY_CARDS}
           planList={MASTER_PLANS}
-          bankSnapshotList={MASTER_BANK_SNAPSHOT}
-          cardSnapshotList={MASTER_CARD_SNAPSHOT}
         />
       ) : null}
       {currentTab === "plan-list" ? (
