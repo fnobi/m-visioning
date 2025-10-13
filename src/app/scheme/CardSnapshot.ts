@@ -1,7 +1,7 @@
-type BankSnapshot = {
+type CardSnapshot = {
   cardId: string;
   timestamp: number;
   amount: number;
 };
 
-export default BankSnapshot;
+export default CardSnapshot;

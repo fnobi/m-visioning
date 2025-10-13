@@ -31,6 +31,7 @@ const BankTableScene = ({
   periodLength,
   planList,
   bankSnapshotList,
+  lastBankSnapshot,
   cardSnapshotList
 }: {
   bankId: string;
@@ -45,6 +46,7 @@ const BankTableScene = ({
   periodLength: number;
   planList: TypedCollectionList<MoneyPlan>;
   bankSnapshotList: TypedCollectionList<BankSnapshot>;
+  lastBankSnapshot: BankSnapshot | null;
   cardSnapshotList: TypedCollectionList<CardSnapshot>;
 }) => {
   const matchMoneyNode = useCallback(
@@ -83,25 +85,6 @@ const BankTableScene = ({
         const toMatch = matchMoneyNode(to, nodeFilter);
         return fromMatch || toMatch;
       });
-
-      // 前提： daysに対応する集計範囲のsnapshotは全部もらう
-      // snapshotを古いものから順にrowsに起こしていく。
-      // 最新のsnapshotよりさらに新しいeventをplanから組み立てられるようであれば、付け加える
-      // snapshotがある範疇は事実ベースで・ないところはplanベースで組み立てるということになる
-      //
-      // # cardの場合
-      // 初期値はかならず0
-      // 期間外のsnapshotが影響する可能性は全く無いのでシンプルではある
-      //
-      // # bankの場合
-      // 初期値は、 **daysの開始日より前の** いちばんあたらしいsnapshotから取るべき。なかったら0でいい。
-      // これだけ、期間外のsnapshotを（1件でよいけど）取ってくる必要がある
-      //
-      // 結論、大枠では期間中のsnapshotを全部取ってくるという形で処理できる。
-      // ただし、cardで集計するべき期間がベースの期間とは別で動的なのと、
-      // bankについては1件だけ期間外を引っ張ってくる必要があるのが注意点
-      //
-      // あとたぶんdays配列をバカ丁寧に追っていく形じゃなくてもいいよな
 
       let amount = baseAmount;
       let minDate = 0;
@@ -189,19 +172,6 @@ const BankTableScene = ({
   );
 
   const bankEvents = useMemo(() => {
-    // TODO: このへんの絞り込みはサーバー検索側で
-    const startDate = baseDate;
-    const endDate = startDate + periodLength * 1000 * 60 * 60 * 24;
-    const snapshotList = bankSnapshotList.filter(
-      ({ data }) =>
-        data.bankId === bankId &&
-        data.timestamp >= startDate &&
-        data.timestamp < endDate
-    );
-    const lastSnapshot = bankSnapshotList.find(
-      ({ data }) => data.bankId === bankId && data.timestamp < startDate
-    );
-
     const cardPaymentPlanList = cardAmount.map<{
       id: string;
       data: MoneyPlan;
@@ -225,15 +195,16 @@ const BankTableScene = ({
       }
     }));
     return calcRows({
-      baseAmount: lastSnapshot ? lastSnapshot.data.amount : 0,
-      snapshotList,
-      startDate,
+      baseAmount: lastBankSnapshot ? lastBankSnapshot.amount : 0,
+      snapshotList: bankSnapshotList,
+      startDate: baseDate,
       daysCount: periodLength,
       nodeFilter: { type: "bank", bankId },
       sourcePlanList: [...planList, ...cardPaymentPlanList]
     });
   }, [
     bankId,
+    lastBankSnapshot,
     bankSnapshotList,
     baseDate,
     calcRows,

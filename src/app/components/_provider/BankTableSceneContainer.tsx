@@ -14,6 +14,7 @@ import {
 } from "~/app/lib/master-data";
 import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
 import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
+import type BankSnapshot from "~/app/scheme/BankSnapshot";
 
 const BankTableSceneContainer = ({
   bankList,
@@ -26,6 +27,35 @@ const BankTableSceneContainer = ({
   const [baseDate, setBaseDate] = useState(0);
   const [periodLength, setPeriodLength] = useState(60);
   const [bankId, setBankId] = useState<string | null>(null);
+
+  const [bankSnapshotList, setBankSnapshotList] =
+    useState<TypedCollectionList<BankSnapshot> | null>(null);
+  const [lastBankSnapshot, setLastBankSnapshot] = useState<BankSnapshot | null>(
+    null
+  );
+
+  useEffect(() => {
+    const startDate = baseDate;
+    const endDate = startDate + periodLength * 1000 * 60 * 60 * 24;
+
+    // TODO: サーバーから取得
+    const snapshotList = MASTER_BANK_SNAPSHOT.filter(
+      ({ data }) =>
+        data.bankId === bankId &&
+        data.timestamp >= startDate &&
+        data.timestamp < endDate
+    );
+    setBankSnapshotList(snapshotList);
+  }, [bankId, baseDate, periodLength]);
+
+  useEffect(() => {
+    // TODO: サーバーから取得
+    const lastSnapshot = MASTER_BANK_SNAPSHOT.filter(
+      ({ data }) => data.bankId === bankId && data.timestamp < baseDate
+    );
+    const [first] = lastSnapshot;
+    setLastBankSnapshot(first ? first.data : null);
+  }, [bankId, baseDate]);
 
   const cardTerms = useMemo(() => {
     const periodDays = baseDate ? calcDayArray(baseDate, periodLength) : [];
@@ -63,7 +93,7 @@ const BankTableSceneContainer = ({
     setBaseDate(d.getTime());
   }, []);
 
-  if (!bankId || !baseDate) {
+  if (!bankId || !baseDate || !bankSnapshotList) {
     return <p>loading...</p>;
   }
 
@@ -86,7 +116,8 @@ const BankTableSceneContainer = ({
         baseDate={baseDate}
         periodLength={periodLength}
         cardTerms={cardTerms}
-        bankSnapshotList={MASTER_BANK_SNAPSHOT}
+        bankSnapshotList={bankSnapshotList}
+        lastBankSnapshot={lastBankSnapshot}
         cardSnapshotList={MASTER_CARD_SNAPSHOT}
       />
       <div>
