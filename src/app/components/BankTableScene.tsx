@@ -1,5 +1,5 @@
 import { Fragment, useCallback, useMemo } from "react";
-import { compact, makeArray } from "~/common/lib/array-util";
+import { makeArray } from "~/common/lib/array-util";
 import { em } from "~/common/lib/css-util";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import { formatDateLabel } from "~/common/lib/date-util";
@@ -21,31 +21,28 @@ export const calcDayArray = (st: number, length: number) =>
     };
   });
 
+export const calcRangeDayArray = (st: number, end: number) =>
+  calcDayArray(st, (end - st) / (1000 * 60 * 60 * 24));
+
 const BankTableScene = ({
   bankId,
-  cardTerms1,
-  periodDays,
-  cardList,
+  cardTerms,
+  baseDate,
+  periodLength,
   planList,
   bankSnapshotList,
   cardSnapshotList
 }: {
   bankId: string;
-  cardTerms1: {
+  cardTerms: {
     cardId: string;
     card: MoneyCardAccount;
     year: number;
     month: number;
     day: number;
-    // date: number;
   }[];
-  periodDays: {
-    year: number;
-    month: number;
-    day: number;
-    date: number;
-  }[];
-  cardList: TypedCollectionList<MoneyCardAccount>;
+  baseDate: number;
+  periodLength: number;
   planList: TypedCollectionList<MoneyPlan>;
   bankSnapshotList: TypedCollectionList<BankSnapshot>;
   cardSnapshotList: TypedCollectionList<CardSnapshot>;
@@ -65,103 +62,151 @@ const BankTableScene = ({
 
   const calcRows = useCallback(
     ({
-      lastSnapshot,
-      da,
+      startDate,
+      daysCount,
+      baseAmount,
+      snapshotList,
       nodeFilter,
       sourcePlanList
     }: {
-      // TODO: planを計算すべきかどうかの基準点と、全体の起算にすべき値はcardの場合別である
-      lastSnapshot: BankSnapshot | CardSnapshot | null;
-      da: { date: number; year: number; month: number; day: number }[];
+      startDate: number;
+      daysCount: number;
+      baseAmount: number;
+      snapshotList: TypedCollectionList<BankSnapshot | CardSnapshot>;
+      // TODO: cardId/bankIdで絞り込み済みのplanListを渡すようにして、1個にまとめたい
       nodeFilter: FromMoneyNode;
       sourcePlanList: TypedCollectionList<MoneyPlan>;
     }) => {
-      let amount = lastSnapshot ? lastSnapshot.price : 0;
-      const rows = da
-        .map(({ date, year: cy, month: cm, day: cd }) => {
-          if (lastSnapshot && lastSnapshot.timestamp >= date) {
-            return [];
-          }
-          const plans = compact(
-            sourcePlanList.map(({ id, data }) => {
-              const { year, month, day, from, to } = data;
-              const fromMatch = matchMoneyNode(from, nodeFilter);
-              const toMatch = matchMoneyNode(to, nodeFilter);
-              const flag =
-                (fromMatch || toMatch) &&
-                (!year || year === cy) &&
-                (!month || month === cm) &&
-                (!day || day === cd);
-              if (!flag) {
-                return null;
-              }
+      const sourcePlanList2 = sourcePlanList.filter(({ data }) => {
+        const { from, to } = data;
+        const fromMatch = matchMoneyNode(from, nodeFilter);
+        const toMatch = matchMoneyNode(to, nodeFilter);
+        return fromMatch || toMatch;
+      });
 
-              const { label, price: rawPrice } = data;
-              const price = (fromMatch ? -1 : 1) * rawPrice;
-              amount += price;
-              return { id, date, label, amount, price };
-            })
-          );
+      // 前提： daysに対応する集計範囲のsnapshotは全部もらう
+      // snapshotを古いものから順にrowsに起こしていく。
+      // 最新のsnapshotよりさらに新しいeventをplanから組み立てられるようであれば、付け加える
+      // snapshotがある範疇は事実ベースで・ないところはplanベースで組み立てるということになる
+      //
+      // # cardの場合
+      // 初期値はかならず0
+      // 期間外のsnapshotが影響する可能性は全く無いのでシンプルではある
+      //
+      // # bankの場合
+      // 初期値は、 **daysの開始日より前の** いちばんあたらしいsnapshotから取るべき。なかったら0でいい。
+      // これだけ、期間外のsnapshotを（1件でよいけど）取ってくる必要がある
+      //
+      // 結論、大枠では期間中のsnapshotを全部取ってくるという形で処理できる。
+      // ただし、cardで集計するべき期間がベースの期間とは別で動的なのと、
+      // bankについては1件だけ期間外を引っ張ってくる必要があるのが注意点
+      //
+      // あとたぶんdays配列をバカ丁寧に追っていく形じゃなくてもいいよな
 
-          return plans;
+      let amount = baseAmount;
+      let minDate = 0;
+      const rows = snapshotList
+        .map<{
+          id: string;
+          date: number;
+          label: string;
+          amount: number;
+          price: number;
+        }>(({ id, data }) => {
+          amount = data.amount;
+          minDate = data.timestamp;
+
+          // TODO: ほんとは、snapshotにココ用のrowを覚えさせて再現させたい
+          return {
+            id,
+            date: data.timestamp,
+            label: "snapshot",
+            amount,
+            price: 0
+          };
         })
-        .flat();
+        .reverse();
+
+      calcDayArray(startDate, daysCount).forEach(
+        ({ date, year: cy, month: cm, day: cd }) => {
+          if (minDate >= date) {
+            return;
+          }
+          sourcePlanList2.forEach(({ id, data }) => {
+            const { year, month, day, from } = data;
+            const flag =
+              (!year || year === cy) &&
+              (!month || month === cm) &&
+              (!day || day === cd);
+            if (!flag) {
+              return;
+            }
+
+            const { label, price: rawPrice } = data;
+            const price =
+              (matchMoneyNode(from, nodeFilter) ? -1 : 1) * rawPrice;
+            amount += price;
+            rows.push({ id, date, label, amount, price });
+          });
+        }
+      );
 
       return { rows, amount };
     },
     [matchMoneyNode]
   );
 
-  const calcCardPeriodResult = useCallback(
-    (cardId: string, paymentYear: number, paymentMonth: number) => {
-      const card = cardList.find(c => c.id === cardId);
-      if (!card) {
-        return { amount: 0, rows: [] };
-      }
-      const d = new Date(paymentYear, paymentMonth - 1, card.data.startDay);
-      const termEnd = new Date(d);
-      termEnd.setMonth(termEnd.getMonth() - 1);
-      const termStart = new Date(termEnd);
-      termStart.setMonth(termStart.getMonth() - 1);
-      const length =
-        (termEnd.getTime() - termStart.getTime()) / (1000 * 60 * 60 * 24);
-      const lastSnapshot = cardSnapshotList.find(
-        ({ data }) =>
-          data.cardId === cardId &&
-          data.timestamp >= termStart.getTime() &&
-          data.timestamp < termEnd.getTime()
-      );
-      const { rows, amount } = calcRows({
-        lastSnapshot: lastSnapshot ? lastSnapshot.data : null,
-        da: calcDayArray(termStart.getTime(), length),
-        nodeFilter: { type: "card", cardId },
-        sourcePlanList: planList
-      });
-      return { rows, amount };
-    },
-    [calcRows, cardList, cardSnapshotList, planList]
-  );
-
-  const cardTerms = useMemo(
+  const cardAmount = useMemo(
     () =>
-      cardTerms1.map(p => {
-        const { amount } = calcCardPeriodResult(p.cardId, p.year, p.month);
-        return {
-          ...p,
-          price: amount
-        };
+      cardTerms.map(p => {
+        const { cardId, card, year, month } = p;
+        const d = new Date(year, month - 1, card.startDay);
+        const termEnd = new Date(d);
+        termEnd.setMonth(termEnd.getMonth() - 1);
+        const termStart = new Date(termEnd);
+        termStart.setMonth(termStart.getMonth() - 1);
+        const length =
+          (termEnd.getTime() - termStart.getTime()) / (1000 * 60 * 60 * 24);
+
+        // TODO: このへんの検索はサーバー側で
+        const snapshotList = cardSnapshotList.filter(
+          ({ data }) =>
+            data.cardId === cardId &&
+            data.timestamp >= termStart.getTime() &&
+            data.timestamp < termEnd.getTime()
+        );
+
+        const { amount } = calcRows({
+          baseAmount: 0,
+          snapshotList,
+          startDate: termStart.getTime(),
+          daysCount: length,
+          nodeFilter: { type: "card", cardId },
+          sourcePlanList: planList
+        });
+        return { ...p, amount };
       }),
-    [calcCardPeriodResult, cardTerms1]
+    [calcRows, cardSnapshotList, cardTerms, planList]
   );
 
   const bankEvents = useMemo(() => {
-    const lastSnapshot = bankSnapshotList.find(
-      ({ data }) => data.bankId === bankId
+    // TODO: このへんの絞り込みはサーバー検索側で
+    const startDate = baseDate;
+    const endDate = startDate + periodLength * 1000 * 60 * 60 * 24;
+    const snapshotList = bankSnapshotList.filter(
+      ({ data }) =>
+        data.bankId === bankId &&
+        data.timestamp >= startDate &&
+        data.timestamp < endDate
     );
-    const cardPaymentPlanList = cardTerms.map<{
+    const lastSnapshot = bankSnapshotList.find(
+      ({ data }) => data.bankId === bankId && data.timestamp < startDate
+    );
+
+    const cardPaymentPlanList = cardAmount.map<{
       id: string;
       data: MoneyPlan;
-    }>(({ cardId, card, year, month, day, price }) => ({
+    }>(({ cardId, card, year, month, day, amount }) => ({
       id: [year, month, cardId].join("_"),
       data: {
         year,
@@ -169,7 +214,7 @@ const BankTableScene = ({
         day,
         hour: 0,
         minute: 0,
-        price: -price,
+        price: -amount,
         label: card.label,
         from: {
           type: "bank",
@@ -181,12 +226,22 @@ const BankTableScene = ({
       }
     }));
     return calcRows({
-      lastSnapshot: lastSnapshot ? lastSnapshot.data : null,
-      da: periodDays,
+      baseAmount: lastSnapshot ? lastSnapshot.data.amount : 0,
+      snapshotList,
+      startDate,
+      daysCount: periodLength,
       nodeFilter: { type: "bank", bankId },
       sourcePlanList: [...planList, ...cardPaymentPlanList]
     });
-  }, [bankId, bankSnapshotList, calcRows, cardTerms, periodDays, planList]);
+  }, [
+    bankId,
+    bankSnapshotList,
+    baseDate,
+    calcRows,
+    cardAmount,
+    periodLength,
+    planList
+  ]);
 
   return (
     <div

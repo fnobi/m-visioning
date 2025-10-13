@@ -13,6 +13,7 @@ import {
   MASTER_CARD_SNAPSHOT
 } from "~/app/lib/master-data";
 import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
+import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
 
 const BankTableSceneContainer = ({
   bankList,
@@ -20,39 +21,31 @@ const BankTableSceneContainer = ({
   planList
 }: {
   bankList: TypedCollectionList<MoneyBankAccount>;
-} & Pick<
-  ComponentPropsWithoutRef<typeof BankTableScene>,
-  "cardList" | "planList"
->) => {
+  cardList: TypedCollectionList<MoneyCardAccount>;
+} & Pick<ComponentPropsWithoutRef<typeof BankTableScene>, "planList">) => {
   const [baseDate, setBaseDate] = useState(0);
   const [periodLength, setPeriodLength] = useState(60);
   const [bankId, setBankId] = useState<string | null>(null);
 
-  const periodDays = useMemo(
-    () => (baseDate ? calcDayArray(baseDate, periodLength) : []),
-    [baseDate, periodLength]
-  );
-
-  const cardTerms1 = useMemo(
-    () =>
-      periodDays
-        .map(p =>
-          compact(
-            cardList.map(({ id, data }) => {
-              if (data.startDay !== p.day || data.bankId !== bankId) {
-                return null;
-              }
-              return {
-                ...p,
-                cardId: id,
-                card: data
-              };
-            })
-          )
+  const cardTerms = useMemo(() => {
+    const periodDays = baseDate ? calcDayArray(baseDate, periodLength) : [];
+    return periodDays
+      .map(p =>
+        compact(
+          cardList.map(({ id, data }) => {
+            if (data.startDay !== p.day || data.bankId !== bankId) {
+              return null;
+            }
+            return {
+              ...p,
+              cardId: id,
+              card: data
+            };
+          })
         )
-        .flat(),
-    [bankId, cardList, periodDays]
-  );
+      )
+      .flat();
+  }, [bankId, baseDate, cardList, periodLength]);
 
   useEffect(() => {
     const [first] = bankList;
@@ -87,10 +80,10 @@ const BankTableSceneContainer = ({
       ) : null}
       <BankTableScene
         bankId={bankId}
-        cardList={cardList}
         planList={planList}
-        periodDays={periodDays}
-        cardTerms1={cardTerms1}
+        baseDate={baseDate}
+        periodLength={periodLength}
+        cardTerms={cardTerms}
         bankSnapshotList={MASTER_BANK_SNAPSHOT}
         cardSnapshotList={MASTER_CARD_SNAPSHOT}
       />

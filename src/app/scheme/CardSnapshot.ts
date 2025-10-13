@@ -1,7 +1,7 @@
 type BankSnapshot = {
   cardId: string;
   timestamp: number;
-  price: number;
+  amount: number;
 };
 
 export default BankSnapshot;
