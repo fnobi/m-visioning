@@ -24,10 +24,10 @@ const BalanceTableScene = ({
   const [periodLength] = useState(60);
   const [bankId, setBankId] = useState(bankList[0].id);
 
-  const periodDays = useMemo(
-    () =>
-      makeArray(periodLength).map((z, i) => {
-        const date = baseDate + 1000 * 60 * 60 * 24 * i;
+  const calcDayArray = useCallback(
+    (st: number, length: number) =>
+      makeArray(length).map((z, i) => {
+        const date = st + 1000 * 60 * 60 * 24 * i;
         const d = new Date(date);
         return {
           date,
@@ -36,7 +36,59 @@ const BalanceTableScene = ({
           day: d.getDate()
         };
       }),
-    [baseDate, periodLength]
+    []
+  );
+
+  const calcCardPeriodResult = useCallback(
+    (cardId: string, paymentYear: number, paymentMonth: number) => {
+      const card = cardList.find(c => c.id === cardId);
+      if (!card) {
+        return 0;
+      }
+      const d = new Date(paymentYear, paymentMonth - 1, card.data.startDay);
+      const termEnd = new Date(d);
+      termEnd.setMonth(termEnd.getMonth() - 1);
+      const termStart = new Date(termEnd);
+      termStart.setMonth(termStart.getMonth() - 1);
+      const length =
+        (termEnd.getTime() - termStart.getTime()) / (1000 * 60 * 60 * 24);
+
+      let amount = 0;
+      calcDayArray(termStart.getTime(), length)
+        .map(({ date, year: cy, month: cm, day: cd }) => {
+          // TODO: 最新スナップショットより古い日付のときだけ処理
+          const plans = compact([
+            ...planList.map(({ id, data }) => {
+              const { year, month, day, from } = data;
+              const flag =
+                from.type === "card" &&
+                from.cardId === cardId &&
+                (!year || year === cy) &&
+                (!month || month === cm) &&
+                (!day || day === cd);
+              if (!flag) {
+                return null;
+              }
+
+              const { label, price: rawPrice } = data;
+              const price = -1 * rawPrice;
+              amount += price;
+              return { id, date, label, price };
+            })
+          ]);
+
+          return plans;
+        })
+        .flat();
+
+      return amount;
+    },
+    [calcDayArray, cardList, planList]
+  );
+
+  const periodDays = useMemo(
+    () => (baseDate ? calcDayArray(baseDate, periodLength) : []),
+    [baseDate, calcDayArray, periodLength]
   );
 
   const cardTerms = useMemo(
@@ -52,19 +104,19 @@ const BalanceTableScene = ({
                 ...p,
                 cardId: id,
                 card: data,
-                price: 0 // TODO
+                price: calcCardPeriodResult(id, p.year, p.month)
               };
             })
           )
         )
         .flat(),
-    [bankId, cardList, periodDays]
+    [bankId, calcCardPeriodResult, cardList, periodDays]
   );
 
   const calcBalanceRows = useCallback(
     ({ baseAmount }: { baseAmount: number }) => {
       let amount = baseAmount;
-      const aaa: TypedCollectionList<MoneyPlan> = [
+      const normalized: TypedCollectionList<MoneyPlan> = [
         ...planList,
         ...cardTerms.map(({ cardId, card, price, date, year, month, day }) => {
           const data: MoneyPlan = {
@@ -91,8 +143,9 @@ const BalanceTableScene = ({
       ];
       return periodDays
         .map(({ date, year: cy, month: cm, day: cd }) => {
+          // TODO: 最新スナップショットより古い日付のときだけ処理
           const plans = compact([
-            ...aaa.map(({ id, data }) => {
+            ...normalized.map(({ id, data }) => {
               const { year, month, day, from, to } = data;
               const flag =
                 ((from.type === "bank" && from.bankId === bankId) ||
