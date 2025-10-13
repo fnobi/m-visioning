@@ -5,6 +5,7 @@ import BalanceTableScene from "~/app/components/BalanceTableScene";
 import PlanListScene from "~/app/components/PlanListScene";
 import {
   MASTER_BANK_SNAPSHOT,
+  MASTER_CARD_SNAPSHOT,
   MASTER_MONEY_BANKS,
   MASTER_MONEY_CARDS,
   MASTER_PLANS
@@ -48,8 +49,9 @@ const PageIndex = () => {
         <BalanceTableScene
           bankList={MASTER_MONEY_BANKS}
           cardList={MASTER_MONEY_CARDS}
-          bankSnapshotList={MASTER_BANK_SNAPSHOT}
           planList={MASTER_PLANS}
+          bankSnapshotList={MASTER_BANK_SNAPSHOT}
+          cardSnapshotList={MASTER_CARD_SNAPSHOT}
         />
       ) : null}
       {currentTab === "plan-list" ? (

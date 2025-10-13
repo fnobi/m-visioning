@@ -9,17 +9,20 @@ import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
 import type MoneyPlan from "~/app/scheme/MoneyPlan";
 import type BankSnapshot from "~/app/scheme/BankSnapshot";
 import { type FromMoneyNode, type ToMoneyNode } from "~/app/scheme/MoneyPlan";
+import type CardSnapshot from "~/app/scheme/CardSnapshot";
 
 const BalanceTableScene = ({
   bankList,
   cardList,
   planList,
-  bankSnapshotList
+  bankSnapshotList,
+  cardSnapshotList
 }: {
   bankList: TypedCollectionList<MoneyBankAccount>;
   cardList: TypedCollectionList<MoneyCardAccount>;
   planList: TypedCollectionList<MoneyPlan>;
   bankSnapshotList: TypedCollectionList<BankSnapshot>;
+  cardSnapshotList: TypedCollectionList<CardSnapshot>;
 }) => {
   const [baseDate, setBaseDate] = useState(0);
   const [periodLength] = useState(60);
@@ -65,22 +68,25 @@ const BalanceTableScene = ({
 
   const calcRows = useCallback(
     ({
-      baseAmount,
+      lastSnapshot,
       da,
       nodeFilter,
-      sourcePlanList: list
+      sourcePlanList
     }: {
-      baseAmount: number;
+      // TODO: planを計算すべきかどうかの基準点と、全体の起算にすべき値はcardの場合別である
+      lastSnapshot: BankSnapshot | CardSnapshot | null;
       da: { date: number; year: number; month: number; day: number }[];
       nodeFilter: FromMoneyNode;
       sourcePlanList: TypedCollectionList<MoneyPlan>;
     }) => {
-      let amount = baseAmount;
+      let amount = lastSnapshot ? lastSnapshot.price : 0;
       const rows = da
         .map(({ date, year: cy, month: cm, day: cd }) => {
-          // TODO: 最新スナップショットより古い日付のときだけ処理
+          if (lastSnapshot && lastSnapshot.timestamp >= date) {
+            return [];
+          }
           const plans = compact(
-            list.map(({ id, data }) => {
+            sourcePlanList.map(({ id, data }) => {
               const { year, month, day, from, to } = data;
               const fromMatch = matchMoneyNode(from, nodeFilter);
               const toMatch = matchMoneyNode(to, nodeFilter);
@@ -122,14 +128,21 @@ const BalanceTableScene = ({
       termStart.setMonth(termStart.getMonth() - 1);
       const length =
         (termEnd.getTime() - termStart.getTime()) / (1000 * 60 * 60 * 24);
-      return calcRows({
-        baseAmount: 0, // TODO
+      const lastSnapshot = cardSnapshotList.find(
+        ({ data }) =>
+          data.cardId === cardId &&
+          data.timestamp >= termStart.getTime() &&
+          data.timestamp < termEnd.getTime()
+      );
+      const { rows, amount } = calcRows({
+        lastSnapshot: lastSnapshot ? lastSnapshot.data : null,
         da: calcDayArray(termStart.getTime(), length),
         nodeFilter: { type: "card", cardId },
         sourcePlanList: planList
       });
+      return { rows, amount };
     },
-    [calcDayArray, calcRows, cardList, planList]
+    [calcDayArray, calcRows, cardList, cardSnapshotList, planList]
   );
 
   const periodDays = useMemo(
@@ -170,10 +183,11 @@ const BalanceTableScene = ({
     const cardPaymentPlanList = cardTerms.map<{
       id: string;
       data: MoneyPlan;
-    }>(({ cardId, card, date, ...params }) => ({
+    }>(({ cardId, card, date, price, ...params }) => ({
       id: [date, cardId].join("_"),
       data: {
         ...params,
+        price: -price,
         hour: 0,
         minute: 0,
         label: card.label,
@@ -187,7 +201,7 @@ const BalanceTableScene = ({
       }
     }));
     return calcRows({
-      baseAmount: lastSnapshot ? lastSnapshot.data.price : 0,
+      lastSnapshot: lastSnapshot ? lastSnapshot.data : null,
       da: periodDays,
       nodeFilter: { type: "bank", bankId },
       sourcePlanList: [...planList, ...cardPaymentPlanList]
