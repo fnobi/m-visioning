@@ -4,6 +4,7 @@ import { em } from "~/common/lib/css-util";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import { formatDateLabel } from "~/common/lib/date-util";
 import MockLoadingScene from "~/common/components/MockLoadingScene";
+import MockActionButton from "~/common/components/MockActionButton";
 import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
 import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
 import type MoneyPlan from "~/app/scheme/MoneyPlan";
@@ -25,7 +26,7 @@ const BalanceTableScene = ({
   cardSnapshotList: TypedCollectionList<CardSnapshot>;
 }) => {
   const [baseDate, setBaseDate] = useState(0);
-  const [periodLength] = useState(60);
+  const [periodLength, setPeriodLength] = useState(60);
   const [bankId, setBankId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -254,6 +255,16 @@ const BalanceTableScene = ({
             </Fragment>
           ))}
         </div>
+      </div>
+      <div>
+        <MockActionButton
+          action={{
+            type: "button",
+            onClick: () => setPeriodLength(l => l + 30)
+          }}
+        >
+          30日分追加
+        </MockActionButton>
       </div>
     </>
   );
