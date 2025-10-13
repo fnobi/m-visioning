@@ -22,7 +22,17 @@ const BalanceTableScene = ({
 }) => {
   const [baseDate, setBaseDate] = useState(0);
   const [periodLength] = useState(60);
-  const [bankId, setBankId] = useState(bankList[0].id);
+  const [bankId, setBankId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const [first] = bankList;
+    if (!first) {
+      return;
+    }
+    if (!bankId || !bankList.find(({ id }) => id === bankId)) {
+      setBankId(first.id);
+    }
+  }, [bankId, bankList]);
 
   const calcDayArray = useCallback(
     (st: number, length: number) =>
@@ -115,37 +125,35 @@ const BalanceTableScene = ({
 
   const calcBalanceRows = useCallback(
     ({ baseAmount }: { baseAmount: number }) => {
+      const cardPaymentPlanList = bankId
+        ? cardTerms.map<{ id: string; data: MoneyPlan }>(
+            ({ cardId, card, price, date, year, month, day }) => ({
+              id: [date, cardId].join("_"),
+              data: {
+                year,
+                month,
+                day,
+                hour: 0,
+                minute: 0,
+                label: card.label,
+                price,
+                from: {
+                  type: "bank",
+                  bankId
+                },
+                to: {
+                  type: "output"
+                }
+              }
+            })
+          )
+        : [];
       let amount = baseAmount;
-      const normalized: TypedCollectionList<MoneyPlan> = [
-        ...planList,
-        ...cardTerms.map(({ cardId, card, price, date, year, month, day }) => {
-          const data: MoneyPlan = {
-            year,
-            month,
-            day,
-            hour: 0,
-            minute: 0,
-            label: card.label,
-            price,
-            from: {
-              type: "bank",
-              bankId
-            },
-            to: {
-              type: "output"
-            }
-          };
-          return {
-            id: [date, cardId].join("_"),
-            data
-          };
-        })
-      ];
       return periodDays
         .map(({ date, year: cy, month: cm, day: cd }) => {
           // TODO: 最新スナップショットより古い日付のときだけ処理
           const plans = compact([
-            ...normalized.map(({ id, data }) => {
+            ...[...planList, ...cardPaymentPlanList].map(({ id, data }) => {
               const { year, month, day, from, to } = data;
               const flag =
                 ((from.type === "bank" && from.bankId === bankId) ||
@@ -195,15 +203,17 @@ const BalanceTableScene = ({
 
   return (
     <>
-      <p>
-        <select value={bankId} onChange={e => setBankId(e.target.value)}>
-          {bankList.map(({ id, data }) => (
-            <option key={id} value={id}>
-              {data.label}
-            </option>
-          ))}
-        </select>
-      </p>
+      {bankId ? (
+        <p>
+          <select value={bankId} onChange={e => setBankId(e.target.value)}>
+            {bankList.map(({ id, data }) => (
+              <option key={id} value={id}>
+                {data.label}
+              </option>
+            ))}
+          </select>
+        </p>
+      ) : null}
       <div>
         <p>▼通帳</p>
         <div
