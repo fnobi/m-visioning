@@ -1,9 +1,8 @@
 import { Fragment, useCallback, useMemo } from "react";
-import { makeArray } from "~/common/lib/array-util";
+import { compact, makeArray } from "~/common/lib/array-util";
 import { em } from "~/common/lib/css-util";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import { formatDateLabel } from "~/common/lib/date-util";
-import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
 import type MoneyPlan from "~/app/scheme/MoneyPlan";
 import type BankSnapshot from "~/app/scheme/BankSnapshot";
 import { type FromMoneyNode, type ToMoneyNode } from "~/app/scheme/MoneyPlan";
@@ -31,23 +30,24 @@ const BankTableScene = ({
   periodLength,
   planList,
   bankSnapshotList,
-  lastBankSnapshot,
-  cardSnapshotList
+  lastBankSnapshot
 }: {
   bankId: string;
   cardTerms: {
     cardId: string;
-    card: MoneyCardAccount;
     year: number;
     month: number;
     day: number;
+    label: string;
+    termStart: number;
+    termEnd: number;
+    snapshotList: TypedCollectionList<CardSnapshot>;
   }[];
   baseDate: number;
   periodLength: number;
   planList: TypedCollectionList<MoneyPlan>;
   bankSnapshotList: TypedCollectionList<BankSnapshot>;
   lastBankSnapshot: BankSnapshot | null;
-  cardSnapshotList: TypedCollectionList<CardSnapshot>;
 }) => {
   const matchMoneyNode = useCallback(
     (n1: FromMoneyNode | ToMoneyNode, n2: FromMoneyNode | ToMoneyNode) => {
@@ -79,12 +79,19 @@ const BankTableScene = ({
       nodeFilter: FromMoneyNode;
       sourcePlanList: TypedCollectionList<MoneyPlan>;
     }) => {
-      const sourcePlanList2 = sourcePlanList.filter(({ data }) => {
-        const { from, to } = data;
-        const fromMatch = matchMoneyNode(from, nodeFilter);
-        const toMatch = matchMoneyNode(to, nodeFilter);
-        return fromMatch || toMatch;
-      });
+      const sourcePlanList2 = compact(
+        sourcePlanList.map(pair => {
+          const { id, data } = pair;
+          const { from, to } = data;
+          if (matchMoneyNode(to, nodeFilter)) {
+            return { id, data };
+          }
+          if (matchMoneyNode(from, nodeFilter)) {
+            return { id, data: { ...data, price: -data.price } };
+          }
+          return null;
+        })
+      );
 
       let amount = baseAmount;
       let minDate = 0;
@@ -115,7 +122,7 @@ const BankTableScene = ({
             return;
           }
           sourcePlanList2.forEach(({ id, data }) => {
-            const { year, month, day, from } = data;
+            const { year, month, day, label, price } = data;
             const flag =
               (!year || year === cy) &&
               (!month || month === cm) &&
@@ -124,9 +131,6 @@ const BankTableScene = ({
               return;
             }
 
-            const { label, price: rawPrice } = data;
-            const price =
-              (matchMoneyNode(from, nodeFilter) ? -1 : 1) * rawPrice;
             amount += price;
             rows.push({ id, date, label, amount, price });
           });
@@ -140,43 +144,38 @@ const BankTableScene = ({
 
   const cardAmount = useMemo(
     () =>
-      cardTerms.map(p => {
-        const { cardId, card, year, month } = p;
-        const d = new Date(year, month - 1, card.startDay);
-        const termEnd = new Date(d);
-        termEnd.setMonth(termEnd.getMonth() - 1);
-        const termStart = new Date(termEnd);
-        termStart.setMonth(termStart.getMonth() - 1);
-        const length =
-          (termEnd.getTime() - termStart.getTime()) / (1000 * 60 * 60 * 24);
-
-        // TODO: このへんの検索はサーバー側で
-        const snapshotList = cardSnapshotList.filter(
-          ({ data }) =>
-            data.cardId === cardId &&
-            data.timestamp >= termStart.getTime() &&
-            data.timestamp < termEnd.getTime()
-        );
-
-        const { amount } = calcRows({
-          baseAmount: 0,
-          snapshotList,
-          startDate: termStart.getTime(),
-          daysCount: length,
-          nodeFilter: { type: "card", cardId },
-          sourcePlanList: planList
-        });
-        return { ...p, amount };
-      }),
-    [calcRows, cardSnapshotList, cardTerms, planList]
+      cardTerms.map(
+        ({
+          cardId,
+          year,
+          month,
+          day,
+          label,
+          termStart,
+          termEnd,
+          snapshotList
+        }) => {
+          const key = [year, month, cardId].join("_");
+          const { amount } = calcRows({
+            baseAmount: 0,
+            snapshotList,
+            startDate: termStart,
+            daysCount: (termEnd - termStart) / (1000 * 60 * 60 * 24),
+            nodeFilter: { type: "card", cardId },
+            sourcePlanList: planList
+          });
+          return { key, year, month, day, label, amount };
+        }
+      ),
+    [calcRows, cardTerms, planList]
   );
 
   const bankEvents = useMemo(() => {
     const cardPaymentPlanList = cardAmount.map<{
       id: string;
       data: MoneyPlan;
-    }>(({ cardId, card, year, month, day, amount }) => ({
-      id: [year, month, cardId].join("_"),
+    }>(({ key, year, month, day, label, amount }) => ({
+      id: key,
       data: {
         year,
         month,
@@ -184,7 +183,7 @@ const BankTableScene = ({
         hour: 0,
         minute: 0,
         price: -amount,
-        label: card.label,
+        label,
         from: {
           type: "bank",
           bankId

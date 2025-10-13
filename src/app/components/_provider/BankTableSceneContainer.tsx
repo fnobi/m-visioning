@@ -57,25 +57,48 @@ const BankTableSceneContainer = ({
     setLastBankSnapshot(first ? first.data : null);
   }, [bankId, baseDate]);
 
-  const cardTerms = useMemo(() => {
-    const periodDays = baseDate ? calcDayArray(baseDate, periodLength) : [];
-    return periodDays
-      .map(p =>
-        compact(
-          cardList.map(({ id, data }) => {
-            if (data.startDay !== p.day || data.bankId !== bankId) {
-              return null;
-            }
-            return {
-              ...p,
-              cardId: id,
-              card: data
-            };
-          })
+  const cardTerms = useMemo(
+    () =>
+      (baseDate ? calcDayArray(baseDate, periodLength) : [])
+        .map(({ year, month, day }) =>
+          compact(
+            cardList.map(({ id, data: card }) => {
+              if (card.startDay !== day || card.bankId !== bankId) {
+                return null;
+              }
+
+              const d = new Date(year, month - 1, day);
+              const termEndDate = new Date(d);
+              termEndDate.setMonth(termEndDate.getMonth() - 1);
+              const termEnd = termEndDate.getTime();
+              const termStartDate = new Date(termEndDate);
+              termStartDate.setMonth(termStartDate.getMonth() - 1);
+              const termStart = termStartDate.getTime();
+
+              // TODO: サーバーから取る
+              const snapshotList = MASTER_CARD_SNAPSHOT.filter(
+                ({ data: snapshot }) =>
+                  snapshot.cardId === id &&
+                  snapshot.timestamp >= termStart &&
+                  snapshot.timestamp < termEnd
+              );
+
+              return {
+                cardId: id,
+                year,
+                month,
+                day,
+                label: card.label,
+                termStart,
+                termEnd,
+                snapshotList
+              };
+            })
+          )
         )
-      )
-      .flat();
-  }, [bankId, baseDate, cardList, periodLength]);
+        .flat(),
+    [bankId, baseDate, cardList, periodLength]
+  );
 
   useEffect(() => {
     const [first] = bankList;
@@ -118,7 +141,6 @@ const BankTableSceneContainer = ({
         cardTerms={cardTerms}
         bankSnapshotList={bankSnapshotList}
         lastBankSnapshot={lastBankSnapshot}
-        cardSnapshotList={MASTER_CARD_SNAPSHOT}
       />
       <div>
         <MockActionButton
