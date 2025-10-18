@@ -3,6 +3,8 @@ import MockStaticLayout from "~/common/components/MockStaticLayout";
 import MockActionButton from "~/common/components/MockActionButton";
 import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
 import MockLoadingScene from "~/common/components/MockLoadingScene";
+import BankSnapshotListScene from "~/app/components/_provider/BankSnapshotListScene";
+import CardSnapshotListScene from "~/app/components/_provider/CardSnapshotListScene";
 import CardListScene from "~/app/components/CardListScene";
 import ErrorScene from "~/app/components/ErrorScene";
 import PlanListScene from "~/app/components/PlanListScene";
@@ -31,6 +33,14 @@ const TABS = [
   {
     tabId: "card-list",
     label: "カード一覧"
+  },
+  {
+    tabId: "bank-snapshot-list",
+    label: "口座ログ一覧"
+  },
+  {
+    tabId: "card-snapshot-list",
+    label: "カードログ一覧"
   }
 ] as const satisfies TabEntry[];
 
@@ -103,6 +113,8 @@ const MVisionTopScene = () => {
           onDelete={deleteCardAccount}
         />
       ) : null}
+      {currentTab === "bank-snapshot-list" ? <BankSnapshotListScene /> : null}
+      {currentTab === "card-snapshot-list" ? <CardSnapshotListScene /> : null}
     </MockStaticLayout>
   );
 };
