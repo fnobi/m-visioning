@@ -1,0 +1,52 @@
+import { useCallback, useEffect, useState } from "react";
+import { ClientDataStoreAgent } from "~/common/lib/ClientDataStoreAgent";
+import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
+import { extractClientError } from "~/app/lib/client-error-utils";
+import { moneyPlanDataStoreScheme } from "~/app/scheme/app-data-store-scheme";
+import type MoneyPlan from "~/app/scheme/MoneyPlan";
+import { type AppErrorParameter } from "~/app/scheme/AppErrorParameter";
+import AppError from "~/app/scheme/AppError";
+
+const moneyPlanDataStore = new ClientDataStoreAgent(moneyPlanDataStoreScheme);
+
+type MoenPlanQueryParams = { limit?: number };
+
+// eslint-disable-next-line import/prefer-default-export
+export const useMoneyPlanList = ({
+  userId,
+  onError,
+  limit
+}: {
+  userId: string | null;
+  onError: (e: AppErrorParameter) => void;
+} & MoenPlanQueryParams) => {
+  const [list, setList] = useState<TypedCollectionList<MoneyPlan> | null>(null);
+
+  useEffect(() => {
+    setList(null);
+    if (!userId) {
+      return () => {};
+    }
+    return moneyPlanDataStore.subscribeList({
+      userId,
+      handler: setList,
+      onError: e => onError(extractClientError(e))
+    });
+  }, [userId, limit, onError]);
+
+  const writeMoneyPlan = useCallback(
+    (planId: string, data: MoneyPlan) => {
+      if (!userId) {
+        throw new AppError({ type: "bad-parameter" });
+      }
+      return moneyPlanDataStore.mergeItem({
+        userId,
+        planId,
+        data
+      });
+    },
+    [userId]
+  );
+
+  return { moneyPlanList: list, writeMoneyPlan };
+};

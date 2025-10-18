@@ -8,13 +8,22 @@ service cloud.firestore {
     match /admins/{userId} {
       allow read: if request.auth.uid == userId;
     }
-    match /boardEvents/{boardId} {
-      allow read: if true;
-      allow write: if isAdmin();
-      match /boardPosts/{postId} {
-        allow read: if true;
-        allow create, delete: if request.auth != null;
-        allow write: if isAdmin();
+    match /users/{userId} {
+      allow read: if request.auth.uid == userId;
+      match /moneyPlans/{planId} {
+        allow read, write: if request.auth.uid == userId;
+      }
+      match /moneyBankAccounts/{bankId} {
+        allow read, write: if request.auth.uid == userId;
+      }
+      match /moneyCardAccounts/{cardId} {
+        allow read, write: if request.auth.uid == userId;
+      }
+      match /bankSnapshots/{snapshotId} {
+        allow read, write: if request.auth.uid == userId;
+      }
+      match /cardSnapshots/{snapshotId} {
+        allow read, write: if request.auth.uid == userId;
       }
     }
   }

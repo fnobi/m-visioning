@@ -55,7 +55,6 @@ export const deleteBoardPostItem = ({
   return boardPostDataStore.deleteItem({ boardId, postId });
 };
 
-// eslint-disable-next-line import/prefer-default-export
 export const useBoardPostList = ({
   boardId,
   onError,

@@ -1,10 +1,16 @@
 import { type DataStoreScheme } from "~/common/lib/DataStoreAgent";
 import type CommonPermission from "~/common/scheme/CommonPermission";
 import { parseCommonPermission } from "~/common/scheme/CommonPermission";
-import type BoardPost from "~/app/scheme/BoardPost";
-import { parseBoardPost } from "~/app/scheme/BoardPost";
-import type BoardEvent from "~/app/scheme/BoardEvent";
-import { parseBoardEvent } from "~/app/scheme/BoardEvent";
+import type BankSnapshot from "~/app/scheme/BankSnapshot";
+import type CardSnapshot from "~/app/scheme/CardSnapshot";
+import { parseCardSnapshot } from "~/app/scheme/CardSnapshot";
+import { parseBankSnapshot } from "~/app/scheme/BankSnapshot";
+import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
+import { parseMoneyBankAccount } from "~/app/scheme/MoneyBankAccount";
+import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
+import { parseMoneyCardAccount } from "~/app/scheme/MoneyCardAccount";
+import { parseMoneyPlan } from "~/app/scheme/MoneyPlan";
+import type MoneyPlan from "~/app/scheme/MoneyPlan";
 
 export const ownerDataStoreScheme: DataStoreScheme<
   CommonPermission,
@@ -15,22 +21,66 @@ export const ownerDataStoreScheme: DataStoreScheme<
   documentId: ({ userId }) => userId
 };
 
-export const boardEventDataStoreScheme: DataStoreScheme<
-  BoardEvent,
-  { boardId: string }
+const userDataStoreScheme: DataStoreScheme<
+  CommonPermission,
+  { userId: string }
 > = {
-  name: "boardEvents",
-  parse: parseBoardEvent,
-  documentId: ({ boardId }) => boardId
+  name: "users",
+  parse: parseCommonPermission,
+  documentId: ({ userId }) => userId
 };
 
-export const boardPostDataStoreScheme: DataStoreScheme<
-  BoardPost,
-  { postId: string },
-  { boardId: string }
+export const moneyPlanDataStoreScheme: DataStoreScheme<
+  MoneyPlan,
+  { planId: string },
+  { userId: string }
 > = {
-  name: "boardPosts",
-  parse: parseBoardPost,
-  documentId: ({ postId }) => postId,
-  parentCollection: boardEventDataStoreScheme
+  name: "moneyPlans",
+  parse: parseMoneyPlan,
+  documentId: ({ planId }) => planId,
+  parentCollection: userDataStoreScheme
+};
+
+export const moneyBankDataStoreScheme: DataStoreScheme<
+  MoneyBankAccount,
+  { bankId: string },
+  { userId: string }
+> = {
+  name: "moneyBankAccounts",
+  parse: parseMoneyBankAccount,
+  documentId: ({ bankId }) => bankId,
+  parentCollection: userDataStoreScheme
+};
+
+export const moneyCardDataStoreScheme: DataStoreScheme<
+  MoneyCardAccount,
+  { cardId: string },
+  { userId: string }
+> = {
+  name: "moneyCardAccounts",
+  parse: parseMoneyCardAccount,
+  documentId: ({ cardId }) => cardId,
+  parentCollection: userDataStoreScheme
+};
+
+export const bankSnapshotDataStoreScheme: DataStoreScheme<
+  BankSnapshot,
+  { bankId: string },
+  { userId: string }
+> = {
+  name: "bankSnapshots",
+  parse: parseBankSnapshot,
+  documentId: ({ bankId }) => bankId,
+  parentCollection: userDataStoreScheme
+};
+
+export const cardSnapshotDataStoreScheme: DataStoreScheme<
+  CardSnapshot,
+  { cardId: string },
+  { userId: string }
+> = {
+  name: "cardSnapshots",
+  parse: parseCardSnapshot,
+  documentId: ({ cardId }) => cardId,
+  parentCollection: userDataStoreScheme
 };
