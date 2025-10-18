@@ -3,10 +3,12 @@ import { compact, makeArray } from "~/common/lib/array-util";
 import { em } from "~/common/lib/css-util";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import { formatDateLabel } from "~/common/lib/date-util";
+import MockActionButton from "~/common/components/MockActionButton";
 import type MoneyPlan from "~/app/scheme/MoneyPlan";
 import type BankSnapshot from "~/app/scheme/BankSnapshot";
 import { type FromMoneyNode, type ToMoneyNode } from "~/app/scheme/MoneyPlan";
 import type CardSnapshot from "~/app/scheme/CardSnapshot";
+import { parseBankSnapshot } from "~/app/scheme/BankSnapshot";
 
 export const calcDayArray = (st: number, length: number) =>
   makeArray(length).map((z, i) => {
@@ -30,7 +32,8 @@ const BankTableScene = ({
   periodLength,
   planList,
   bankSnapshotList,
-  lastBankSnapshot
+  lastBankSnapshot,
+  onCreateBankSnapshot
 }: {
   bankId: string;
   cardTerms: {
@@ -48,6 +51,7 @@ const BankTableScene = ({
   planList: TypedCollectionList<MoneyPlan>;
   bankSnapshotList: TypedCollectionList<BankSnapshot>;
   lastBankSnapshot: BankSnapshot | null;
+  onCreateBankSnapshot: (v: BankSnapshot) => void;
 }) => {
   const matchMoneyNode = useCallback(
     (n1: FromMoneyNode | ToMoneyNode, n2: FromMoneyNode | ToMoneyNode) => {
@@ -95,26 +99,48 @@ const BankTableScene = ({
 
       let amount = baseAmount;
       let minDate = 0;
-      const rows = [...snapshotList].reverse().map<{
-        id: string;
-        date: number;
-        label: string;
-        amount: number;
-        price: number;
-      }>(({ id, data }) => {
-        const diff = data.amount - amount;
-        amount = data.amount;
-        minDate = Math.max(minDate, data.timestamp);
+      const rows = [...snapshotList]
+        .reverse()
+        .map(({ id, data }) => {
+          let cache = amount;
+          amount = data.amount;
+          minDate = Math.max(minDate, data.timestamp);
 
-        // TODO: ほんとは、snapshotにココ用のrowを覚えさせて再現させたい
-        return {
-          id,
-          date: data.timestamp,
-          label: "(snapshot)",
-          amount,
-          price: diff
-        };
-      });
+          const array: {
+            id: string;
+            date: number;
+            label: string;
+            amount: number;
+            price: number;
+            isArchive: boolean;
+          }[] = [];
+
+          parseBankSnapshot(data).detail.forEach((d, i) => {
+            cache += d.price;
+            array.push({
+              id: `${id}-${i}`,
+              date: d.date,
+              label: d.label,
+              price: d.price,
+              amount: cache,
+              isArchive: true
+            });
+          });
+
+          if (amount !== cache) {
+            array.push({
+              id,
+              date: data.timestamp,
+              label: "不明",
+              amount,
+              price: amount - cache,
+              isArchive: true
+            });
+          }
+
+          return array;
+        })
+        .flat();
 
       calcDayArray(startDate, daysCount).forEach(
         ({ date, year: cy, month: cm, day: cd }) => {
@@ -132,7 +158,7 @@ const BankTableScene = ({
             }
 
             amount += price;
-            rows.push({ id, date, label, amount, price });
+            rows.push({ id, date, label, amount, price, isArchive: false });
           });
         }
       );
@@ -212,22 +238,86 @@ const BankTableScene = ({
     planList
   ]);
 
+  const createBankSnapshotDraft = useMemo(() => {
+    if (!bankId) {
+      return null;
+    }
+    return () => {
+      const timestamp = Date.now();
+      const diffSnapshot =
+        bankSnapshotList && bankSnapshotList.length
+          ? bankSnapshotList[0].data
+          : lastBankSnapshot;
+
+      const detail: BankSnapshot["detail"] = bankEvents.rows
+        .filter(
+          r => r.date > (diffSnapshot?.timestamp ?? 0) && r.date <= Date.now()
+        )
+        .map(r => ({
+          label: r.label,
+          price: r.price,
+          date: r.date
+        }));
+      let amount = diffSnapshot?.amount ?? 0;
+      detail.forEach(r => {
+        amount += r.price;
+      });
+
+      onCreateBankSnapshot({
+        bankId,
+        amount,
+        timestamp,
+        detail
+      });
+    };
+  }, [
+    bankEvents.rows,
+    bankId,
+    bankSnapshotList,
+    lastBankSnapshot,
+    onCreateBankSnapshot
+  ]);
+
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: em(4, "auto", 6, 6)
-      }}
-    >
-      {bankEvents.rows.map(({ date, id, label, price, amount }) => (
-        <Fragment key={[date, id].join("_")}>
-          <p>{formatDateLabel(date)}</p>
-          <p>{label}</p>
-          <p style={{ textAlign: "right" }}>{price}</p>
-          <p style={{ textAlign: "right" }}>{amount}</p>
-        </Fragment>
-      ))}
-    </div>
+    <>
+      <p>
+        <MockActionButton
+          action={
+            createBankSnapshotDraft
+              ? {
+                  type: "button",
+                  onClick: createBankSnapshotDraft
+                }
+              : null
+          }
+        >
+          ログ追加
+        </MockActionButton>
+      </p>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: em(4, "auto", 6, 6)
+        }}
+      >
+        {bankEvents.rows.map(
+          ({ date, id, label, price, amount, isArchive }) => (
+            <Fragment key={[date, id].join("_")}>
+              <p style={{ opacity: isArchive ? 0.5 : 1 }}>
+                {formatDateLabel(date)}
+              </p>
+              <p style={{ opacity: isArchive ? 0.5 : 1 }}>{label}</p>
+              <p style={{ opacity: isArchive ? 0.5 : 1, textAlign: "right" }}>
+                {price}
+              </p>
+              <p style={{ opacity: isArchive ? 0.5 : 1, textAlign: "right" }}>
+                {amount}
+              </p>
+            </Fragment>
+          )
+        )}
+      </div>
+    </>
   );
 };
 

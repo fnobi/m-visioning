@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useMemo,
   useState,
@@ -8,6 +9,7 @@ import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import MockActionButton from "~/common/components/MockActionButton";
 import { compact } from "~/common/lib/array-util";
 import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
+import NewBankSnapshotPopup from "~/app/components/NewBankSnapshotPopup";
 import ErrorScene from "~/app/components/ErrorScene";
 import BankTableScene, { calcDayArray } from "~/app/components/BankTableScene";
 import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
@@ -15,6 +17,7 @@ import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
 import { useBankSnapshotList } from "~/app/lib/database/bank-snapshot-database";
 import { type AppErrorParameter } from "~/app/scheme/AppErrorParameter";
 import { useCardSnapshotList } from "~/app/lib/database/card-snapshot-database";
+import type BankSnapshot from "~/app/scheme/BankSnapshot";
 
 const BankTableSceneContainer = ({
   bankList,
@@ -31,8 +34,9 @@ const BankTableSceneContainer = ({
   const [statusError, setStatusError] = useState<AppErrorParameter | null>(
     null
   );
+  const [snapshotDraft, setSnapshotDraft] = useState<BankSnapshot | null>(null);
 
-  const { bankSnapshotList } = useBankSnapshotList({
+  const { bankSnapshotList, createBankSnapshot } = useBankSnapshotList({
     userId: myId,
     bankId: bankId || "",
     minTimestamp: baseDate,
@@ -115,6 +119,14 @@ const BankTableSceneContainer = ({
     setBaseDate(d.getTime());
   }, []);
 
+  const handleCreate = useCallback(
+    async (v: BankSnapshot) => {
+      await createBankSnapshot(v);
+      setSnapshotDraft(null);
+    },
+    [createBankSnapshot]
+  );
+
   if (statusError) {
     return <ErrorScene error={statusError} />;
   }
@@ -144,6 +156,7 @@ const BankTableSceneContainer = ({
         cardTerms={cardTerms}
         bankSnapshotList={bankSnapshotList}
         lastBankSnapshot={lastBankSnapshot}
+        onCreateBankSnapshot={setSnapshotDraft}
       />
       <div>
         <MockActionButton
@@ -155,6 +168,14 @@ const BankTableSceneContainer = ({
           30日分追加
         </MockActionButton>
       </div>
+      {snapshotDraft ? (
+        <NewBankSnapshotPopup
+          value={snapshotDraft}
+          onClose={() => setSnapshotDraft(null)}
+          onChange={setSnapshotDraft}
+          onSubmit={handleCreate}
+        />
+      ) : null}
     </>
   );
 };

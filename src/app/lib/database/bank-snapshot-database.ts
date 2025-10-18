@@ -100,9 +100,23 @@ export const useBankSnapshotList = ({
     [userId]
   );
 
+  const createBankSnapshot = useCallback(
+    (v: BankSnapshot) => {
+      if (!userId) {
+        throw new AppError({ type: "bad-parameter" });
+      }
+      return bankSnapshotDataStore.addItem({
+        userId,
+        data: v
+      });
+    },
+    [userId]
+  );
+
   return {
     bankSnapshotList: list,
     writeBankSnapshot,
-    deleteBankSnapshot
+    deleteBankSnapshot,
+    createBankSnapshot
   };
 };
