@@ -7,14 +7,14 @@ import {
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import MockActionButton from "~/common/components/MockActionButton";
 import { compact } from "~/common/lib/array-util";
+import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
+import ErrorScene from "~/app/components/ErrorScene";
 import BankTableScene, { calcDayArray } from "~/app/components/BankTableScene";
-import {
-  MASTER_BANK_SNAPSHOT,
-  MASTER_CARD_SNAPSHOT
-} from "~/app/lib/master-data";
 import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
 import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
-import type BankSnapshot from "~/app/scheme/BankSnapshot";
+import { useBankSnapshotList } from "~/app/lib/database/bank-snapshot-database";
+import { type AppErrorParameter } from "~/app/scheme/AppErrorParameter";
+import { useCardSnapshotList } from "~/app/lib/database/card-snapshot-database";
 
 const BankTableSceneContainer = ({
   bankList,
@@ -24,38 +24,38 @@ const BankTableSceneContainer = ({
   bankList: TypedCollectionList<MoneyBankAccount>;
   cardList: TypedCollectionList<MoneyCardAccount>;
 } & Pick<ComponentPropsWithoutRef<typeof BankTableScene>, "planList">) => {
+  const { myId } = useAuthorizedUser();
   const [baseDate, setBaseDate] = useState(0);
   const [periodLength, setPeriodLength] = useState(60);
   const [bankId, setBankId] = useState<string | null>(null);
-
-  const [bankSnapshotList, setBankSnapshotList] =
-    useState<TypedCollectionList<BankSnapshot> | null>(null);
-  const [lastBankSnapshot, setLastBankSnapshot] = useState<BankSnapshot | null>(
+  const [statusError, setStatusError] = useState<AppErrorParameter | null>(
     null
   );
 
-  useEffect(() => {
-    const startDate = baseDate;
-    const endDate = startDate + periodLength * 1000 * 60 * 60 * 24;
+  const { bankSnapshotList } = useBankSnapshotList({
+    userId: myId,
+    bankId: bankId || "",
+    minTimestamp: baseDate,
+    maxTimestamp: baseDate + periodLength * 1000 * 60 * 60 * 24,
+    onError: setStatusError
+  });
+  const { bankSnapshotList: beforeSnapshotList } = useBankSnapshotList({
+    userId: myId,
+    bankId: bankId || "",
+    maxTimestamp: baseDate,
+    limit: 1,
+    onError: setStatusError
+  });
+  const { cardSnapshotList } = useCardSnapshotList({
+    // TODO: 全件検索やめたいね
+    userId: myId,
+    onError: setStatusError
+  });
 
-    // TODO: サーバーから取得
-    const snapshotList = MASTER_BANK_SNAPSHOT.filter(
-      ({ data }) =>
-        data.bankId === bankId &&
-        data.timestamp >= startDate &&
-        data.timestamp < endDate
-    );
-    setBankSnapshotList(snapshotList);
-  }, [bankId, baseDate, periodLength]);
-
-  useEffect(() => {
-    // TODO: サーバーから取得
-    const lastSnapshot = MASTER_BANK_SNAPSHOT.filter(
-      ({ data }) => data.bankId === bankId && data.timestamp < baseDate
-    );
-    const [first] = lastSnapshot;
-    setLastBankSnapshot(first ? first.data : null);
-  }, [bankId, baseDate]);
+  const lastBankSnapshot = useMemo(() => {
+    const [first] = beforeSnapshotList || [];
+    return first ? first.data : null;
+  }, [beforeSnapshotList]);
 
   const cardTerms = useMemo(
     () =>
@@ -75,8 +75,7 @@ const BankTableSceneContainer = ({
               termStartDate.setMonth(termStartDate.getMonth() - 1);
               const termStart = termStartDate.getTime();
 
-              // TODO: サーバーから取る
-              const snapshotList = MASTER_CARD_SNAPSHOT.filter(
+              const snapshotList = (cardSnapshotList || []).filter(
                 ({ data: snapshot }) =>
                   snapshot.cardId === id &&
                   snapshot.timestamp >= termStart &&
@@ -97,7 +96,7 @@ const BankTableSceneContainer = ({
           )
         )
         .flat(),
-    [bankId, baseDate, cardList, periodLength]
+    [bankId, baseDate, cardList, cardSnapshotList, periodLength]
   );
 
   useEffect(() => {
@@ -115,6 +114,10 @@ const BankTableSceneContainer = ({
     d.setDate(1); // TODO: 設定可能にしたい
     setBaseDate(d.getTime());
   }, []);
+
+  if (statusError) {
+    return <ErrorScene error={statusError} />;
+  }
 
   if (!bankId || !baseDate || !bankSnapshotList) {
     return <p>loading...</p>;

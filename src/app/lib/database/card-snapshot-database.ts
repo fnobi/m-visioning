@@ -45,7 +45,7 @@ export const useCardSnapshotList = ({
       }
       return cardSnapshotDataStore.mergeItem({
         userId,
-        cardId,
+        snapshotId: cardId,
         data
       });
     },
@@ -59,7 +59,7 @@ export const useCardSnapshotList = ({
       }
       return cardSnapshotDataStore.deleteItem({
         userId,
-        cardId
+        snapshotId: cardId
       });
     },
     [userId]

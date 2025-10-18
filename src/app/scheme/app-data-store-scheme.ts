@@ -65,22 +65,22 @@ export const moneyCardDataStoreScheme: DataStoreScheme<
 
 export const bankSnapshotDataStoreScheme: DataStoreScheme<
   BankSnapshot,
-  { bankId: string },
+  { snapshotId: string },
   { userId: string }
 > = {
   name: "bankSnapshots",
   parse: parseBankSnapshot,
-  documentId: ({ bankId }) => bankId,
+  documentId: ({ snapshotId }) => snapshotId,
   parentCollection: userDataStoreScheme
 };
 
 export const cardSnapshotDataStoreScheme: DataStoreScheme<
   CardSnapshot,
-  { cardId: string },
+  { snapshotId: string },
   { userId: string }
 > = {
   name: "cardSnapshots",
   parse: parseCardSnapshot,
-  documentId: ({ cardId }) => cardId,
+  documentId: ({ snapshotId }) => snapshotId,
   parentCollection: userDataStoreScheme
 };
