@@ -102,16 +102,10 @@ const MVisionTopScene = () => {
         <PlanListScene planList={moneyPlanList} onDelete={deleteMoneyPlan} />
       ) : null}
       {currentTab === "bank-list" ? (
-        <BankListScene
-          bankList={bankAccountList}
-          onDelete={deleteBankAccount}
-        />
+        <BankListScene bankList={bankAccountList} />
       ) : null}
       {currentTab === "card-list" ? (
-        <CardListScene
-          cardList={cardAccountList}
-          onDelete={deleteCardAccount}
-        />
+        <CardListScene cardList={cardAccountList} />
       ) : null}
       {currentTab === "bank-snapshot-list" ? <BankSnapshotListScene /> : null}
       {currentTab === "card-snapshot-list" ? <CardSnapshotListScene /> : null}
