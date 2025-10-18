@@ -56,11 +56,11 @@ const MVisionTopScene = () => {
     userId: myId,
     onError: setStatusError
   });
-  const { bankAccountList, deleteBankAccount } = useBankAccountList({
+  const { bankAccountList } = useBankAccountList({
     userId: myId,
     onError: setStatusError
   });
-  const { cardAccountList, deleteCardAccount } = useCardAccountList({
+  const { cardAccountList } = useCardAccountList({
     userId: myId,
     onError: setStatusError
   });
