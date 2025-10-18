@@ -2,68 +2,65 @@ import { useCallback, useEffect, useState } from "react";
 import { ClientDataStoreAgent } from "~/common/lib/ClientDataStoreAgent";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import { extractClientError } from "~/app/lib/client-error-utils";
-import { moneyPlanDataStoreScheme } from "~/app/scheme/app-data-store-scheme";
-import type MoneyPlan from "~/app/scheme/MoneyPlan";
+import { moneyBankDataStoreScheme } from "~/app/scheme/app-data-store-scheme";
 import { type AppErrorParameter } from "~/app/scheme/AppErrorParameter";
 import AppError from "~/app/scheme/AppError";
+import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
 
-const moneyPlanDataStore = new ClientDataStoreAgent(moneyPlanDataStoreScheme);
+const moneyBankDataStore = new ClientDataStoreAgent(moneyBankDataStoreScheme);
 
-type MoenPlanQueryParams = { limit?: number };
+type BankAccountQueryParams = { limit?: number };
 
 // eslint-disable-next-line import/prefer-default-export
-export const useMoneyPlanList = ({
+export const useBankAccountList = ({
   userId,
   onError,
   limit
 }: {
   userId: string | null;
   onError: (e: AppErrorParameter) => void;
-} & MoenPlanQueryParams) => {
-  const [list, setList] = useState<TypedCollectionList<MoneyPlan> | null>(null);
+} & BankAccountQueryParams) => {
+  const [list, setList] =
+    useState<TypedCollectionList<MoneyBankAccount> | null>(null);
 
   useEffect(() => {
     setList(null);
     if (!userId) {
       return () => {};
     }
-    return moneyPlanDataStore.subscribeList({
+    return moneyBankDataStore.subscribeList({
       userId,
       handler: setList,
       onError: e => onError(extractClientError(e))
     });
   }, [userId, limit, onError]);
 
-  const writeMoneyPlan = useCallback(
-    (planId: string, data: MoneyPlan) => {
+  const writeBankAccount = useCallback(
+    (bankId: string, data: MoneyBankAccount) => {
       if (!userId) {
         throw new AppError({ type: "bad-parameter" });
       }
-      return moneyPlanDataStore.mergeItem({
+      return moneyBankDataStore.mergeItem({
         userId,
-        planId,
+        bankId,
         data
       });
     },
     [userId]
   );
 
-  const deleteMoneyPlan = useCallback(
-    (planId: string) => {
+  const deleteBankAccount = useCallback(
+    (bankId: string) => {
       if (!userId) {
         throw new AppError({ type: "bad-parameter" });
       }
-      return moneyPlanDataStore.deleteItem({
+      return moneyBankDataStore.deleteItem({
         userId,
-        planId
+        bankId
       });
     },
     [userId]
   );
 
-  return {
-    moneyPlanList: list,
-    writeMoneyPlan,
-    deleteMoneyPlan
-  };
+  return { bankAccountList: list, writeBankAccount, deleteBankAccount };
 };

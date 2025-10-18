@@ -1,23 +1,20 @@
 import { type ComponentPropsWithoutRef, useMemo } from "react";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import MockListView from "~/common/components/MockListView";
-import type MoneyPlan from "~/app/scheme/MoneyPlan";
+import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
 
-const PlanListScene = ({
-  planList,
+const BankListScene = ({
+  bankList,
   onDelete
 }: {
-  planList: TypedCollectionList<MoneyPlan>;
+  bankList: TypedCollectionList<MoneyBankAccount>;
   onDelete: (id: string) => void;
 }) => {
   const list = useMemo(
     (): ComponentPropsWithoutRef<typeof MockListView>["dataList"] =>
-      planList.map(({ id, data }) => ({
+      bankList.map(({ id, data }) => ({
         key: id,
-        title: `${data.label} / ¥${data.price}`,
-        subTitle: [data.year, data.month, data.day]
-          .map(v => v || "*")
-          .join(" "),
+        title: data.label,
         actions: [
           {
             children: "削除",
@@ -28,7 +25,7 @@ const PlanListScene = ({
           }
         ]
       })),
-    [onDelete, planList]
+    [onDelete, bankList]
   );
 
   return (
@@ -38,4 +35,4 @@ const PlanListScene = ({
   );
 };
 
-export default PlanListScene;
+export default BankListScene;

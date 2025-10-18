@@ -3,12 +3,15 @@ import MockStaticLayout from "~/common/components/MockStaticLayout";
 import MockActionButton from "~/common/components/MockActionButton";
 import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
 import MockLoadingScene from "~/common/components/MockLoadingScene";
+import CardListScene from "~/app/components/CardListScene";
 import ErrorScene from "~/app/components/ErrorScene";
 import PlanListScene from "~/app/components/PlanListScene";
-import { MASTER_MONEY_BANKS, MASTER_MONEY_CARDS } from "~/app/lib/master-data";
 import BankTableSceneContainer from "~/app/components/_provider/BankTableSceneContainer";
 import { useMoneyPlanList } from "~/app/lib/database/money-plan-database";
 import { type AppErrorParameter } from "~/app/scheme/AppErrorParameter";
+import BankListScene from "~/app/components/BankListScene";
+import { useBankAccountList } from "~/app/lib/database/bank-account-database";
+import { useCardAccountList } from "~/app/lib/database/card-account-database";
 
 type TabEntry = { tabId: string; label: string };
 
@@ -20,6 +23,14 @@ const TABS = [
   {
     tabId: "plan-list",
     label: "入出金予定一覧"
+  },
+  {
+    tabId: "bank-list",
+    label: "銀行口座一覧"
+  },
+  {
+    tabId: "card-list",
+    label: "カード一覧"
   }
 ] as const satisfies TabEntry[];
 
@@ -31,7 +42,15 @@ const MVisionTopScene = () => {
     null
   );
 
-  const { moneyPlanList } = useMoneyPlanList({
+  const { moneyPlanList, deleteMoneyPlan } = useMoneyPlanList({
+    userId: myId,
+    onError: setStatusError
+  });
+  const { bankAccountList, deleteBankAccount } = useBankAccountList({
+    userId: myId,
+    onError: setStatusError
+  });
+  const { cardAccountList, deleteCardAccount } = useCardAccountList({
     userId: myId,
     onError: setStatusError
   });
@@ -40,7 +59,7 @@ const MVisionTopScene = () => {
     return <ErrorScene error={statusError} />;
   }
 
-  if (!moneyPlanList) {
+  if (!moneyPlanList || !bankAccountList || !cardAccountList) {
     return <MockLoadingScene />;
   }
 
@@ -64,13 +83,25 @@ const MVisionTopScene = () => {
       </p>
       {currentTab === "balance-table" ? (
         <BankTableSceneContainer
-          bankList={MASTER_MONEY_BANKS}
-          cardList={MASTER_MONEY_CARDS}
+          bankList={bankAccountList}
+          cardList={cardAccountList}
           planList={moneyPlanList}
         />
       ) : null}
       {currentTab === "plan-list" ? (
-        <PlanListScene planList={moneyPlanList} />
+        <PlanListScene planList={moneyPlanList} onDelete={deleteMoneyPlan} />
+      ) : null}
+      {currentTab === "bank-list" ? (
+        <BankListScene
+          bankList={bankAccountList}
+          onDelete={deleteBankAccount}
+        />
+      ) : null}
+      {currentTab === "card-list" ? (
+        <CardListScene
+          cardList={cardAccountList}
+          onDelete={deleteCardAccount}
+        />
       ) : null}
     </MockStaticLayout>
   );
