@@ -4,28 +4,18 @@ import MockListView from "~/common/components/MockListView";
 import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
 
 const CardListScene = ({
-  cardList,
-  onDelete
+  cardList
 }: {
   cardList: TypedCollectionList<MoneyCardAccount>;
-  onDelete: (id: string) => void;
 }) => {
   const list = useMemo(
     (): ComponentPropsWithoutRef<typeof MockListView>["dataList"] =>
       cardList.map(({ id, data }) => ({
         key: id,
         title: data.label,
-        actions: [
-          {
-            children: "削除",
-            action: {
-              type: "button",
-              onClick: () => onDelete(id)
-            }
-          }
-        ]
+        subTitle: `${data.startDay}日開始`
       })),
-    [onDelete, cardList]
+    [cardList]
   );
 
   return (

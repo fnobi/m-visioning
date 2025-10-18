@@ -4,28 +4,17 @@ import MockListView from "~/common/components/MockListView";
 import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
 
 const BankListScene = ({
-  bankList,
-  onDelete
+  bankList
 }: {
   bankList: TypedCollectionList<MoneyBankAccount>;
-  onDelete: (id: string) => void;
 }) => {
   const list = useMemo(
     (): ComponentPropsWithoutRef<typeof MockListView>["dataList"] =>
       bankList.map(({ id, data }) => ({
         key: id,
-        title: data.label,
-        actions: [
-          {
-            children: "削除",
-            action: {
-              type: "button",
-              onClick: () => onDelete(id)
-            }
-          }
-        ]
+        title: data.label
       })),
-    [onDelete, bankList]
+    [bankList]
   );
 
   return (

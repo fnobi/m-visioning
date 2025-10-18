@@ -31,6 +31,7 @@ export const useBankAccountList = ({
     return moneyBankDataStore.subscribeList({
       userId,
       handler: setList,
+      queryChain: c => c.orderBy("order", "asc"),
       onError: e => onError(extractClientError(e))
     });
   }, [userId, limit, onError]);
