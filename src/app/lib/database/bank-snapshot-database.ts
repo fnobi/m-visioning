@@ -21,19 +21,23 @@ type BankSnapshotQueryParams = {
   maxTimestamp?: number;
 };
 
-const make = (p: BankSnapshotQueryParams) => (c: QueryChain<BankSnapshot>) => {
-  let cc = c.orderBy("timestamp", "desc");
-  if (p.limit) {
-    cc = cc.limit(p.limit);
-  }
-  if (p.minTimestamp) {
-    cc = cc.where("timestamp", ">=", p.minTimestamp);
-  }
-  if (p.maxTimestamp) {
-    cc = cc.where("timestamp", "<", p.maxTimestamp);
-  }
-  return cc;
-};
+const makeBankSnapshotQueryChain =
+  (p: BankSnapshotQueryParams) => (c: QueryChain<BankSnapshot>) => {
+    let cc = c.orderBy("timestamp", "desc");
+    if (p.limit) {
+      cc = cc.limit(p.limit);
+    }
+    if (p.bankId) {
+      cc = cc.equal("bankId", p.bankId);
+    }
+    if (p.minTimestamp) {
+      cc = cc.where("timestamp", ">=", p.minTimestamp);
+    }
+    if (p.maxTimestamp) {
+      cc = cc.where("timestamp", "<", p.maxTimestamp);
+    }
+    return cc;
+  };
 
 // eslint-disable-next-line import/prefer-default-export
 export const useBankSnapshotList = ({
@@ -59,7 +63,7 @@ export const useBankSnapshotList = ({
     return bankSnapshotDataStore.subscribeList({
       userId,
       handler: setList,
-      queryChain: make({
+      queryChain: makeBankSnapshotQueryChain({
         limit,
         bankId,
         minTimestamp,
