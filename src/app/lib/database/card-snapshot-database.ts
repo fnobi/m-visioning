@@ -11,11 +11,12 @@ const cardSnapshotDataStore = new ClientDataStoreAgent(
   cardSnapshotDataStoreScheme
 );
 
-type CardSnapshotQueryParams = { limit?: number };
+type CardSnapshotQueryParams = { cardId?: string; limit?: number };
 
 // eslint-disable-next-line import/prefer-default-export
 export const useCardSnapshotList = ({
   userId,
+  cardId,
   onError,
   limit
 }: {
@@ -34,18 +35,25 @@ export const useCardSnapshotList = ({
     return cardSnapshotDataStore.subscribeList({
       userId,
       handler: setList,
+      queryChain: c => {
+        let cc = c.orderBy("timestamp", "desc");
+        if (cardId) {
+          cc = cc.equal("cardId", cardId);
+        }
+        return cc;
+      },
       onError: e => onError(extractClientError(e))
     });
-  }, [userId, limit, onError]);
+  }, [userId, limit, onError, cardId]);
 
   const writeCardSnapshot = useCallback(
-    (cardId: string, data: CardSnapshot) => {
+    (snapshotId: string, data: CardSnapshot) => {
       if (!userId) {
         throw new AppError({ type: "bad-parameter" });
       }
       return cardSnapshotDataStore.mergeItem({
         userId,
-        snapshotId: cardId,
+        snapshotId,
         data
       });
     },
@@ -53,13 +61,13 @@ export const useCardSnapshotList = ({
   );
 
   const deleteCardSnapshot = useCallback(
-    (cardId: string) => {
+    (snapshotId: string) => {
       if (!userId) {
         throw new AppError({ type: "bad-parameter" });
       }
       return cardSnapshotDataStore.deleteItem({
         userId,
-        snapshotId: cardId
+        snapshotId
       });
     },
     [userId]

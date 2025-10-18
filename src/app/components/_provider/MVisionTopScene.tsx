@@ -108,7 +108,9 @@ const MVisionTopScene = () => {
         <CardListScene cardList={cardAccountList} />
       ) : null}
       {currentTab === "bank-snapshot-list" ? <BankSnapshotListScene /> : null}
-      {currentTab === "card-snapshot-list" ? <CardSnapshotListScene /> : null}
+      {currentTab === "card-snapshot-list" ? (
+        <CardSnapshotListScene cardList={cardAccountList} />
+      ) : null}
     </MockStaticLayout>
   );
 };
