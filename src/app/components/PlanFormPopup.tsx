@@ -26,7 +26,7 @@ import {
 
 const formOrganizer = new FormOrganizer<MoneyPlan>()
   .fieldValidator("label", requiredValidator())
-  .fieldValidator("price", requiredValidator());
+  .fieldValidator("day", requiredValidator());
 
 const DateInputRow = styled.div({
   display: "flex",
