@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   MockArrayFormRow,
   MockDateTimeFormRow,
@@ -48,24 +48,23 @@ const BankSnapshotDetailForm = ({
   );
 };
 
-const NewBankSnapshotPopup = ({
-  value,
+const BankSnapshotFormPopup = ({
+  defaultValue,
   onClose,
-  onChange,
   onSubmit
 }: {
-  value: BankSnapshot;
+  defaultValue: BankSnapshot;
   onClose: () => void;
-  onChange: (v: BankSnapshot) => void;
   onSubmit: (v: BankSnapshot) => void;
 }) => {
+  const [value, setValue] = useState(defaultValue);
   const { validValue, errors } = useMemo(
     () => formOrganizer1.getValidValue(value),
     [value]
   );
   return (
     <MockPopup onClose={onClose}>
-      <p>新規ログ</p>
+      <p>口座ログ</p>
       <div
         style={{
           textAlign: "left"
@@ -75,21 +74,25 @@ const NewBankSnapshotPopup = ({
           <MockDateTimeFormRow
             label="日時"
             value={value.timestamp}
-            onChange={v => onChange({ ...value, timestamp: v })}
+            onChange={v => setValue(vv => ({ ...vv, timestamp: v }))}
             error={errors.timestamp}
           />
           <MockNumberFormRow
             label="金額"
             value={value.amount}
-            onChange={v => onChange({ ...value, amount: v })}
+            onChange={v => setValue(vv => ({ ...vv, amount: v }))}
             error={errors.amount}
           />
           <MockArrayFormRow
             label="内訳"
             value={value.detail}
-            onChange={v => onChange({ ...value, detail: v })}
+            onChange={v => setValue(vv => ({ ...vv, detail: v }))}
             error={errors.detail}
-            makeNew={() => ({ label: "", price: 0, date: value.timestamp })}
+            makeNew={() => ({
+              label: "",
+              price: 0,
+              date: value.timestamp
+            })}
             Item={BankSnapshotDetailForm}
           />
         </MockFormFrame>
@@ -98,4 +101,4 @@ const NewBankSnapshotPopup = ({
   );
 };
 
-export default NewBankSnapshotPopup;
+export default BankSnapshotFormPopup;

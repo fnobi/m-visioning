@@ -9,7 +9,7 @@ import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import MockActionButton from "~/common/components/MockActionButton";
 import { compact } from "~/common/lib/array-util";
 import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
-import NewBankSnapshotPopup from "~/app/components/NewBankSnapshotPopup";
+import BankSnapshotFormPopup from "~/app/components/BankSnapshotPopup";
 import ErrorScene from "~/app/components/ErrorScene";
 import BankTableScene, { calcDayArray } from "~/app/components/BankTableScene";
 import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
@@ -119,6 +119,7 @@ const BankTableSceneContainer = ({
     setBaseDate(d.getTime());
   }, []);
 
+  // TODO: async handler噛ませて欲しい
   const handleCreate = useCallback(
     async (v: BankSnapshot) => {
       await createBankSnapshot(v);
@@ -169,10 +170,9 @@ const BankTableSceneContainer = ({
         </MockActionButton>
       </div>
       {snapshotDraft ? (
-        <NewBankSnapshotPopup
-          value={snapshotDraft}
+        <BankSnapshotFormPopup
+          defaultValue={snapshotDraft}
           onClose={() => setSnapshotDraft(null)}
-          onChange={setSnapshotDraft}
           onSubmit={handleCreate}
         />
       ) : null}

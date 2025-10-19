@@ -299,7 +299,7 @@ const BankTableScene = ({
               : null
           }
         >
-          ログ追加
+          口座ログ追加
         </MockActionButton>
       </p>
       <div
