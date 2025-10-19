@@ -1,7 +1,16 @@
 import styled from "@emotion/styled";
 import { type ComponentPropsWithoutRef } from "react";
-import { em, PRIMITIVE_COLOR } from "~/common/lib/css-util";
+import { em, percent, PRIMITIVE_COLOR } from "~/common/lib/css-util";
 import PopupBase from "~/common/components/PopupBase";
+
+const ScrollWrapper = styled.div({
+  position: "relative",
+  maxHeight: percent(100),
+  overflowY: "auto",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "flex-start"
+});
 
 const PopupBody = styled.div({
   backgroundColor: PRIMITIVE_COLOR.WHITE,
@@ -15,7 +24,9 @@ const MockPopup = ({
 }: ComponentPropsWithoutRef<typeof PopupBase>) => (
   // eslint-disable-next-line react/jsx-props-no-spreading
   <PopupBase {...props}>
-    <PopupBody>{children}</PopupBody>
+    <ScrollWrapper>
+      <PopupBody>{children}</PopupBody>
+    </ScrollWrapper>
   </PopupBase>
 );
 
