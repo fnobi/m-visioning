@@ -140,7 +140,7 @@ export const MockFormFrame = <T,>({
   </form>
 );
 
-const FormCommonRowWrapper = ({
+export const FormCommonRowWrapper = ({
   label,
   error,
   counter,
