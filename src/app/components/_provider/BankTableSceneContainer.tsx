@@ -9,6 +9,7 @@ import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import MockActionButton from "~/common/components/MockActionButton";
 import { compact } from "~/common/lib/array-util";
 import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
+import CardSnapshotFormPopup from "~/app/components/CardSnapshotPopup";
 import BankSnapshotFormPopup from "~/app/components/BankSnapshotPopup";
 import ErrorScene from "~/app/components/ErrorScene";
 import BankTableScene, { calcDayArray } from "~/app/components/BankTableScene";
@@ -18,6 +19,7 @@ import { useBankSnapshotList } from "~/app/lib/database/bank-snapshot-database";
 import { type AppErrorParameter } from "~/app/scheme/AppErrorParameter";
 import { useCardSnapshotList } from "~/app/lib/database/card-snapshot-database";
 import type BankSnapshot from "~/app/scheme/BankSnapshot";
+import type CardSnapshot from "~/app/scheme/CardSnapshot";
 
 const BankTableSceneContainer = ({
   bankList,
@@ -34,7 +36,10 @@ const BankTableSceneContainer = ({
   const [statusError, setStatusError] = useState<AppErrorParameter | null>(
     null
   );
-  const [snapshotDraft, setSnapshotDraft] = useState<BankSnapshot | null>(null);
+  const [bankSnapshotDraft, setBankSnapshotDraft] =
+    useState<BankSnapshot | null>(null);
+  const [cardSnapshotDraft, setCardSnapshotDraft] =
+    useState<CardSnapshot | null>(null);
 
   const { bankSnapshotList, createBankSnapshot } = useBankSnapshotList({
     userId: myId,
@@ -50,7 +55,7 @@ const BankTableSceneContainer = ({
     limit: 1,
     onError: setStatusError
   });
-  const { cardSnapshotList } = useCardSnapshotList({
+  const { cardSnapshotList, createCardSnapshot } = useCardSnapshotList({
     // TODO: 全件検索やめたいね
     userId: myId,
     onError: setStatusError
@@ -118,12 +123,21 @@ const BankTableSceneContainer = ({
   }, []);
 
   // TODO: async handler噛ませて欲しい
-  const handleCreate = useCallback(
+  const handleCreateBankSnapshot = useCallback(
     async (v: BankSnapshot) => {
       await createBankSnapshot(v);
-      setSnapshotDraft(null);
+      setBankSnapshotDraft(null);
     },
     [createBankSnapshot]
+  );
+
+  // TODO: async handler噛ませて欲しい
+  const handleCreateCardSnapshot = useCallback(
+    async (v: CardSnapshot) => {
+      await createCardSnapshot(v);
+      setCardSnapshotDraft(null);
+    },
+    [createCardSnapshot]
   );
 
   if (statusError) {
@@ -155,7 +169,8 @@ const BankTableSceneContainer = ({
         cardTerms={cardTerms}
         bankSnapshotList={bankSnapshotList}
         lastBankSnapshot={lastBankSnapshot}
-        onCreateBankSnapshot={setSnapshotDraft}
+        onCreateBankSnapshot={setBankSnapshotDraft}
+        onCreateCardSnapshot={setCardSnapshotDraft}
       />
       <div>
         <MockActionButton
@@ -167,11 +182,18 @@ const BankTableSceneContainer = ({
           30日分追加
         </MockActionButton>
       </div>
-      {snapshotDraft ? (
+      {bankSnapshotDraft ? (
         <BankSnapshotFormPopup
-          defaultValue={snapshotDraft}
-          onClose={() => setSnapshotDraft(null)}
-          onSubmit={handleCreate}
+          defaultValue={bankSnapshotDraft}
+          onClose={() => setBankSnapshotDraft(null)}
+          onSubmit={handleCreateBankSnapshot}
+        />
+      ) : null}
+      {cardSnapshotDraft ? (
+        <CardSnapshotFormPopup
+          defaultValue={cardSnapshotDraft}
+          onClose={() => setCardSnapshotDraft(null)}
+          onSubmit={handleCreateCardSnapshot}
         />
       ) : null}
     </>

@@ -1,6 +1,6 @@
 import { Fragment, useCallback, useMemo } from "react";
 import styled from "@emotion/styled";
-import { compact, makeArray } from "~/common/lib/array-util";
+import { compact, makeArray, uniqBy } from "~/common/lib/array-util";
 import { em } from "~/common/lib/css-util";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import { formatDateLabel } from "~/common/lib/date-util";
@@ -41,7 +41,8 @@ const BankTableScene = ({
   planList,
   bankSnapshotList,
   lastBankSnapshot,
-  onCreateBankSnapshot
+  onCreateBankSnapshot,
+  onCreateCardSnapshot
 }: {
   bankId: string;
   cardTerms: {
@@ -60,6 +61,7 @@ const BankTableScene = ({
   bankSnapshotList: TypedCollectionList<BankSnapshot>;
   lastBankSnapshot: BankSnapshot | null;
   onCreateBankSnapshot: (v: BankSnapshot) => void;
+  onCreateCardSnapshot: (v: CardSnapshot) => void;
 }) => {
   const matchMoneyNode = useCallback(
     (n1: FromMoneyNode | ToMoneyNode, n2: FromMoneyNode | ToMoneyNode) => {
@@ -286,6 +288,57 @@ const BankTableScene = ({
     onCreateBankSnapshot
   ]);
 
+  const createCardSnapshotDraft = useCallback(
+    (cardId: string) => {
+      const timestamp = Date.now();
+
+      const terms = cardTerms.find(
+        c =>
+          c.cardId === cardId &&
+          timestamp >= c.termStart &&
+          timestamp < c.termEnd
+      );
+      if (!terms) {
+        return;
+      }
+
+      const res = calcRows({
+        baseAmount: 0,
+        snapshotList: terms.snapshotList,
+        startDate: terms.termStart,
+        daysCount: (terms.termEnd - terms.termStart) / (1000 * 60 * 60 * 24),
+        nodeFilter: { type: "card", cardId },
+        sourcePlanList: planList
+      });
+
+      const diffSnapshot = terms.snapshotList.length
+        ? terms.snapshotList[0].data
+        : null;
+
+      const detail: CardSnapshot["detail"] = res.rows
+        .filter(
+          r => r.date > (diffSnapshot?.timestamp ?? 0) && r.date <= Date.now()
+        )
+        .map(r => ({
+          label: r.label,
+          price: r.price,
+          date: r.date
+        }));
+      let amount = diffSnapshot?.amount ?? 0;
+      detail.forEach(r => {
+        amount += r.price;
+      });
+
+      onCreateCardSnapshot({
+        cardId,
+        amount,
+        timestamp,
+        detail
+      });
+    },
+    [calcRows, cardTerms, onCreateCardSnapshot, planList]
+  );
+
   return (
     <>
       <p>
@@ -301,6 +354,22 @@ const BankTableScene = ({
         >
           口座ログ追加
         </MockActionButton>
+      </p>
+      <p>
+        カードログ追加
+        {uniqBy(cardTerms, c => c.cardId).map(({ cardId, label }) => (
+          <Fragment key={cardId}>
+            &nbsp;
+            <MockActionButton
+              action={{
+                type: "button",
+                onClick: () => createCardSnapshotDraft(cardId)
+              }}
+            >
+              {label}
+            </MockActionButton>
+          </Fragment>
+        ))}
       </p>
       <div
         style={{

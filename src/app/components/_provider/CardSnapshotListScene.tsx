@@ -23,7 +23,7 @@ const CardSnapshotListScene = ({
     null
   );
   const [cardId, setCardId] = useState<string>("");
-  const { cardSnapshotList } = useCardSnapshotList({
+  const { cardSnapshotList, deleteCardSnapshot } = useCardSnapshotList({
     userId: myId,
     cardId,
     onError: setStatusError
@@ -35,10 +35,19 @@ const CardSnapshotListScene = ({
         ? cardSnapshotList.map(({ id, data }) => ({
             key: id,
             title: `${data.cardId} / ¥${data.amount}`,
-            subTitle: formatDateTimeLabel(data.timestamp)
+            subTitle: formatDateTimeLabel(data.timestamp),
+            actions: [
+              {
+                children: "削除",
+                action: {
+                  type: "button",
+                  onClick: () => deleteCardSnapshot(id)
+                }
+              }
+            ]
           }))
         : null,
-    [cardSnapshotList]
+    [cardSnapshotList, deleteCardSnapshot]
   );
 
   useEffect(() => {

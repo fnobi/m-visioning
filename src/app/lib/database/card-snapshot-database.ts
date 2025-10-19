@@ -73,9 +73,23 @@ export const useCardSnapshotList = ({
     [userId]
   );
 
+  const createCardSnapshot = useCallback(
+    (v: CardSnapshot) => {
+      if (!userId) {
+        throw new AppError({ type: "bad-parameter" });
+      }
+      return cardSnapshotDataStore.addItem({
+        userId,
+        data: v
+      });
+    },
+    [userId]
+  );
+
   return {
     cardSnapshotList: list,
     writeCardSnapshot,
-    deleteCardSnapshot
+    deleteCardSnapshot,
+    createCardSnapshot
   };
 };
