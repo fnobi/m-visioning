@@ -308,6 +308,18 @@ const BankTableScene = ({
           gridTemplateColumns: em(4, "auto", 6, 6)
         }}
       >
+        {lastBankSnapshot ? (
+          <>
+            <TableCell isArchive>
+              {formatDateLabel(lastBankSnapshot.timestamp)}
+            </TableCell>
+            <TableCell isArchive>現在の残高</TableCell>
+            <TableCell isArchive />
+            <TableCell isArchive align="right">
+              {lastBankSnapshot.amount}
+            </TableCell>
+          </>
+        ) : null}
         {bankEvents.rows.map(
           ({ date, id, label, price, amount, isArchive }) => (
             <Fragment key={[date, id].join("_")}>

@@ -114,9 +114,7 @@ const BankTableSceneContainer = ({
   }, [bankId, bankList]);
 
   useEffect(() => {
-    const d = new Date();
-    d.setDate(1); // TODO: 設定可能にしたい
-    setBaseDate(d.getTime());
+    setBaseDate(Date.now());
   }, []);
 
   // TODO: async handler噛ませて欲しい
