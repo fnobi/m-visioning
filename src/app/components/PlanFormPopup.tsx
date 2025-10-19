@@ -5,6 +5,7 @@ import {
   FormCommonRowWrapper,
   MockFormFrame,
   MockNumberFormRow,
+  MockPulldownFormRow,
   MockStringFormRow
 } from "~/common/components/mock-form-ui";
 import FormOrganizer from "~/common/lib/FormOrganizer";
@@ -21,11 +22,14 @@ import {
   type BankMoneyNode,
   type ToMoneyNode,
   type FromMoneyNode,
-  type CardMoneyNode
+  type CardMoneyNode,
+  parseMoneyPlanRepeat
 } from "~/app/scheme/MoneyPlan";
 
 const formOrganizer = new FormOrganizer<MoneyPlan>()
   .fieldValidator("label", requiredValidator())
+  .fieldValidator("year", requiredValidator())
+  .fieldValidator("month", requiredValidator())
   .fieldValidator("day", requiredValidator());
 
 const DateInputRow = styled.div({
@@ -139,6 +143,14 @@ const PlanFormPopup = ({
     [bankOptions]
   );
 
+  const repeatOptions = useMemo(
+    () => [
+      { value: "year", label: "年" },
+      { value: "month", label: "月" }
+    ],
+    []
+  );
+
   return (
     <MockPopup onClose={onClose}>
       <div style={{ textAlign: "left" }}>
@@ -195,6 +207,15 @@ const PlanFormPopup = ({
               />
             </DateInputRow>
           </FormCommonRowWrapper>
+          <MockPulldownFormRow
+            label="繰り返し"
+            value={value.repeat || "none"}
+            onChange={v =>
+              setValue(vv => ({ ...vv, repeat: parseMoneyPlanRepeat(v) }))
+            }
+            options={repeatOptions}
+            error={errors.repeat}
+          />
           <FormCommonRowWrapper label="from" error={null}>
             {fromOptions.map(({ id, label, data }) => (
               <p key={id}>

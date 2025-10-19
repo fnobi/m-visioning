@@ -45,6 +45,13 @@ export const matchMoneyNode = (
   return false;
 };
 
+const checkIsAfter = (
+  b: { year: number; month: number; day: number },
+  a: { year: number; month: number; day: number }
+) =>
+  (b.year * 100 + b.month) * 100 + b.day <=
+  (a.year * 100 + a.month) * 100 + a.day;
+
 const TableCell = styled.p<{ isArchive: boolean; align?: "left" | "right" }>(
   ({ isArchive, align = "left" }) => ({
     opacity: isArchive ? 0.5 : 1,
@@ -158,26 +165,26 @@ const BankTableScene = ({
         })
         .flat();
 
-      calcDayArray(startDate, daysCount).forEach(
-        ({ date, year: cy, month: cm, day: cd }) => {
-          if (minDate >= date) {
+      calcDayArray(startDate, daysCount).forEach(cdata => {
+        const { date, year: cy, month: cm, day: cd } = cdata;
+        if (minDate >= date) {
+          return;
+        }
+        sourcePlanList2.forEach(({ id, data }) => {
+          const { year, month, day, label, price, repeat } = data;
+          const validRepeat = checkIsAfter(data, cdata) ? repeat : null;
+          const flag =
+            (year === cy || validRepeat) &&
+            (month === cm || validRepeat === "month") &&
+            day === cd;
+          if (!flag) {
             return;
           }
-          sourcePlanList2.forEach(({ id, data }) => {
-            const { year, month, day, label, price } = data;
-            const flag =
-              (!year || year === cy) &&
-              (!month || month === cm) &&
-              (!day || day === cd);
-            if (!flag) {
-              return;
-            }
 
-            amount += price;
-            rows.push({ id, date, label, amount, price, isArchive: false });
-          });
-        }
-      );
+          amount += price;
+          rows.push({ id, date, label, amount, price, isArchive: false });
+        });
+      });
 
       return { rows, amount };
     },
@@ -222,8 +229,7 @@ const BankTableScene = ({
         year,
         month,
         day,
-        hour: 0,
-        minute: 0,
+        repeat: null,
         price: -amount,
         label,
         from: {

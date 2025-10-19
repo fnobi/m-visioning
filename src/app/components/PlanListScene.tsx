@@ -1,9 +1,4 @@
-import {
-  type ComponentPropsWithoutRef,
-  useEffect,
-  useMemo,
-  useState
-} from "react";
+import { type ComponentPropsWithoutRef, useMemo, useState } from "react";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import MockListView from "~/common/components/MockListView";
 import { sortBy } from "~/common/lib/array-util";
@@ -33,48 +28,34 @@ const PlanListScene = ({
     id: string;
     data: MoneyPlan;
   } | null>(null);
-  const [now, setNow] = useState(0);
 
-  useEffect(() => setNow(Date.now()), []);
-
-  const list = useMemo((): ComponentPropsWithoutRef<
-    typeof MockListView
-  >["dataList"] => {
-    const nowDate = new Date(now);
-    return sortBy(planList, ({ data }) => {
-      const { year, month, day } = data;
-      let nm = nowDate.getMonth() + 1;
-      if (day < nowDate.getDate()) {
-        nm += 1;
-      }
-      const m = month || nm;
-
-      let ny = nowDate.getFullYear();
-      if (m < nowDate.getMonth() + 1) {
-        ny += 1;
-      }
-      const y = year || ny;
-
-      return y * 10000 + m * 100 + day;
-    }).map(({ id, data }) => ({
-      key: id,
-      title: `${data.label} / ¥${data.price}`,
-      subTitle: [data.year, data.month, data.day].map(v => v || "*").join(" "),
-      mainAction: {
-        type: "button",
-        onClick: () => setEditData({ id, data })
-      },
-      actions: [
-        {
-          children: "削除",
-          action: {
-            type: "button",
-            onClick: () => onDelete(id)
+  const list = useMemo(
+    (): ComponentPropsWithoutRef<typeof MockListView>["dataList"] =>
+      sortBy(planList, ({ data }) => {
+        const { year, month, day } = data;
+        return (year * 100 + month) * 100 + day;
+      }).map(({ id, data }) => ({
+        key: id,
+        title: `${data.label} / ¥${data.price}`,
+        subTitle: `${data.year}年${data.month}月${data.day}日${
+          data.repeat ? `〜 [${data.repeat}ly]` : ""
+        }`,
+        mainAction: {
+          type: "button",
+          onClick: () => setEditData({ id, data })
+        },
+        actions: [
+          {
+            children: "削除",
+            action: {
+              type: "button",
+              onClick: () => onDelete(id)
+            }
           }
-        }
-      ]
-    }));
-  }, [now, onDelete, planList]);
+        ]
+      })),
+    [onDelete, planList]
+  );
 
   return (
     <>

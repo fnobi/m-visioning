@@ -18,8 +18,7 @@ type MoneyPlan = {
   year: number;
   month: number;
   day: number;
-  hour: number;
-  minute: number;
+  repeat: "year" | "month" | null;
 };
 
 const parseMoneyNode = (src: unknown) =>
@@ -52,10 +51,20 @@ const parseToMoneyNode = (src: unknown) =>
     return parseMoneyNode(src);
   });
 
+export const parseMoneyPlanRepeat = (src: unknown): MoneyPlan["repeat"] => {
+  switch (src) {
+    case "year":
+    case "month":
+      return src;
+    default:
+      return null;
+  }
+};
+
 export const parseMoneyPlan = (src: unknown) =>
   parseObject<MoneyPlan>(
     src,
-    ({ label, price, from, to, year, month, day, hour, minute }) => ({
+    ({ label, price, from, to, year, month, day, repeat }) => ({
       label: parseString(label),
       price: parseNumber(price),
       from: parseFromMoneyNode(from),
@@ -63,8 +72,7 @@ export const parseMoneyPlan = (src: unknown) =>
       year: parseNumber(year),
       month: parseNumber(month),
       day: parseNumber(day),
-      hour: parseNumber(hour),
-      minute: parseNumber(minute)
+      repeat: parseMoneyPlanRepeat(repeat)
     })
   );
 
