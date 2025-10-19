@@ -1,4 +1,5 @@
 import { Fragment, useCallback, useMemo } from "react";
+import styled from "@emotion/styled";
 import { compact, makeArray } from "~/common/lib/array-util";
 import { em } from "~/common/lib/css-util";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
@@ -24,6 +25,13 @@ export const calcDayArray = (st: number, length: number) =>
 
 export const calcRangeDayArray = (st: number, end: number) =>
   calcDayArray(st, (end - st) / (1000 * 60 * 60 * 24));
+
+const TableCell = styled.p<{ isArchive: boolean; align?: "left" | "right" }>(
+  ({ isArchive, align = "left" }) => ({
+    opacity: isArchive ? 0.5 : 1,
+    textAlign: align
+  })
+);
 
 const BankTableScene = ({
   bankId,
@@ -303,16 +311,16 @@ const BankTableScene = ({
         {bankEvents.rows.map(
           ({ date, id, label, price, amount, isArchive }) => (
             <Fragment key={[date, id].join("_")}>
-              <p style={{ opacity: isArchive ? 0.5 : 1 }}>
+              <TableCell isArchive={isArchive}>
                 {formatDateLabel(date)}
-              </p>
-              <p style={{ opacity: isArchive ? 0.5 : 1 }}>{label}</p>
-              <p style={{ opacity: isArchive ? 0.5 : 1, textAlign: "right" }}>
+              </TableCell>
+              <TableCell isArchive={isArchive}>{label}</TableCell>
+              <TableCell isArchive={isArchive} align="right">
                 {price}
-              </p>
-              <p style={{ opacity: isArchive ? 0.5 : 1, textAlign: "right" }}>
+              </TableCell>
+              <TableCell isArchive={isArchive} align="right">
                 {amount}
-              </p>
+              </TableCell>
             </Fragment>
           )
         )}
