@@ -40,6 +40,7 @@ const BankTableSceneContainer = ({
     useState<BankSnapshot | null>(null);
   const [cardSnapshotDraft, setCardSnapshotDraft] =
     useState<CardSnapshot | null>(null);
+  const [graphMode, setGraphMode] = useState(false);
 
   const { bankSnapshotList, createBankSnapshot } = useBankSnapshotList({
     userId: myId,
@@ -159,6 +160,15 @@ const BankTableSceneContainer = ({
               </option>
             ))}
           </select>
+          &nbsp;
+          <label>
+            <input
+              type="checkbox"
+              checked={graphMode}
+              onChange={e => setGraphMode(e.target.checked)}
+            />
+            graph
+          </label>
         </p>
       ) : null}
       <BankTableScene
@@ -169,6 +179,7 @@ const BankTableSceneContainer = ({
         cardTerms={cardTerms}
         bankSnapshotList={bankSnapshotList}
         lastBankSnapshot={lastBankSnapshot}
+        graphMode={graphMode}
         onCreateBankSnapshot={setBankSnapshotDraft}
         onCreateCardSnapshot={setCardSnapshotDraft}
       />

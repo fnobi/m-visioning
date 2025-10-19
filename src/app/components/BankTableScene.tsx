@@ -1,10 +1,12 @@
-import { Fragment, useCallback, useMemo } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef } from "react";
 import styled from "@emotion/styled";
-import { compact, makeArray, uniqBy } from "~/common/lib/array-util";
-import { em } from "~/common/lib/css-util";
+import { compact, makeArray, maxBy, uniqBy } from "~/common/lib/array-util";
+import { em, percent } from "~/common/lib/css-util";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import { formatDateLabel } from "~/common/lib/date-util";
 import MockActionButton from "~/common/components/MockActionButton";
+import { parseString } from "~/common/lib/parser-helper";
+import { THEME_COLOR } from "~/app/lib/emotion-mixin";
 import type MoneyPlan from "~/app/scheme/MoneyPlan";
 import type BankSnapshot from "~/app/scheme/BankSnapshot";
 import { type FromMoneyNode, type ToMoneyNode } from "~/app/scheme/MoneyPlan";
@@ -67,6 +69,7 @@ const BankTableScene = ({
   planList,
   bankSnapshotList,
   lastBankSnapshot,
+  graphMode,
   onCreateBankSnapshot,
   onCreateCardSnapshot
 }: {
@@ -86,9 +89,12 @@ const BankTableScene = ({
   planList: TypedCollectionList<MoneyPlan>;
   bankSnapshotList: TypedCollectionList<BankSnapshot>;
   lastBankSnapshot: BankSnapshot | null;
+  graphMode: boolean;
   onCreateBankSnapshot: (v: BankSnapshot) => void;
   onCreateCardSnapshot: (v: CardSnapshot) => void;
 }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
   const calcRows = useCallback(
     ({
       startDate,
@@ -350,6 +356,104 @@ const BankTableScene = ({
     },
     [calcRows, cardTerms, onCreateCardSnapshot, planList]
   );
+
+  useEffect(() => {
+    const { current: canvas } = canvasRef;
+    if (!canvas || !graphMode) {
+      return;
+    }
+    const PADDING = 50;
+    canvas.width = 800;
+    canvas.height = 600;
+    const contentWidth = canvas.width - PADDING * 2;
+    const contentHeight = canvas.height - PADDING;
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.translate(PADDING, PADDING);
+
+      ctx.fillStyle = "#eeeeee";
+      ctx.fillRect(0, 0, contentWidth, contentHeight);
+
+      const vlines: number[] = [];
+      const vdate = new Date(baseDate);
+      const endDate = new Date(baseDate + periodLength * (1000 * 60 * 60 * 24));
+      while (vdate < endDate) {
+        vdate.setDate(1);
+        vlines.push(vdate.getTime());
+        vdate.setMonth(vdate.getMonth() + 1);
+      }
+      ctx.fillStyle = "#e5e5e5";
+      ctx.beginPath();
+      vlines.forEach((v, i) => {
+        const isOdd = i % 2;
+        const progress =
+          (v - baseDate) / (periodLength * (1000 * 60 * 60 * 24));
+        ctx.lineTo(contentWidth * progress, isOdd ? 0 : contentHeight);
+        ctx.lineTo(contentWidth * progress, isOdd ? contentHeight : 0);
+      });
+      const isOddLength = vlines.length % 2;
+      if (isOddLength) {
+        ctx.lineTo(contentWidth, 0);
+      }
+      ctx.lineTo(contentWidth, contentHeight);
+      ctx.fill();
+
+      const maxAmount =
+        Math.ceil(maxBy(bankEvents.rows, r => r.amount) / 100000) * 100000;
+      const points = bankEvents.rows.map(r => {
+        const progress =
+          (r.date - baseDate) / (periodLength * (1000 * 60 * 60 * 24));
+        const x = contentWidth * progress;
+        const y = contentHeight * (1 - r.amount / maxAmount);
+        return { x, y };
+      });
+
+      ctx.fillStyle = THEME_COLOR.DARK;
+      ctx.beginPath();
+      points.forEach(({ x, y }) => {
+        ctx.moveTo(x, y);
+        ctx.arc(x, y, 2, 0, Math.PI * 2);
+      });
+      ctx.fill();
+
+      ctx.beginPath();
+      points.forEach(({ x, y }, i) => {
+        if (i) {
+          ctx.lineTo(x, y);
+        } else {
+          ctx.moveTo(x, y);
+        }
+      });
+      ctx.stroke();
+
+      vlines.forEach(v => {
+        const progress =
+          (v - baseDate) / (periodLength * (1000 * 60 * 60 * 24));
+        ctx.font = "30px/30px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "bottom";
+        ctx.fillText(
+          parseString(new Date(v).getMonth() + 1),
+          contentWidth * progress,
+          -5
+        );
+      });
+    }
+  }, [bankEvents, baseDate, graphMode, periodLength]);
+
+  if (graphMode) {
+    return (
+      <div>
+        <canvas
+          ref={canvasRef}
+          style={{
+            width: percent(100),
+            height: "auto"
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <>
