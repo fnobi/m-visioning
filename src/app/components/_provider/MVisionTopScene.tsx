@@ -52,10 +52,11 @@ const MVisionTopScene = () => {
     null
   );
 
-  const { moneyPlanList, writeMoneyPlan, deleteMoneyPlan } = useMoneyPlanList({
-    userId: myId,
-    onError: setStatusError
-  });
+  const { moneyPlanList, writeMoneyPlan, createMoneyPlan, deleteMoneyPlan } =
+    useMoneyPlanList({
+      userId: myId,
+      onError: setStatusError
+    });
   const { bankAccountList } = useBankAccountList({
     userId: myId,
     onError: setStatusError
@@ -101,7 +102,10 @@ const MVisionTopScene = () => {
       {currentTab === "plan-list" ? (
         <PlanListScene
           planList={moneyPlanList}
+          bankList={bankAccountList}
+          cardList={cardAccountList}
           onWrite={writeMoneyPlan}
+          onCreate={createMoneyPlan}
           onDelete={deleteMoneyPlan}
         />
       ) : null}

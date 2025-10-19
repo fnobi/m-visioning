@@ -11,9 +11,22 @@ import FormOrganizer from "~/common/lib/FormOrganizer";
 import { parseNumber } from "~/common/lib/parser-helper";
 import MockActionButton from "~/common/components/MockActionButton";
 import { em, percent } from "~/common/lib/css-util";
+import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
+import { requiredValidator } from "~/common/lib/form-validator";
+import { matchMoneyNode } from "~/app/components/BankTableScene";
 import type MoneyPlan from "~/app/scheme/MoneyPlan";
+import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
+import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
+import {
+  type BankMoneyNode,
+  type ToMoneyNode,
+  type FromMoneyNode,
+  type CardMoneyNode
+} from "~/app/scheme/MoneyPlan";
 
-const formOrganizer = new FormOrganizer<MoneyPlan>();
+const formOrganizer = new FormOrganizer<MoneyPlan>()
+  .fieldValidator("label", requiredValidator())
+  .fieldValidator("price", requiredValidator());
 
 const DateInputRow = styled.div({
   display: "flex",
@@ -50,6 +63,7 @@ const DateNumPair = ({
     <DateInputUnit cols={cols}>
       {value ? (
         <DateInputCell
+          type="number"
           value={value}
           onChange={e => onChange(parseNumber(e.target.value))}
         />
@@ -70,10 +84,14 @@ const DateNumPair = ({
 
 const PlanFormPopup = ({
   defaultValue,
+  bankList,
+  cardList,
   onSubmit,
   onClose
 }: {
   defaultValue: MoneyPlan;
+  bankList: TypedCollectionList<MoneyBankAccount>;
+  cardList: TypedCollectionList<MoneyCardAccount>;
   onSubmit: (v: MoneyPlan) => void;
   onClose: () => void;
 }) => {
@@ -82,6 +100,45 @@ const PlanFormPopup = ({
     () => formOrganizer.getValidValue(value),
     [value]
   );
+
+  const bankOptions = useMemo(
+    () =>
+      bankList.map<{ id: string; label: string; data: BankMoneyNode }>(
+        ({ id, data }) => ({
+          id: `bank_${id}`,
+          label: `口座: ${data.label}`,
+          data: { type: "bank", bankId: id }
+        })
+      ),
+    [bankList]
+  );
+  const cardOptions = useMemo(
+    () =>
+      cardList.map<{ id: string; label: string; data: CardMoneyNode }>(
+        ({ id, data }) => ({
+          id: `card_${id}`,
+          label: `カード: ${data.label}`,
+          data: { type: "card", cardId: id }
+        })
+      ),
+    [cardList]
+  );
+  const fromOptions = useMemo(
+    (): { id: string; label: string; data: FromMoneyNode }[] => [
+      { id: "input", label: "収入", data: { type: "input" } },
+      ...bankOptions,
+      ...cardOptions
+    ],
+    [bankOptions, cardOptions]
+  );
+  const toOptions = useMemo(
+    (): { id: string; label: string; data: ToMoneyNode }[] => [
+      { id: "output", label: "支出", data: { type: "output" } },
+      ...bankOptions
+    ],
+    [bankOptions]
+  );
+
   return (
     <MockPopup onClose={onClose}>
       <div style={{ textAlign: "left" }}>
@@ -137,9 +194,51 @@ const PlanFormPopup = ({
                 getNew={() => new Date().getDate()}
               />
             </DateInputRow>
-          </FormCommonRowWrapper>{" "}
-          <div>{JSON.stringify(value.from)}</div>
-          <div>{JSON.stringify(value.to)}</div>
+          </FormCommonRowWrapper>
+          <FormCommonRowWrapper label="from" error={null}>
+            {fromOptions.map(({ id, label, data }) => (
+              <p key={id}>
+                <label>
+                  <input
+                    type="radio"
+                    name="from"
+                    checked={matchMoneyNode(value.from, data)}
+                    onChange={e => {
+                      if (e.target.checked) {
+                        setValue(v => ({
+                          ...v,
+                          from: data
+                        }));
+                      }
+                    }}
+                  />
+                  {label}
+                </label>
+              </p>
+            ))}
+          </FormCommonRowWrapper>
+          <FormCommonRowWrapper label="to" error={null}>
+            {toOptions.map(({ id, label, data }) => (
+              <p key={id}>
+                <label>
+                  <input
+                    type="radio"
+                    name="to"
+                    checked={matchMoneyNode(value.to, data)}
+                    onChange={e => {
+                      if (e.target.checked) {
+                        setValue(v => ({
+                          ...v,
+                          to: data
+                        }));
+                      }
+                    }}
+                  />
+                  {label}
+                </label>
+              </p>
+            ))}
+          </FormCommonRowWrapper>
         </MockFormFrame>
       </div>
     </MockPopup>

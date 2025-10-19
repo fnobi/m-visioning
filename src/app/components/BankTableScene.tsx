@@ -26,6 +26,25 @@ export const calcDayArray = (st: number, length: number) =>
 export const calcRangeDayArray = (st: number, end: number) =>
   calcDayArray(st, (end - st) / (1000 * 60 * 60 * 24));
 
+export const matchMoneyNode = (
+  n1: FromMoneyNode | ToMoneyNode,
+  n2: FromMoneyNode | ToMoneyNode
+) => {
+  if (n1.type === "bank") {
+    return n2.type === "bank" && n1.bankId === n2.bankId;
+  }
+  if (n1.type === "card") {
+    return n2.type === "card" && n1.cardId === n2.cardId;
+  }
+  if (n1.type === "input") {
+    return n2.type === "input";
+  }
+  if (n1.type === "output") {
+    return n2.type === "output";
+  }
+  return false;
+};
+
 const TableCell = styled.p<{ isArchive: boolean; align?: "left" | "right" }>(
   ({ isArchive, align = "left" }) => ({
     opacity: isArchive ? 0.5 : 1,
@@ -63,19 +82,6 @@ const BankTableScene = ({
   onCreateBankSnapshot: (v: BankSnapshot) => void;
   onCreateCardSnapshot: (v: CardSnapshot) => void;
 }) => {
-  const matchMoneyNode = useCallback(
-    (n1: FromMoneyNode | ToMoneyNode, n2: FromMoneyNode | ToMoneyNode) => {
-      if (n1.type === "bank") {
-        return n2.type === "bank" && n1.bankId === n2.bankId;
-      }
-      if (n1.type === "card") {
-        return n2.type === "card" && n1.cardId === n2.cardId;
-      }
-      return false;
-    },
-    []
-  );
-
   const calcRows = useCallback(
     ({
       startDate,
@@ -175,7 +181,7 @@ const BankTableScene = ({
 
       return { rows, amount };
     },
-    [matchMoneyNode]
+    []
   );
 
   const cardAmount = useMemo(

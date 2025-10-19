@@ -4,8 +4,8 @@ import {
   parseString
 } from "~/common/lib/parser-helper";
 
-type BankMoneyNode = { type: "bank"; bankId: string };
-type CardMoneyNode = { type: "card"; cardId: string };
+export type BankMoneyNode = { type: "bank"; bankId: string };
+export type CardMoneyNode = { type: "card"; cardId: string };
 type MoneyNode = BankMoneyNode | CardMoneyNode;
 export type FromMoneyNode = MoneyNode | { type: "input" };
 export type ToMoneyNode = MoneyNode | { type: "output" };

@@ -48,6 +48,19 @@ export const useMoneyPlanList = ({
     [userId]
   );
 
+  const createMoneyPlan = useCallback(
+    (data: MoneyPlan) => {
+      if (!userId) {
+        throw new AppError({ type: "bad-parameter" });
+      }
+      return moneyPlanDataStore.addItem({
+        userId,
+        data
+      });
+    },
+    [userId]
+  );
+
   const deleteMoneyPlan = useCallback(
     (planId: string) => {
       if (!userId) {
@@ -64,6 +77,7 @@ export const useMoneyPlanList = ({
   return {
     moneyPlanList: list,
     writeMoneyPlan,
+    createMoneyPlan,
     deleteMoneyPlan
   };
 };

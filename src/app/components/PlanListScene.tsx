@@ -7,16 +7,26 @@ import {
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import MockListView from "~/common/components/MockListView";
 import { sortBy } from "~/common/lib/array-util";
+import MockActionButton from "~/common/components/MockActionButton";
+import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
+import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
 import PlanFormPopup from "~/app/components/PlanFormPopup";
 import type MoneyPlan from "~/app/scheme/MoneyPlan";
+import { parseMoneyPlan } from "~/app/scheme/MoneyPlan";
 
 const PlanListScene = ({
   planList,
+  bankList,
+  cardList,
   onWrite,
+  onCreate,
   onDelete
 }: {
   planList: TypedCollectionList<MoneyPlan>;
+  bankList: TypedCollectionList<MoneyBankAccount>;
+  cardList: TypedCollectionList<MoneyCardAccount>;
   onWrite: (id: string, data: MoneyPlan) => void;
+  onCreate: (data: MoneyPlan) => void;
   onDelete: (id: string) => void;
 }) => {
   const [editData, setEditData] = useState<{
@@ -67,19 +77,39 @@ const PlanListScene = ({
   }, [now, onDelete, planList]);
 
   return (
-    <div>
+    <>
+      <p>
+        <MockActionButton
+          action={{
+            type: "button",
+            onClick: () =>
+              setEditData({
+                id: "",
+                data: parseMoneyPlan(null)
+              })
+          }}
+        >
+          新規作成
+        </MockActionButton>
+      </p>
       <MockListView dataList={list} />
       {editData ? (
         <PlanFormPopup
           defaultValue={editData.data}
+          bankList={bankList}
+          cardList={cardList}
           onClose={() => setEditData(null)}
           onSubmit={v => {
-            onWrite(editData.id, v);
+            if (editData.id) {
+              onWrite(editData.id, v);
+            } else {
+              onCreate(v);
+            }
             setEditData(null);
           }}
         />
       ) : null}
-    </div>
+    </>
   );
 };
 
