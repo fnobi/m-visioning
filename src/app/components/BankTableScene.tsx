@@ -505,10 +505,8 @@ const BankTableScene = ({
       >
         {lastBankSnapshot ? (
           <>
-            <TableCell isArchive>
-              {formatDateLabel(lastBankSnapshot.timestamp)}
-            </TableCell>
-            <TableCell isArchive>現在の残高</TableCell>
+            <TableCell isArchive />
+            <TableCell isArchive />
             <TableCell isArchive />
             <TableCell isArchive align="right">
               {lastBankSnapshot.amount}
