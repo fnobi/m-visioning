@@ -1,5 +1,5 @@
 import BankTableSceneContainer from "~/app/components/_provider/BankTableSceneContainer";
-import MVisionFrame from "~/app/components/_provider/MVisionFrame";
+import MVisionFrame from "~/app/components/MVisionFrame";
 
 const PageIndex = () => (
   <MVisionFrame>

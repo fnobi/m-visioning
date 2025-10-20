@@ -11,7 +11,7 @@ import {
 const SP_VIEWPORT_SIZE = 1125;
 const PC_VIEWPORT_SIZE = 2880;
 
-const BREAKPOINT_MIN_PC = 800;
+const BREAKPOINT_MIN_PC = 1024;
 
 export const globalStyle = css({
   body: {

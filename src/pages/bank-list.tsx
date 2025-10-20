@@ -1,5 +1,5 @@
 import MockLoadingScene from "~/common/components/MockLoadingScene";
-import MVisionFrame from "~/app/components/_provider/MVisionFrame";
+import MVisionFrame from "~/app/components/MVisionFrame";
 import useCommonMoneyStore from "~/app/lib/database/useCommonMoneyStore";
 import BankListScene from "~/app/components/BankListScene";
 

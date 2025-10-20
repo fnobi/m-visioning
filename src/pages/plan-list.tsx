@@ -1,5 +1,5 @@
 import MockLoadingScene from "~/common/components/MockLoadingScene";
-import MVisionFrame from "~/app/components/_provider/MVisionFrame";
+import MVisionFrame from "~/app/components/MVisionFrame";
 import PlanListScene from "~/app/components/PlanListScene";
 import useCommonMoneyStore from "~/app/lib/database/useCommonMoneyStore";
 import { useMyMoneyPlanTools } from "~/app/lib/database/money-plan-database";
