@@ -3,6 +3,9 @@ import { BASE_URL } from "~/common/lib/constants";
 
 const PAGE_ROOT = new PageEntry(BASE_URL);
 
-// eslint-disable-next-line import/prefer-default-export
 export const PAGE_TOP = PAGE_ROOT;
-// export const PAGE_ABOUT = PAGE_ROOT.child("about");
+export const PAGE_PLAN_LIST = PAGE_ROOT.child("plan-list");
+export const PAGE_BANK_LIST = PAGE_ROOT.child("bank-list");
+export const PAGE_CARD_LIST = PAGE_ROOT.child("card-list");
+export const PAGE_BANK_SNAPSHOT_LIST = PAGE_ROOT.child("bank-snapshot-list");
+export const PAGE_CARD_SNAPSHOT_LIST = PAGE_ROOT.child("card-snapshot-list");

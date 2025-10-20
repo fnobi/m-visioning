@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { ClientDataStoreAgent } from "~/common/lib/ClientDataStoreAgent";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
+import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
 import { extractClientError } from "~/app/lib/client-error-utils";
 import { moneyPlanDataStoreScheme } from "~/app/scheme/app-data-store-scheme";
 import type MoneyPlan from "~/app/scheme/MoneyPlan";
@@ -11,7 +12,6 @@ const moneyPlanDataStore = new ClientDataStoreAgent(moneyPlanDataStoreScheme);
 
 type MoenPlanQueryParams = { limit?: number };
 
-// eslint-disable-next-line import/prefer-default-export
 export const useMoneyPlanList = ({
   userId,
   onError,
@@ -33,6 +33,14 @@ export const useMoneyPlanList = ({
       onError: e => onError(extractClientError(e))
     });
   }, [userId, limit, onError]);
+
+  return {
+    moneyPlanList: list
+  };
+};
+
+export const useMyMoneyPlanTools = () => {
+  const { myId: userId } = useAuthorizedUser();
 
   const writeMoneyPlan = useCallback(
     (planId: string, data: MoneyPlan) => {
@@ -75,7 +83,6 @@ export const useMoneyPlanList = ({
   );
 
   return {
-    moneyPlanList: list,
     writeMoneyPlan,
     createMoneyPlan,
     deleteMoneyPlan

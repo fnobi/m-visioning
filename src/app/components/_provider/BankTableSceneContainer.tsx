@@ -1,11 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  type ComponentPropsWithoutRef
-} from "react";
-import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import MockActionButton from "~/common/components/MockActionButton";
 import { compact } from "~/common/lib/array-util";
 import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
@@ -13,23 +6,20 @@ import CardSnapshotFormPopup from "~/app/components/CardSnapshotPopup";
 import BankSnapshotFormPopup from "~/app/components/BankSnapshotPopup";
 import ErrorScene from "~/app/components/ErrorScene";
 import BankTableScene, { calcDayArray } from "~/app/components/BankTableScene";
-import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
-import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
 import { useBankSnapshotList } from "~/app/lib/database/bank-snapshot-database";
 import { type AppErrorParameter } from "~/app/scheme/AppErrorParameter";
 import { useCardSnapshotList } from "~/app/lib/database/card-snapshot-database";
 import type BankSnapshot from "~/app/scheme/BankSnapshot";
 import type CardSnapshot from "~/app/scheme/CardSnapshot";
+import useCommonMoneyStore from "~/app/lib/database/useCommonMoneyStore";
 
-const BankTableSceneContainer = ({
-  bankList,
-  cardList,
-  planList
-}: {
-  bankList: TypedCollectionList<MoneyBankAccount>;
-  cardList: TypedCollectionList<MoneyCardAccount>;
-} & Pick<ComponentPropsWithoutRef<typeof BankTableScene>, "planList">) => {
+const BankTableSceneContainer = () => {
   const { myId } = useAuthorizedUser();
+  const {
+    bankAccountList: bankList,
+    cardAccountList: cardList,
+    moneyPlanList: planList
+  } = useCommonMoneyStore();
   const [baseDate, setBaseDate] = useState(0);
   const [periodLength, setPeriodLength] = useState(60);
   const [bankId, setBankId] = useState<string | null>(null);
@@ -72,7 +62,7 @@ const BankTableSceneContainer = ({
       (baseDate ? calcDayArray(baseDate, periodLength) : [])
         .map(({ year, month, day }) =>
           compact(
-            cardList.map(({ id, data: card }) => {
+            (cardList || []).map(({ id, data: card }) => {
               if (card.startDay !== day || card.bankId !== bankId) {
                 return null;
               }
@@ -110,6 +100,9 @@ const BankTableSceneContainer = ({
   );
 
   useEffect(() => {
+    if (!bankList) {
+      return;
+    }
     const [first] = bankList;
     if (!first) {
       return;
@@ -145,7 +138,7 @@ const BankTableSceneContainer = ({
     return <ErrorScene error={statusError} />;
   }
 
-  if (!bankId || !baseDate || !bankSnapshotList) {
+  if (!bankId || !baseDate || !bankSnapshotList || !bankList || !planList) {
     return <p>loading...</p>;
   }
 

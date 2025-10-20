@@ -1,20 +1,10 @@
-import MockLoadingScene from "~/common/components/MockLoadingScene";
-import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
-import LoginScene from "~/app/components/LoginScene";
-import MVisionTopScene from "~/app/components/_provider/MVisionTopScene";
+import BankTableSceneContainer from "~/app/components/_provider/BankTableSceneContainer";
+import MVisionFrame from "~/app/components/_provider/MVisionFrame";
 
-const PageIndex = () => {
-  const { myId, isAuthLoading } = useAuthorizedUser();
-
-  if (isAuthLoading) {
-    return <MockLoadingScene />;
-  }
-
-  if (!myId) {
-    return <LoginScene />;
-  }
-
-  return <MVisionTopScene />;
-};
+const PageIndex = () => (
+  <MVisionFrame>
+    <BankTableSceneContainer />
+  </MVisionFrame>
+);
 
 export default PageIndex;

@@ -4,7 +4,7 @@ import emotionReset from "emotion-reset";
 import { RecoilRoot } from "recoil";
 import { globalStyle } from "~/app/lib/emotion-mixin";
 import DefaultMetaSettings from "~/app/components/DefaultMetaSettings";
-import LayoutRoot from "~/app/components/LayoutRoot";
+import LayoutRoot from "~/app/components/_provider/LayoutRoot";
 
 const MyApp = ({ Component, pageProps }: AppProps) => (
   <RecoilRoot>
