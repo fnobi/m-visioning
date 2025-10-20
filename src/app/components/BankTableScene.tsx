@@ -6,6 +6,7 @@ import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import { formatDateLabel } from "~/common/lib/date-util";
 import MockActionButton from "~/common/components/MockActionButton";
 import { parseString } from "~/common/lib/parser-helper";
+import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
 import { THEME_COLOR } from "~/app/lib/emotion-mixin";
 import type MoneyPlan from "~/app/scheme/MoneyPlan";
 import type BankSnapshot from "~/app/scheme/BankSnapshot";
@@ -63,6 +64,7 @@ const TableCell = styled.p<{ isArchive: boolean; align?: "left" | "right" }>(
 
 const BankTableScene = ({
   bankId,
+  currentBank,
   cardTerms,
   baseDate,
   periodLength,
@@ -74,6 +76,7 @@ const BankTableScene = ({
   onCreateCardSnapshot
 }: {
   bankId: string;
+  currentBank: MoneyBankAccount;
   cardTerms: {
     cardId: string;
     year: number;
@@ -458,6 +461,7 @@ const BankTableScene = ({
   return (
     <>
       <p>
+        ログ追加&nbsp;
         <MockActionButton
           action={
             createBankSnapshotDraft
@@ -468,11 +472,8 @@ const BankTableScene = ({
               : null
           }
         >
-          口座ログ追加
+          {currentBank.label}
         </MockActionButton>
-      </p>
-      <p>
-        カードログ追加
         {uniqBy(cardTerms, c => c.cardId).map(({ cardId, label }) => (
           <Fragment key={cardId}>
             &nbsp;

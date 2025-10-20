@@ -99,6 +99,14 @@ const BankTableSceneContainer = () => {
     [bankId, baseDate, cardList, cardSnapshotList, periodLength]
   );
 
+  const currentBank = useMemo(() => {
+    if (!bankList || !bankId) {
+      return null;
+    }
+    const matched = bankList.find(b => b.id === bankId);
+    return matched ? matched.data : null;
+  }, [bankId, bankList]);
+
   useEffect(() => {
     if (!bankList) {
       return;
@@ -138,7 +146,14 @@ const BankTableSceneContainer = () => {
     return <ErrorScene error={statusError} />;
   }
 
-  if (!bankId || !baseDate || !bankSnapshotList || !bankList || !planList) {
+  if (
+    !bankId ||
+    !currentBank ||
+    !baseDate ||
+    !bankSnapshotList ||
+    !bankList ||
+    !planList
+  ) {
     return <p>loading...</p>;
   }
 
@@ -166,6 +181,7 @@ const BankTableSceneContainer = () => {
       ) : null}
       <BankTableScene
         bankId={bankId}
+        currentBank={currentBank}
         planList={planList}
         baseDate={baseDate}
         periodLength={periodLength}
