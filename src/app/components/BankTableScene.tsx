@@ -369,7 +369,7 @@ const BankTableScene = ({
     canvas.width = 800;
     canvas.height = 600;
     const contentWidth = canvas.width - PADDING * 2;
-    const contentHeight = canvas.height - PADDING;
+    const contentHeight = canvas.height - PADDING * 2;
     const ctx = canvas.getContext("2d");
     if (ctx) {
       ctx.translate(PADDING, PADDING);
@@ -378,9 +378,9 @@ const BankTableScene = ({
       ctx.fillRect(0, 0, contentWidth, contentHeight);
 
       const vlines: number[] = [];
-      const vdate = new Date(baseDate);
-      const endDate = new Date(baseDate + periodLength * (1000 * 60 * 60 * 24));
-      while (vdate < endDate) {
+      const vdate = new Date(startDate);
+      const edate = new Date(endDate);
+      while (vdate < edate) {
         vdate.setDate(1);
         vlines.push(vdate.getTime());
         vdate.setMonth(vdate.getMonth() + 1);
@@ -389,8 +389,7 @@ const BankTableScene = ({
       ctx.beginPath();
       vlines.forEach((v, i) => {
         const isOdd = i % 2;
-        const progress =
-          (v - baseDate) / (periodLength * (1000 * 60 * 60 * 24));
+        const progress = (v - startDate) / (endDate - startDate);
         ctx.lineTo(contentWidth * progress, isOdd ? 0 : contentHeight);
         ctx.lineTo(contentWidth * progress, isOdd ? contentHeight : 0);
       });
@@ -403,17 +402,19 @@ const BankTableScene = ({
 
       const maxAmount =
         Math.ceil(maxBy(bankEvents.rows, r => r.amount) / 100000) * 100000;
-      const points = bankEvents.rows.map(r => {
-        const progress =
-          (r.date - baseDate) / (periodLength * (1000 * 60 * 60 * 24));
+      const points = bankEvents.rows.map(({ date, amount }) => {
+        const progress = (date - startDate) / (endDate - startDate);
         const x = contentWidth * progress;
-        const y = contentHeight * (1 - r.amount / maxAmount);
-        return { x, y };
+        const y = contentHeight * (1 - Math.max(0, amount / maxAmount));
+        return { x, y, amount };
       });
 
       ctx.fillStyle = THEME_COLOR.DARK;
       ctx.beginPath();
       points.forEach(({ x, y }) => {
+        if (y >= contentHeight) {
+          return;
+        }
         ctx.moveTo(x, y);
         ctx.arc(x, y, 2, 0, Math.PI * 2);
       });
@@ -429,20 +430,28 @@ const BankTableScene = ({
       });
       ctx.stroke();
 
+      ctx.font = "18px/18px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "bottom";
+
       vlines.forEach(v => {
-        const progress =
-          (v - baseDate) / (periodLength * (1000 * 60 * 60 * 24));
-        ctx.font = "30px/30px sans-serif";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "bottom";
+        const progress = (v - startDate) / (endDate - startDate);
         ctx.fillText(
           parseString(new Date(v).getMonth() + 1),
           contentWidth * progress,
           -5
         );
       });
+
+      const minPoint = points.reduce(
+        (prev, curr) => (curr.amount < prev.amount ? curr : prev),
+        { x: 0, y: 0, amount: Infinity }
+      );
+      ctx.textBaseline = "top";
+      ctx.fillStyle = minPoint.amount > 0 ? THEME_COLOR.DARK : "#ff0000";
+      ctx.fillText(parseString(minPoint.amount), minPoint.x, contentHeight + 5);
     }
-  }, [bankEvents, baseDate, graphMode, periodLength]);
+  }, [bankEvents, startDate, endDate, graphMode]);
 
   if (graphMode) {
     return (
