@@ -1,9 +1,17 @@
+import { compact } from "~/common/lib/array-util";
 import { padLeft } from "~/common/lib/string-util";
 import { parseNumber } from "~/common/lib/parser-helper";
 
-export const formatDateLabel = (src: number | Date) => {
+export const formatDateLabel = (
+  src: number | Date,
+  hasYear: boolean = false
+) => {
   const d = typeof src === "object" ? src : new Date(src);
-  return [d.getMonth() + 1, d.getDate()].join("/");
+  return compact([
+    hasYear ? d.getFullYear() : null,
+    d.getMonth() + 1,
+    d.getDate()
+  ]).join("/");
 };
 
 export const formatTimeLabel = (src: number | Date) => {

@@ -66,8 +66,8 @@ const BankTableScene = ({
   bankId,
   currentBank,
   cardTerms,
-  baseDate,
-  periodLength,
+  startDate,
+  endDate,
   planList,
   bankSnapshotList,
   lastBankSnapshot,
@@ -87,8 +87,8 @@ const BankTableScene = ({
     termEnd: number;
     snapshotList: TypedCollectionList<CardSnapshot>;
   }[];
-  baseDate: number;
-  periodLength: number;
+  startDate: number;
+  endDate: number;
   planList: TypedCollectionList<MoneyPlan>;
   bankSnapshotList: TypedCollectionList<BankSnapshot>;
   lastBankSnapshot: BankSnapshot | null;
@@ -100,15 +100,15 @@ const BankTableScene = ({
 
   const calcRows = useCallback(
     ({
-      startDate,
-      daysCount,
+      termStart,
+      termEnd,
       baseAmount,
       snapshotList,
       nodeFilter,
       sourcePlanList
     }: {
-      startDate: number;
-      daysCount: number;
+      termStart: number;
+      termEnd: number;
       baseAmount: number;
       snapshotList: TypedCollectionList<BankSnapshot | CardSnapshot>;
       // TODO: cardId/bankIdで絞り込み済みのplanListを渡すようにして、1個にまとめたい
@@ -174,7 +174,7 @@ const BankTableScene = ({
         })
         .flat();
 
-      calcDayArray(startDate, daysCount).forEach(cdata => {
+      calcRangeDayArray(termStart, termEnd).forEach(cdata => {
         const { date, year: cy, month: cm, day: cd } = cdata;
         if (minDate >= date) {
           return;
@@ -217,8 +217,8 @@ const BankTableScene = ({
           const { amount } = calcRows({
             baseAmount: 0,
             snapshotList,
-            startDate: termStart,
-            daysCount: (termEnd - termStart) / (1000 * 60 * 60 * 24),
+            termStart,
+            termEnd,
             nodeFilter: { type: "card", cardId },
             sourcePlanList: planList
           });
@@ -253,19 +253,19 @@ const BankTableScene = ({
     return calcRows({
       baseAmount: lastBankSnapshot ? lastBankSnapshot.amount : 0,
       snapshotList: bankSnapshotList,
-      startDate: baseDate,
-      daysCount: periodLength,
+      termStart: startDate,
+      termEnd: endDate,
       nodeFilter: { type: "bank", bankId },
       sourcePlanList: [...planList, ...cardPaymentPlanList]
     });
   }, [
-    bankId,
+    cardAmount,
+    calcRows,
     lastBankSnapshot,
     bankSnapshotList,
-    baseDate,
-    calcRows,
-    cardAmount,
-    periodLength,
+    startDate,
+    endDate,
+    bankId,
     planList
   ]);
 
@@ -326,8 +326,8 @@ const BankTableScene = ({
       const res = calcRows({
         baseAmount: 0,
         snapshotList: terms.snapshotList,
-        startDate: terms.termStart,
-        daysCount: (terms.termEnd - terms.termStart) / (1000 * 60 * 60 * 24),
+        termStart: terms.termStart,
+        termEnd: terms.termEnd,
         nodeFilter: { type: "card", cardId },
         sourcePlanList: planList
       });

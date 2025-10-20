@@ -1,17 +1,22 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import MockActionButton from "~/common/components/MockActionButton";
 import { compact } from "~/common/lib/array-util";
 import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
+import { parseNumber, parseString } from "~/common/lib/parser-helper";
+import { formatDateLabel } from "~/common/lib/date-util";
 import CardSnapshotFormPopup from "~/app/components/CardSnapshotPopup";
 import BankSnapshotFormPopup from "~/app/components/BankSnapshotPopup";
 import ErrorScene from "~/app/components/ErrorScene";
-import BankTableScene, { calcDayArray } from "~/app/components/BankTableScene";
+import BankTableScene, {
+  calcRangeDayArray
+} from "~/app/components/BankTableScene";
 import { useBankSnapshotList } from "~/app/lib/database/bank-snapshot-database";
 import { type AppErrorParameter } from "~/app/scheme/AppErrorParameter";
 import { useCardSnapshotList } from "~/app/lib/database/card-snapshot-database";
 import type BankSnapshot from "~/app/scheme/BankSnapshot";
 import type CardSnapshot from "~/app/scheme/CardSnapshot";
 import useCommonMoneyStore from "~/app/lib/database/useCommonMoneyStore";
+
+const PERIOD_OPTIONS = [2, 12, 24];
 
 const BankTableSceneContainer = () => {
   const { myId } = useAuthorizedUser();
@@ -20,8 +25,8 @@ const BankTableSceneContainer = () => {
     cardAccountList: cardList,
     moneyPlanList: planList
   } = useCommonMoneyStore();
-  const [baseDate, setBaseDate] = useState(0);
-  const [periodLength, setPeriodLength] = useState(60);
+  const [startDate, setStartDate] = useState(0);
+  const [periodLength, setPeriodLength] = useState(PERIOD_OPTIONS[0]);
   const [bankId, setBankId] = useState<string | null>(null);
   const [statusError, setStatusError] = useState<AppErrorParameter | null>(
     null
@@ -32,17 +37,26 @@ const BankTableSceneContainer = () => {
     useState<CardSnapshot | null>(null);
   const [graphMode, setGraphMode] = useState(false);
 
+  const endDate = useMemo(() => {
+    if (!startDate) {
+      return startDate;
+    }
+    const d = new Date(startDate);
+    d.setMonth(d.getMonth() + periodLength);
+    return d.getTime();
+  }, [startDate, periodLength]);
+
   const { bankSnapshotList, createBankSnapshot } = useBankSnapshotList({
     userId: myId,
     bankId: bankId || "",
-    minTimestamp: baseDate,
-    maxTimestamp: baseDate + periodLength * 1000 * 60 * 60 * 24,
+    minTimestamp: startDate,
+    maxTimestamp: endDate,
     onError: setStatusError
   });
   const { bankSnapshotList: beforeSnapshotList } = useBankSnapshotList({
     userId: myId,
     bankId: bankId || "",
-    maxTimestamp: baseDate,
+    maxTimestamp: startDate,
     limit: 1,
     onError: setStatusError
   });
@@ -59,7 +73,7 @@ const BankTableSceneContainer = () => {
 
   const cardTerms = useMemo(
     () =>
-      (baseDate ? calcDayArray(baseDate, periodLength) : [])
+      (startDate ? calcRangeDayArray(startDate, endDate) : [])
         .map(({ year, month, day }) =>
           compact(
             (cardList || []).map(({ id, data: card }) => {
@@ -96,7 +110,7 @@ const BankTableSceneContainer = () => {
           )
         )
         .flat(),
-    [bankId, baseDate, cardList, cardSnapshotList, periodLength]
+    [bankId, startDate, cardList, cardSnapshotList, endDate]
   );
 
   const currentBank = useMemo(() => {
@@ -121,7 +135,14 @@ const BankTableSceneContainer = () => {
   }, [bankId, bankList]);
 
   useEffect(() => {
-    setBaseDate(Date.now());
+    setStartDate(v => {
+      if (v) {
+        return v;
+      }
+      const d = new Date();
+      d.setDate(1);
+      return d.getTime();
+    });
   }, []);
 
   // TODO: async handler噛ませて欲しい
@@ -146,62 +167,68 @@ const BankTableSceneContainer = () => {
     return <ErrorScene error={statusError} />;
   }
 
-  if (
-    !bankId ||
-    !currentBank ||
-    !baseDate ||
-    !bankSnapshotList ||
-    !bankList ||
-    !planList
-  ) {
+  if (!bankId || !currentBank || !startDate || !bankList || !planList) {
     return <p>loading...</p>;
   }
 
   return (
     <>
-      {bankId ? (
+      <div>
+        <p>期間設定</p>
         <p>
-          <select value={bankId} onChange={e => setBankId(e.target.value)}>
-            {bankList.map(({ id, data }) => (
-              <option key={id} value={id}>
-                {data.label}
+          {formatDateLabel(startDate, true)}・
+          <select
+            value={parseString(periodLength)}
+            onChange={e => setPeriodLength(parseNumber(e.target.value))}
+          >
+            {PERIOD_OPTIONS.map(l => (
+              <option key={l} value={l}>
+                {l}ヶ月
               </option>
             ))}
           </select>
-          &nbsp;
-          <label>
-            <input
-              type="checkbox"
-              checked={graphMode}
-              onChange={e => setGraphMode(e.target.checked)}
-            />
-            graph
-          </label>
         </p>
-      ) : null}
-      <BankTableScene
-        bankId={bankId}
-        currentBank={currentBank}
-        planList={planList}
-        baseDate={baseDate}
-        periodLength={periodLength}
-        cardTerms={cardTerms}
-        bankSnapshotList={bankSnapshotList}
-        lastBankSnapshot={lastBankSnapshot}
-        graphMode={graphMode}
-        onCreateBankSnapshot={setBankSnapshotDraft}
-        onCreateCardSnapshot={setCardSnapshotDraft}
-      />
-      <div>
-        <MockActionButton
-          action={{
-            type: "button",
-            onClick: () => setPeriodLength(l => l + 30)
-          }}
-        >
-          30日分追加
-        </MockActionButton>
       </div>
+      {bankId ? (
+        <div>
+          <p>口座</p>
+          <p>
+            <select value={bankId} onChange={e => setBankId(e.target.value)}>
+              {bankList.map(({ id, data }) => (
+                <option key={id} value={id}>
+                  {data.label}
+                </option>
+              ))}
+            </select>
+            &nbsp;
+            <label>
+              <input
+                type="checkbox"
+                checked={graphMode}
+                onChange={e => setGraphMode(e.target.checked)}
+              />
+              graph
+            </label>
+          </p>
+        </div>
+      ) : null}
+      {bankSnapshotList ? (
+        <BankTableScene
+          bankId={bankId}
+          currentBank={currentBank}
+          planList={planList}
+          startDate={startDate}
+          endDate={endDate}
+          cardTerms={cardTerms}
+          bankSnapshotList={bankSnapshotList}
+          lastBankSnapshot={lastBankSnapshot}
+          graphMode={graphMode}
+          onCreateBankSnapshot={setBankSnapshotDraft}
+          onCreateCardSnapshot={setCardSnapshotDraft}
+        />
+      ) : (
+        <div>loading...</div>
+      )}
       {bankSnapshotDraft ? (
         <BankSnapshotFormPopup
           defaultValue={bankSnapshotDraft}
