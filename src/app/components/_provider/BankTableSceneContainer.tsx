@@ -16,7 +16,7 @@ import type BankSnapshot from "~/app/scheme/BankSnapshot";
 import type CardSnapshot from "~/app/scheme/CardSnapshot";
 import useCommonMoneyStore from "~/app/lib/database/useCommonMoneyStore";
 
-const PERIOD_OPTIONS = [2, 12, 24];
+const PERIOD_OPTIONS = [3, 12, 24];
 
 const BankTableSceneContainer = () => {
   const { myId } = useAuthorizedUser();
