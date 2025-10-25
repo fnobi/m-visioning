@@ -16,9 +16,7 @@ import {
 import { pcStyle, spStyle } from "~/app/lib/emotion-mixin";
 import AuthFrame from "~/app/components/AuthFrame";
 import {
-  PAGE_BANK_LIST,
   PAGE_BANK_SNAPSHOT_LIST,
-  PAGE_CARD_LIST,
   PAGE_CARD_SNAPSHOT_LIST,
   PAGE_PLAN_LIST,
   PAGE_TOP
@@ -34,14 +32,6 @@ const TABS = [
   {
     label: "入出金予定一覧",
     page: PAGE_PLAN_LIST
-  },
-  {
-    label: "銀行口座一覧",
-    page: PAGE_BANK_LIST
-  },
-  {
-    label: "カード一覧",
-    page: PAGE_CARD_LIST
   },
   {
     label: "口座ログ一覧",

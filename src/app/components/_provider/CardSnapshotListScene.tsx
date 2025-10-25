@@ -25,7 +25,7 @@ const CardSnapshotListScene = ({
   const [statusError, setStatusError] = useState<AppErrorParameter | null>(
     null
   );
-  const [cardId, setCardId] = useState<string>("");
+  const [cardId, setCardId] = useState("");
   const { cardSnapshotList, writeCardSnapshot, deleteCardSnapshot } =
     useCardSnapshotList({
       userId: myId,
@@ -51,7 +51,7 @@ const CardSnapshotListScene = ({
       cardSnapshotList
         ? cardSnapshotList.map(({ id, data }) => ({
             key: id,
-            title: `${data.cardId} / ¥${data.amount}`,
+            title: `¥${data.amount}`,
             subTitle: formatDateTimeLabel(data.timestamp),
             mainAction: {
               type: "button",
