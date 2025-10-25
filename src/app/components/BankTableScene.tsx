@@ -48,12 +48,23 @@ export const matchMoneyNode = (
   return false;
 };
 
+export const calcDateParamInt = (d: {
+  year: number;
+  month: number;
+  day: number;
+}) => (d.year * 100 + d.month) * 100 + d.day;
+
+export const calcDateInt = (d: Date) =>
+  calcDateParamInt({
+    year: d.getFullYear(),
+    month: d.getMonth() + 1,
+    day: d.getDate()
+  });
+
 const checkIsAfter = (
   b: { year: number; month: number; day: number },
   a: { year: number; month: number; day: number }
-) =>
-  (b.year * 100 + b.month) * 100 + b.day <=
-  (a.year * 100 + a.month) * 100 + a.day;
+) => calcDateParamInt(b) <= calcDateParamInt(a);
 
 const TableCell = styled.p<{ isArchive: boolean; align?: "left" | "right" }>(
   ({ isArchive, align = "left" }) => ({
