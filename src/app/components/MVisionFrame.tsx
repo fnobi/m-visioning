@@ -26,7 +26,7 @@ type TabEntry = { label: string; page: PageEntry };
 
 const TABS = [
   {
-    label: "短期シミュレーション",
+    label: "口座シミュレーション",
     page: PAGE_TOP
   },
   {
