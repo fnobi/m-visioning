@@ -113,7 +113,9 @@ const MVisionFrame = ({ children }: { children: ReactNode }) => {
           <p key={page.href}>
             <MockActionButton
               action={
-                page.href === router.asPath ? null : { type: "page-link", page }
+                page.basePath === router.pathname
+                  ? null
+                  : { type: "page-link", page }
               }
             >
               {label}
