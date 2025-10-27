@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { ClientDataStoreAgent } from "~/common/lib/ClientDataStoreAgent";
-import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
+import {
+  type QueryChain,
+  type TypedCollectionList
+} from "~/common/lib/DataStoreAgent";
 import { extractClientError } from "~/app/lib/client-error-utils";
 import { cardSnapshotDataStoreScheme } from "~/app/scheme/app-data-store-scheme";
 import { type AppErrorParameter } from "~/app/scheme/AppErrorParameter";
@@ -11,14 +14,38 @@ const cardSnapshotDataStore = new ClientDataStoreAgent(
   cardSnapshotDataStoreScheme
 );
 
-type CardSnapshotQueryParams = { cardId?: string; limit?: number };
+type CardSnapshotQueryParams = {
+  cardId?: string;
+  limit?: number;
+  minTimestamp?: number;
+  maxTimestamp?: number;
+};
 
+const makeCardSnapshotQueryChain =
+  (p: CardSnapshotQueryParams) => (c: QueryChain<CardSnapshot>) => {
+    let cc = c.orderBy("timestamp", "desc");
+    if (p.limit) {
+      cc = cc.limit(p.limit);
+    }
+    if (p.cardId) {
+      cc = cc.equal("cardId", p.cardId);
+    }
+    if (p.minTimestamp) {
+      cc = cc.where("timestamp", ">=", p.minTimestamp);
+    }
+    if (p.maxTimestamp) {
+      cc = cc.where("timestamp", "<", p.maxTimestamp);
+    }
+    return cc;
+  };
 // eslint-disable-next-line import/prefer-default-export
 export const useCardSnapshotList = ({
   userId,
   cardId,
   onError,
-  limit
+  limit,
+  minTimestamp,
+  maxTimestamp
 }: {
   userId: string | null;
   onError: (e: AppErrorParameter) => void;
@@ -35,16 +62,15 @@ export const useCardSnapshotList = ({
     return cardSnapshotDataStore.subscribeList({
       userId,
       handler: setList,
-      queryChain: c => {
-        let cc = c.orderBy("timestamp", "desc");
-        if (cardId) {
-          cc = cc.equal("cardId", cardId);
-        }
-        return cc;
-      },
+      queryChain: makeCardSnapshotQueryChain({
+        limit,
+        cardId,
+        minTimestamp,
+        maxTimestamp
+      }),
       onError: e => onError(extractClientError(e))
     });
-  }, [userId, limit, onError, cardId]);
+  }, [userId, limit, onError, cardId, minTimestamp, maxTimestamp]);
 
   const writeCardSnapshot = useCallback(
     (snapshotId: string, data: CardSnapshot) => {

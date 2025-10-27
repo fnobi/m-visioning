@@ -21,18 +21,19 @@ const useCardListSnapshotListPageQuery = () => {
 
 const CardListSceneContainer = () => {
   const { cardAccountList } = useCommonMoneyStore();
-
   const { cardId, setCardId } = useCardListSnapshotListPageQuery();
 
+  const currentCard = useMemo(
+    () => (cardAccountList ? cardAccountList.find(c => c.id === cardId) : null),
+    [cardAccountList, cardId]
+  );
+
   useEffect(() => {
-    const currentCard = cardAccountList
-      ? cardAccountList.find(c => c.id === cardId)
-      : null;
     const [defaultCard] = cardAccountList || [];
     if (!currentCard && defaultCard) {
       setCardId(defaultCard.id);
     }
-  }, [cardAccountList, cardId, setCardId]);
+  }, [cardAccountList, cardId, currentCard, setCardId]);
 
   if (!cardAccountList || !cardId) {
     return <MockLoadingScene />;

@@ -6,14 +6,16 @@ import {
 } from "react";
 import MockListView from "~/common/components/MockListView";
 import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
-import { formatDateTimeLabel } from "~/common/lib/date-util";
+import { formatDateLabel, formatDateTimeLabel } from "~/common/lib/date-util";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
+import MockActionButton from "~/common/components/MockActionButton";
 import CardSnapshotFormPopup from "~/app/components/CardSnapshotPopup";
 import ErrorScene from "~/app/components/ErrorScene";
 import { useCardSnapshotList } from "~/app/lib/database/card-snapshot-database";
 import { type AppErrorParameter } from "~/app/scheme/AppErrorParameter";
 import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
 import type CardSnapshot from "~/app/scheme/CardSnapshot";
+import useMonthCursor from "~/app/lib/useMonthCursor";
 
 const CardSnapshotListScene = ({
   cardId,
@@ -28,10 +30,21 @@ const CardSnapshotListScene = ({
   const [statusError, setStatusError] = useState<AppErrorParameter | null>(
     null
   );
+  const currentCard = useMemo(
+    () => cardList.find(c => c.id === cardId) || null,
+    [cardId, cardList]
+  );
+  const { minTimestamp, maxTimestamp, monthStartDate, incrementMonthCode } =
+    useMonthCursor({
+      startDay: currentCard ? currentCard.data.startDay : 1
+    });
+
   const { cardSnapshotList, writeCardSnapshot, deleteCardSnapshot } =
     useCardSnapshotList({
       userId: myId,
       cardId,
+      minTimestamp,
+      maxTimestamp,
       onError: setStatusError
     });
   const [editData, setEditData] = useState<{
@@ -88,6 +101,30 @@ const CardSnapshotListScene = ({
           ))}
         </select>
       </div>
+      {monthStartDate ? (
+        <div>
+          <p>{formatDateLabel(monthStartDate, true)}-</p>
+          <p>
+            <MockActionButton
+              action={{
+                type: "button",
+                onClick: () => incrementMonthCode(-1)
+              }}
+            >
+              &lt;前へ
+            </MockActionButton>
+            ・
+            <MockActionButton
+              action={{
+                type: "button",
+                onClick: () => incrementMonthCode(1)
+              }}
+            >
+              次へ&gt;
+            </MockActionButton>
+          </p>
+        </div>
+      ) : null}
       {list ? <MockListView dataList={list} /> : <>loading...</>}
       {editData ? (
         <CardSnapshotFormPopup
