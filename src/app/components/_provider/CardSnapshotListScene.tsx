@@ -1,7 +1,6 @@
 import {
   type ComponentPropsWithoutRef,
   useCallback,
-  useEffect,
   useMemo,
   useState
 } from "react";
@@ -17,15 +16,18 @@ import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
 import type CardSnapshot from "~/app/scheme/CardSnapshot";
 
 const CardSnapshotListScene = ({
-  cardList
+  cardId,
+  cardList,
+  onChangeCard
 }: {
+  cardId: string;
   cardList: TypedCollectionList<MoneyCardAccount>;
+  onChangeCard: (id: string) => void;
 }) => {
   const { myId } = useAuthorizedUser();
   const [statusError, setStatusError] = useState<AppErrorParameter | null>(
     null
   );
-  const [cardId, setCardId] = useState("");
   const { cardSnapshotList, writeCardSnapshot, deleteCardSnapshot } =
     useCardSnapshotList({
       userId: myId,
@@ -71,13 +73,6 @@ const CardSnapshotListScene = ({
     [cardSnapshotList, deleteCardSnapshot]
   );
 
-  useEffect(() => {
-    const [first] = cardList;
-    if (!cardId && first) {
-      setCardId(first.id);
-    }
-  }, [cardId, cardList]);
-
   if (statusError) {
     return <ErrorScene error={statusError} />;
   }
@@ -85,7 +80,7 @@ const CardSnapshotListScene = ({
   return (
     <>
       <div>
-        <select value={cardId} onChange={e => setCardId(e.target.value)}>
+        <select value={cardId} onChange={e => onChangeCard(e.target.value)}>
           {cardList.map(({ id, data }) => (
             <option key={id} value={id}>
               {data.label}
