@@ -8,6 +8,7 @@ export const PAGE_PLAN_LIST = PAGE_ROOT.child("plan-list");
 export const PAGE_BANK_SNAPSHOT_LIST = PAGE_ROOT.child<never, { bank: string }>(
   "bank-snapshot-list"
 );
-export const PAGE_CARD_SNAPSHOT_LIST = PAGE_ROOT.child<never, { card: string }>(
-  "card-snapshot-list"
-);
+export const PAGE_CARD_SNAPSHOT_LIST = PAGE_ROOT.child<
+  never,
+  { card: string; month: string }
+>("card-snapshot-list");

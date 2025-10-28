@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import MockLoadingScene from "~/common/components/MockLoadingScene";
 import usePageEntryQuery from "~/common/lib/usePageEntryQuery";
+import { parseNumber, parseString } from "~/common/lib/parser-helper";
 import MVisionFrame from "~/app/components/MVisionFrame";
 import useCommonMoneyStore from "~/app/lib/database/useCommonMoneyStore";
 import CardSnapshotListScene from "~/app/components/_provider/CardSnapshotListScene";
@@ -8,22 +9,28 @@ import { PAGE_CARD_SNAPSHOT_LIST } from "~/app/lib/page-path";
 import useMonthCursor from "~/app/lib/useMonthCursor";
 
 const useCardListSnapshotListPageQuery = () => {
-  const { params, mergeParams } = usePageEntryQuery(PAGE_CARD_SNAPSHOT_LIST);
+  const { params, setParams } = usePageEntryQuery(PAGE_CARD_SNAPSHOT_LIST);
 
   const cardId = useMemo(() => params.card, [params]);
+  const monthCode = useMemo(() => parseNumber(params.month), [params]);
 
   const setCardId = useCallback(
-    (v: string) => mergeParams({ card: v }),
-    [mergeParams]
+    (v: string) => setParams({ card: v, month: parseString(monthCode) }),
+    [monthCode, setParams]
   );
 
-  return { cardId, setCardId };
+  const setMonthCode = useCallback(
+    (v: number) => setParams({ card: cardId, month: parseString(v) }),
+    [cardId, setParams]
+  );
+
+  return { cardId, monthCode, setCardId, setMonthCode };
 };
 
 const CardListSceneContainer = () => {
   const { cardAccountList } = useCommonMoneyStore();
-  const { cardId, setCardId } = useCardListSnapshotListPageQuery();
-  const [monthCode, setMonthCode] = useState(0);
+  const { cardId, monthCode, setCardId, setMonthCode } =
+    useCardListSnapshotListPageQuery();
 
   const currentCard = useMemo(
     () => (cardAccountList ? cardAccountList.find(c => c.id === cardId) : null),

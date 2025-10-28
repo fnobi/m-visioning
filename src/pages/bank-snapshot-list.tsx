@@ -7,13 +7,13 @@ import BankSnapshotListScene from "~/app/components/_provider/BankSnapshotListSc
 import { PAGE_BANK_SNAPSHOT_LIST } from "~/app/lib/page-path";
 
 const useBankListSnapshotListPageQuery = () => {
-  const { params, mergeParams } = usePageEntryQuery(PAGE_BANK_SNAPSHOT_LIST);
+  const { params, setParams } = usePageEntryQuery(PAGE_BANK_SNAPSHOT_LIST);
 
   const bankId = useMemo(() => params.bank, [params]);
 
   const setBankId = useCallback(
-    (id: string) => mergeParams({ bank: id }),
-    [mergeParams]
+    (bank: string) => setParams({ bank }),
+    [setParams]
   );
 
   return { bankId, setBankId };
