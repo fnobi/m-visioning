@@ -50,13 +50,16 @@ const useMonthCursor = ({
   );
 
   useEffect(() => {
+    if (monthCode) {
+      return;
+    }
     const startDate = new Date();
     if (startDate.getDate() < startDay) {
       startDate.setMonth(startDate.getMonth() - 1);
     }
     startDate.setDate(startDay);
     setMonthCodeWithDate(startDate);
-  }, [setMonthCodeWithDate, startDay]);
+  }, [monthCode, setMonthCodeWithDate, startDay]);
 
   return { minTimestamp, maxTimestamp, monthStartDate, incrementMonthCode };
 };
