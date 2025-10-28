@@ -6,9 +6,9 @@ import {
 } from "react";
 import MockListView from "~/common/components/MockListView";
 import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
-import { formatDateLabel, formatDateTimeLabel } from "~/common/lib/date-util";
+import { formatDateTimeLabel } from "~/common/lib/date-util";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
-import MockActionButton from "~/common/components/MockActionButton";
+import MonthCursorNavi from "~/app/components/MonthCursorNavi";
 import CardSnapshotFormPopup from "~/app/components/CardSnapshotPopup";
 import ErrorScene from "~/app/components/ErrorScene";
 import { useCardSnapshotList } from "~/app/lib/database/card-snapshot-database";
@@ -95,30 +95,7 @@ const CardSnapshotListScene = ({
           ))}
         </select>
       </div>
-      {monthCursor.monthStartDate ? (
-        <div>
-          <p>{formatDateLabel(monthCursor.monthStartDate, true)}-</p>
-          <p>
-            <MockActionButton
-              action={{
-                type: "button",
-                onClick: () => monthCursor.incrementMonthCode(-1)
-              }}
-            >
-              &lt;前へ
-            </MockActionButton>
-            ・
-            <MockActionButton
-              action={{
-                type: "button",
-                onClick: () => monthCursor.incrementMonthCode(1)
-              }}
-            >
-              次へ&gt;
-            </MockActionButton>
-          </p>
-        </div>
-      ) : null}
+      <MonthCursorNavi monthCursor={monthCursor} />
       {list ? <MockListView dataList={list} /> : <>loading...</>}
       {editData ? (
         <CardSnapshotFormPopup

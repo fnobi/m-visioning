@@ -8,20 +8,24 @@ import MockListView from "~/common/components/MockListView";
 import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
 import { formatDateTimeLabel } from "~/common/lib/date-util";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
+import MonthCursorNavi from "~/app/components/MonthCursorNavi";
 import BankSnapshotFormPopup from "~/app/components/BankSnapshotPopup";
 import ErrorScene from "~/app/components/ErrorScene";
 import { useBankSnapshotList } from "~/app/lib/database/bank-snapshot-database";
 import { type AppErrorParameter } from "~/app/scheme/AppErrorParameter";
 import type BankSnapshot from "~/app/scheme/BankSnapshot";
 import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
+import type useMonthCursor from "~/app/lib/useMonthCursor";
 
 const BankSnapshotListScene = ({
   bankId,
   bankList,
+  monthCursor,
   onChangeBank
 }: {
   bankId: string;
   bankList: TypedCollectionList<MoneyBankAccount>;
+  monthCursor: ReturnType<typeof useMonthCursor>;
   onChangeBank: (id: string) => void;
 }) => {
   const { myId } = useAuthorizedUser();
@@ -32,6 +36,8 @@ const BankSnapshotListScene = ({
     useBankSnapshotList({
       userId: myId,
       bankId,
+      minTimestamp: monthCursor.minTimestamp,
+      maxTimestamp: monthCursor.maxTimestamp,
       onError: setStatusError
     });
   const [editData, setEditData] = useState<{
@@ -88,6 +94,7 @@ const BankSnapshotListScene = ({
           ))}
         </select>
       </div>
+      <MonthCursorNavi monthCursor={monthCursor} />
       <div>{list ? <MockListView dataList={list} /> : <>loading...</>}</div>
       {editData ? (
         <BankSnapshotFormPopup
