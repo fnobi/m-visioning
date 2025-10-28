@@ -1,7 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 
-const useMonthCursor = ({ startDay }: { startDay: number }) => {
-  const [monthCode, setMonthCode] = useState(0);
+const useMonthCursor = ({
+  monthCode,
+  setMonthCode,
+  startDay
+}: {
+  monthCode: number;
+  setMonthCode: (v: number) => void;
+  startDay: number;
+}) => {
   const monthStartDate = useMemo(() => {
     if (!monthCode) {
       return null;
@@ -27,7 +34,7 @@ const useMonthCursor = ({ startDay }: { startDay: number }) => {
 
   const setMonthCodeWithDate = useCallback(
     (d: Date) => setMonthCode(d.getFullYear() * 100 + (d.getMonth() + 1)),
-    []
+    [setMonthCode]
   );
 
   const incrementMonthCode = useCallback(

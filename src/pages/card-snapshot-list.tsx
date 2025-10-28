@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import MockLoadingScene from "~/common/components/MockLoadingScene";
 import usePageEntryQuery from "~/common/lib/usePageEntryQuery";
 import MVisionFrame from "~/app/components/MVisionFrame";
 import useCommonMoneyStore from "~/app/lib/database/useCommonMoneyStore";
 import CardSnapshotListScene from "~/app/components/_provider/CardSnapshotListScene";
 import { PAGE_CARD_SNAPSHOT_LIST } from "~/app/lib/page-path";
+import useMonthCursor from "~/app/lib/useMonthCursor";
 
 const useCardListSnapshotListPageQuery = () => {
   const { params, mergeParams } = usePageEntryQuery(PAGE_CARD_SNAPSHOT_LIST);
@@ -12,7 +13,7 @@ const useCardListSnapshotListPageQuery = () => {
   const cardId = useMemo(() => params.card, [params]);
 
   const setCardId = useCallback(
-    (id: string) => mergeParams({ card: id }),
+    (v: string) => mergeParams({ card: v }),
     [mergeParams]
   );
 
@@ -22,11 +23,18 @@ const useCardListSnapshotListPageQuery = () => {
 const CardListSceneContainer = () => {
   const { cardAccountList } = useCommonMoneyStore();
   const { cardId, setCardId } = useCardListSnapshotListPageQuery();
+  const [monthCode, setMonthCode] = useState(0);
 
   const currentCard = useMemo(
     () => (cardAccountList ? cardAccountList.find(c => c.id === cardId) : null),
     [cardAccountList, cardId]
   );
+
+  const monthCursor = useMonthCursor({
+    monthCode,
+    setMonthCode,
+    startDay: currentCard ? currentCard.data.startDay : 1
+  });
 
   useEffect(() => {
     const [defaultCard] = cardAccountList || [];
@@ -43,6 +51,7 @@ const CardListSceneContainer = () => {
     <CardSnapshotListScene
       cardId={cardId}
       cardList={cardAccountList}
+      monthCursor={monthCursor}
       onChangeCard={setCardId}
     />
   );

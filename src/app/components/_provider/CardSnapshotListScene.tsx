@@ -15,36 +15,30 @@ import { useCardSnapshotList } from "~/app/lib/database/card-snapshot-database";
 import { type AppErrorParameter } from "~/app/scheme/AppErrorParameter";
 import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
 import type CardSnapshot from "~/app/scheme/CardSnapshot";
-import useMonthCursor from "~/app/lib/useMonthCursor";
+import type useMonthCursor from "~/app/lib/useMonthCursor";
 
 const CardSnapshotListScene = ({
   cardId,
   cardList,
+  monthCursor,
   onChangeCard
 }: {
   cardId: string;
   cardList: TypedCollectionList<MoneyCardAccount>;
+  monthCursor: ReturnType<typeof useMonthCursor>;
   onChangeCard: (id: string) => void;
 }) => {
   const { myId } = useAuthorizedUser();
   const [statusError, setStatusError] = useState<AppErrorParameter | null>(
     null
   );
-  const currentCard = useMemo(
-    () => cardList.find(c => c.id === cardId) || null,
-    [cardId, cardList]
-  );
-  const { minTimestamp, maxTimestamp, monthStartDate, incrementMonthCode } =
-    useMonthCursor({
-      startDay: currentCard ? currentCard.data.startDay : 1
-    });
 
   const { cardSnapshotList, writeCardSnapshot, deleteCardSnapshot } =
     useCardSnapshotList({
       userId: myId,
       cardId,
-      minTimestamp,
-      maxTimestamp,
+      minTimestamp: monthCursor.minTimestamp,
+      maxTimestamp: monthCursor.maxTimestamp,
       onError: setStatusError
     });
   const [editData, setEditData] = useState<{
@@ -101,14 +95,14 @@ const CardSnapshotListScene = ({
           ))}
         </select>
       </div>
-      {monthStartDate ? (
+      {monthCursor.monthStartDate ? (
         <div>
-          <p>{formatDateLabel(monthStartDate, true)}-</p>
+          <p>{formatDateLabel(monthCursor.monthStartDate, true)}-</p>
           <p>
             <MockActionButton
               action={{
                 type: "button",
-                onClick: () => incrementMonthCode(-1)
+                onClick: () => monthCursor.incrementMonthCode(-1)
               }}
             >
               &lt;前へ
@@ -117,7 +111,7 @@ const CardSnapshotListScene = ({
             <MockActionButton
               action={{
                 type: "button",
-                onClick: () => incrementMonthCode(1)
+                onClick: () => monthCursor.incrementMonthCode(1)
               }}
             >
               次へ&gt;
