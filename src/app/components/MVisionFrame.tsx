@@ -3,17 +3,27 @@ import { useRouter } from "next/router";
 import { signOut } from "firebase/auth";
 import styled from "@emotion/styled";
 import { buildTransform } from "css-transform-builder";
+import {
+  FaSignal,
+  FaListCheck,
+  FaRegCreditCard,
+  FaSackDollar,
+  FaArrowRightToBracket,
+  FaChevronRight,
+  FaChevronLeft
+} from "react-icons/fa6";
 import MockStaticLayout from "~/common/components/MockStaticLayout";
 import MockActionButton from "~/common/components/MockActionButton";
 import type PageEntry from "~/common/lib/PageEntry";
 import { firebaseAuth } from "~/common/lib/firebase-app";
 import {
   alphaColor,
+  em,
   percent,
   PRIMITIVE_COLOR,
   px
 } from "~/common/lib/css-util";
-import { pcStyle, spStyle } from "~/app/lib/emotion-mixin";
+import { pcStyle, spStyle, THEME_COLOR } from "~/app/lib/emotion-mixin";
 import AuthFrame from "~/app/components/AuthFrame";
 import {
   PAGE_BANK_SNAPSHOT_LIST,
@@ -22,23 +32,27 @@ import {
   PAGE_TOP
 } from "~/app/lib/page-path";
 
-type TabEntry = { label: string; page: PageEntry };
+type TabEntry = { label: string; icon: ReactNode; page: PageEntry };
 
 const TABS = [
   {
     label: "口座シミュレーション",
+    icon: <FaSignal />,
     page: PAGE_TOP
   },
   {
     label: "入出金予定一覧",
+    icon: <FaListCheck />,
     page: PAGE_PLAN_LIST
   },
   {
     label: "口座ログ一覧",
+    icon: <FaSackDollar />,
     page: PAGE_BANK_SNAPSHOT_LIST
   },
   {
     label: "カードログ一覧",
+    icon: <FaRegCreditCard />,
     page: PAGE_CARD_SNAPSHOT_LIST
   }
 ] as const satisfies TabEntry[];
@@ -76,6 +90,14 @@ const MenuRoot = styled.div<{ flag: boolean }>(
   pcStyle({})
 );
 
+const MenuItem = styled.p({
+  display: "flex",
+  justifyContent: "flex-start",
+  alignItems: "center",
+  gap: em(0.4),
+  marginBottom: em(0.8)
+});
+
 const NaviBar = styled.div({
   position: "fixed",
   left: 0,
@@ -85,7 +107,8 @@ const NaviBar = styled.div({
   display: "flex",
   justifyContent: "flex-start",
   alignItems: "center",
-  backgroundColor: "#888888"
+  backgroundColor: "#5577cc",
+  borderBottom: `solid ${px(1)} ${THEME_COLOR.DARK}`
 });
 
 const NaviToggleButton = styled.div(
@@ -93,7 +116,8 @@ const NaviToggleButton = styled.div(
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    width: px(MENU_HEIGHT)
+    width: px(MENU_HEIGHT),
+    color: THEME_COLOR.WHITE
   },
   pcStyle({
     display: "none"
@@ -109,8 +133,9 @@ const MVisionFrame = ({ children }: { children: ReactNode }) => {
       <MockStaticLayout>{children}</MockStaticLayout>
       <MenuMat flag={menuFlag} />
       <MenuRoot flag={menuFlag}>
-        {TABS.map(({ label, page }) => (
-          <p key={page.href}>
+        {TABS.map(({ label, icon, page }) => (
+          <MenuItem key={page.href}>
+            {icon}
             <MockActionButton
               action={
                 page.basePath === router.pathname
@@ -120,10 +145,11 @@ const MVisionFrame = ({ children }: { children: ReactNode }) => {
             >
               {label}
             </MockActionButton>
-          </p>
+          </MenuItem>
         ))}
         <hr />
-        <p>
+        <MenuItem>
+          <FaArrowRightToBracket />
           <MockActionButton
             action={{
               type: "button",
@@ -132,7 +158,7 @@ const MVisionFrame = ({ children }: { children: ReactNode }) => {
           >
             ログアウト
           </MockActionButton>
-        </p>
+        </MenuItem>
       </MenuRoot>
       <NaviBar>
         <NaviToggleButton>
@@ -142,7 +168,7 @@ const MVisionFrame = ({ children }: { children: ReactNode }) => {
               onClick: () => setMenuFlag(f => !f)
             }}
           >
-            {menuFlag ? "❌️" : "@"}
+            {menuFlag ? <FaChevronLeft /> : <FaChevronRight />}
           </MockActionButton>
         </NaviToggleButton>
       </NaviBar>
