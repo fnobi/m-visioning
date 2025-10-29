@@ -18,6 +18,16 @@ import useCommonMoneyStore from "~/app/lib/database/useCommonMoneyStore";
 
 const PERIOD_OPTIONS = [3, 12, 24];
 
+type PopupParams =
+  | {
+      type: "create-bank-snapshot";
+      defaultValue: BankSnapshot;
+    }
+  | {
+      type: "create-card-snapshot";
+      defaultValue: CardSnapshot;
+    };
+
 const BankTableSceneContainer = () => {
   const { myId } = useAuthorizedUser();
   const {
@@ -31,11 +41,8 @@ const BankTableSceneContainer = () => {
   const [statusError, setStatusError] = useState<AppErrorParameter | null>(
     null
   );
-  const [bankSnapshotDraft, setBankSnapshotDraft] =
-    useState<BankSnapshot | null>(null);
-  const [cardSnapshotDraft, setCardSnapshotDraft] =
-    useState<CardSnapshot | null>(null);
   const [graphMode, setGraphMode] = useState(false);
+  const [popup, setPopup] = useState<PopupParams | null>(null);
 
   const endDate = useMemo(() => {
     if (!startDate) {
@@ -145,11 +152,23 @@ const BankTableSceneContainer = () => {
     });
   }, []);
 
+  const handleOpenBankSnapshotCreateForm = useCallback(
+    (d: BankSnapshot) =>
+      setPopup({ type: "create-bank-snapshot", defaultValue: d }),
+    []
+  );
+
+  const handleOpenCardSnapshotCreateForm = useCallback(
+    (d: CardSnapshot) =>
+      setPopup({ type: "create-card-snapshot", defaultValue: d }),
+    []
+  );
+
   // TODO: async handler噛ませて欲しい
   const handleCreateBankSnapshot = useCallback(
     async (v: BankSnapshot) => {
       await createBankSnapshot(v);
-      setBankSnapshotDraft(null);
+      setPopup(null);
     },
     [createBankSnapshot]
   );
@@ -158,7 +177,7 @@ const BankTableSceneContainer = () => {
   const handleCreateCardSnapshot = useCallback(
     async (v: CardSnapshot) => {
       await createCardSnapshot(v);
-      setCardSnapshotDraft(null);
+      setPopup(null);
     },
     [createCardSnapshot]
   );
@@ -223,23 +242,23 @@ const BankTableSceneContainer = () => {
           bankSnapshotList={bankSnapshotList}
           lastBankSnapshot={lastBankSnapshot}
           graphMode={graphMode}
-          onCreateBankSnapshot={setBankSnapshotDraft}
-          onCreateCardSnapshot={setCardSnapshotDraft}
+          onCreateBankSnapshot={handleOpenBankSnapshotCreateForm}
+          onCreateCardSnapshot={handleOpenCardSnapshotCreateForm}
         />
       ) : (
         <div>loading...</div>
       )}
-      {bankSnapshotDraft ? (
+      {popup?.type === "create-bank-snapshot" ? (
         <BankSnapshotFormPopup
-          defaultValue={bankSnapshotDraft}
-          onClose={() => setBankSnapshotDraft(null)}
+          defaultValue={popup.defaultValue}
+          onClose={() => setPopup(null)}
           onSubmit={handleCreateBankSnapshot}
         />
       ) : null}
-      {cardSnapshotDraft ? (
+      {popup?.type === "create-card-snapshot" ? (
         <CardSnapshotFormPopup
-          defaultValue={cardSnapshotDraft}
-          onClose={() => setCardSnapshotDraft(null)}
+          defaultValue={popup.defaultValue}
+          onClose={() => setPopup(null)}
           onSubmit={handleCreateCardSnapshot}
         />
       ) : null}
