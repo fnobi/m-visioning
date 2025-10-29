@@ -4,12 +4,14 @@ import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
 import { parseNumber, parseString } from "~/common/lib/parser-helper";
 import { formatDateLabel } from "~/common/lib/date-util";
 import MockLoadingPopup from "~/common/components/MockLoadingPopup";
+import PlanFormPopup from "~/app/components/PlanFormPopup";
 import ErrorPopup from "~/app/components/ErrorPopup";
 import CardSnapshotFormPopup from "~/app/components/CardSnapshotPopup";
 import BankSnapshotFormPopup from "~/app/components/BankSnapshotPopup";
 import ErrorScene from "~/app/components/ErrorScene";
 import BankTableScene, {
-  calcRangeDayArray
+  calcRangeDayArray,
+  type PopupParams
 } from "~/app/components/BankTableScene";
 import { useBankSnapshotList } from "~/app/lib/database/bank-snapshot-database";
 import { type AppErrorParameter } from "~/app/scheme/AppErrorParameter";
@@ -18,18 +20,10 @@ import type BankSnapshot from "~/app/scheme/BankSnapshot";
 import type CardSnapshot from "~/app/scheme/CardSnapshot";
 import useCommonMoneyStore from "~/app/lib/database/useCommonMoneyStore";
 import useAsyncHandler from "~/app/lib/useAsyncHandler";
+import { useMyMoneyPlanTools } from "~/app/lib/database/money-plan-database";
+import type MoneyPlan from "~/app/scheme/MoneyPlan";
 
 const PERIOD_OPTIONS = [3, 12, 24];
-
-type PopupParams =
-  | {
-      type: "create-bank-snapshot";
-      defaultValue: BankSnapshot;
-    }
-  | {
-      type: "create-card-snapshot";
-      defaultValue: CardSnapshot;
-    };
 
 const BankTableSceneContainer = () => {
   const { myId } = useAuthorizedUser();
@@ -61,13 +55,14 @@ const BankTableSceneContainer = () => {
     return d.getTime();
   }, [startDate, periodLength]);
 
-  const { bankSnapshotList, createBankSnapshot } = useBankSnapshotList({
-    userId: myId,
-    bankId: bankId || "",
-    minTimestamp: startDate,
-    maxTimestamp: endDate,
-    onError: setStatusError
-  });
+  const { bankSnapshotList, createBankSnapshot, writeBankSnapshot } =
+    useBankSnapshotList({
+      userId: myId,
+      bankId: bankId || "",
+      minTimestamp: startDate,
+      maxTimestamp: endDate,
+      onError: setStatusError
+    });
   const { bankSnapshotList: beforeSnapshotList } = useBankSnapshotList({
     userId: myId,
     bankId: bankId || "",
@@ -80,6 +75,7 @@ const BankTableSceneContainer = () => {
     userId: myId,
     onError: setStatusError
   });
+  const { writeMoneyPlan } = useMyMoneyPlanTools();
 
   const lastBankSnapshot = useMemo(() => {
     const [first] = beforeSnapshotList || [];
@@ -160,18 +156,6 @@ const BankTableSceneContainer = () => {
     });
   }, []);
 
-  const handleOpenBankSnapshotCreateForm = useCallback(
-    (d: BankSnapshot) =>
-      setPopup({ type: "create-bank-snapshot", defaultValue: d }),
-    []
-  );
-
-  const handleOpenCardSnapshotCreateForm = useCallback(
-    (d: CardSnapshot) =>
-      setPopup({ type: "create-card-snapshot", defaultValue: d }),
-    []
-  );
-
   const handleCreateBankSnapshot = useCallback(
     (v: BankSnapshot) => {
       setPopup(null);
@@ -186,6 +170,30 @@ const BankTableSceneContainer = () => {
       return runAsyncHandler(() => createCardSnapshot(v));
     },
     [createCardSnapshot, runAsyncHandler]
+  );
+
+  const handleUpdateBankSnapshot = useCallback(
+    (v: BankSnapshot) => {
+      if (popup?.type !== "edit-bank-snapshot") {
+        return null;
+      }
+      setPopup(null);
+      const { snapshotId } = popup;
+      return runAsyncHandler(() => writeBankSnapshot(snapshotId, v));
+    },
+    [popup, runAsyncHandler, writeBankSnapshot]
+  );
+
+  const handleUpdatePlan = useCallback(
+    (v: MoneyPlan) => {
+      if (popup?.type !== "edit-plan") {
+        return null;
+      }
+      setPopup(null);
+      const { planId } = popup;
+      return runAsyncHandler(() => writeMoneyPlan(planId, v));
+    },
+    [popup, runAsyncHandler, writeMoneyPlan]
   );
 
   if (statusError) {
@@ -248,8 +256,7 @@ const BankTableSceneContainer = () => {
           bankSnapshotList={bankSnapshotList}
           lastBankSnapshot={lastBankSnapshot}
           graphMode={graphMode}
-          onCreateBankSnapshot={handleOpenBankSnapshotCreateForm}
-          onCreateCardSnapshot={handleOpenCardSnapshotCreateForm}
+          onPopup={setPopup}
         />
       ) : (
         <div>loading...</div>
@@ -267,6 +274,29 @@ const BankTableSceneContainer = () => {
           onClose={() => setPopup(null)}
           onSubmit={handleCreateCardSnapshot}
         />
+      ) : null}
+      {popup?.type === "edit-bank-snapshot" ? (
+        <BankSnapshotFormPopup
+          defaultValue={popup.defaultValue}
+          onClose={() => setPopup(null)}
+          onSubmit={handleUpdateBankSnapshot}
+        />
+      ) : null}
+      {popup?.type === "edit-plan" ? (
+        // eslint-disable-next-line react/jsx-no-useless-fragment
+        <>
+          {cardList ? (
+            <PlanFormPopup
+              defaultValue={popup.defaultValue}
+              bankList={bankList}
+              cardList={cardList}
+              onClose={() => setPopup(null)}
+              onSubmit={handleUpdatePlan}
+            />
+          ) : (
+            <MockLoadingPopup />
+          )}
+        </>
       ) : null}
       {isLoading ? <MockLoadingPopup /> : null}
       {operationError ? (

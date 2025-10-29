@@ -37,6 +37,26 @@ type BankRow = {
     | null;
 };
 
+export type PopupParams =
+  | {
+      type: "create-bank-snapshot";
+      defaultValue: BankSnapshot;
+    }
+  | {
+      type: "create-card-snapshot";
+      defaultValue: CardSnapshot;
+    }
+  | {
+      type: "edit-bank-snapshot";
+      snapshotId: string;
+      defaultValue: BankSnapshot;
+    }
+  | {
+      type: "edit-plan";
+      planId: string;
+      defaultValue: MoneyPlan;
+    };
+
 export const calcDayArray = (st: number, length: number) =>
   makeArray(length).map((z, i) => {
     const date = st + 1000 * 60 * 60 * 24 * i;
@@ -234,8 +254,7 @@ const BankTableScene = ({
   bankSnapshotList,
   lastBankSnapshot,
   graphMode,
-  onCreateBankSnapshot,
-  onCreateCardSnapshot
+  onPopup
 }: {
   bankId: string;
   currentBank: MoneyBankAccount;
@@ -255,8 +274,7 @@ const BankTableScene = ({
   bankSnapshotList: TypedCollectionList<BankSnapshot>;
   lastBankSnapshot: BankSnapshot | null;
   graphMode: boolean;
-  onCreateBankSnapshot: (v: BankSnapshot) => void;
-  onCreateCardSnapshot: (v: CardSnapshot) => void;
+  onPopup: (p: PopupParams) => void;
 }) => {
   const calcRows = useCallback(
     ({
@@ -481,20 +499,17 @@ const BankTableScene = ({
         amount += r.price;
       });
 
-      onCreateBankSnapshot({
-        bankId,
-        amount,
-        timestamp,
-        detail
+      onPopup({
+        type: "create-bank-snapshot",
+        defaultValue: {
+          bankId,
+          amount,
+          timestamp,
+          detail
+        }
       });
     };
-  }, [
-    bankEvents.rows,
-    bankId,
-    bankSnapshotList,
-    lastBankSnapshot,
-    onCreateBankSnapshot
-  ]);
+  }, [bankEvents.rows, bankId, bankSnapshotList, lastBankSnapshot, onPopup]);
 
   const createCardSnapshotDraft = useCallback(
     (cardId: string) => {
@@ -540,14 +555,17 @@ const BankTableScene = ({
         amount += r.price;
       });
 
-      onCreateCardSnapshot({
-        cardId,
-        amount,
-        timestamp,
-        detail
+      onPopup({
+        type: "create-card-snapshot",
+        defaultValue: {
+          cardId,
+          amount,
+          timestamp,
+          detail
+        }
       });
     },
-    [calcRows, cardTerms, onCreateCardSnapshot, planList]
+    [calcRows, cardTerms, onPopup, planList]
   );
 
   const { canvasRef } = useGraphRenderer({
@@ -571,11 +589,42 @@ const BankTableScene = ({
               month: parseString(action.monthCode)
             })
           };
+        case "bank-snapshot":
+          return {
+            type: "button",
+            onClick: () => {
+              const m = bankSnapshotList.find(p => p.id === action.snapshotId);
+              if (!m) {
+                return;
+              }
+              onPopup({
+                type: "edit-bank-snapshot",
+                snapshotId: action.snapshotId,
+                defaultValue: m.data
+              });
+            }
+          };
+        case "plan":
+          return {
+            type: "button",
+            onClick: () => {
+              const m = planList.find(p => p.id === action.planId);
+              if (!m) {
+                return;
+              }
+              onPopup({
+                type: "edit-plan",
+                planId: action.planId,
+                defaultValue: m.data
+              });
+            }
+          };
         default:
+          // eslint-disable-next-line no-console
           return { type: "button", onClick: () => console.log(action) };
       }
     },
-    []
+    [bankSnapshotList, onPopup, planList]
   );
 
   if (graphMode) {
