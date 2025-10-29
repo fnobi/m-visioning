@@ -3,6 +3,8 @@ import { compact } from "~/common/lib/array-util";
 import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
 import { parseNumber, parseString } from "~/common/lib/parser-helper";
 import { formatDateLabel } from "~/common/lib/date-util";
+import MockLoadingPopup from "~/common/components/MockLoadingPopup";
+import ErrorPopup from "~/app/components/ErrorPopup";
 import CardSnapshotFormPopup from "~/app/components/CardSnapshotPopup";
 import BankSnapshotFormPopup from "~/app/components/BankSnapshotPopup";
 import ErrorScene from "~/app/components/ErrorScene";
@@ -15,6 +17,7 @@ import { useCardSnapshotList } from "~/app/lib/database/card-snapshot-database";
 import type BankSnapshot from "~/app/scheme/BankSnapshot";
 import type CardSnapshot from "~/app/scheme/CardSnapshot";
 import useCommonMoneyStore from "~/app/lib/database/useCommonMoneyStore";
+import useAsyncHandler from "~/app/lib/useAsyncHandler";
 
 const PERIOD_OPTIONS = [3, 12, 24];
 
@@ -41,8 +44,13 @@ const BankTableSceneContainer = () => {
   const [statusError, setStatusError] = useState<AppErrorParameter | null>(
     null
   );
+  const [operationError, setOperationError] =
+    useState<AppErrorParameter | null>(null);
   const [graphMode, setGraphMode] = useState(false);
   const [popup, setPopup] = useState<PopupParams | null>(null);
+  const { isLoading, runAsyncHandler } = useAsyncHandler({
+    onError: setOperationError
+  });
 
   const endDate = useMemo(() => {
     if (!startDate) {
@@ -164,22 +172,20 @@ const BankTableSceneContainer = () => {
     []
   );
 
-  // TODO: async handler噛ませて欲しい
   const handleCreateBankSnapshot = useCallback(
-    async (v: BankSnapshot) => {
-      await createBankSnapshot(v);
+    (v: BankSnapshot) => {
       setPopup(null);
+      return runAsyncHandler(() => createBankSnapshot(v));
     },
-    [createBankSnapshot]
+    [createBankSnapshot, runAsyncHandler]
   );
 
-  // TODO: async handler噛ませて欲しい
   const handleCreateCardSnapshot = useCallback(
-    async (v: CardSnapshot) => {
-      await createCardSnapshot(v);
+    (v: CardSnapshot) => {
       setPopup(null);
+      return runAsyncHandler(() => createCardSnapshot(v));
     },
-    [createCardSnapshot]
+    [createCardSnapshot, runAsyncHandler]
   );
 
   if (statusError) {
@@ -260,6 +266,13 @@ const BankTableSceneContainer = () => {
           defaultValue={popup.defaultValue}
           onClose={() => setPopup(null)}
           onSubmit={handleCreateCardSnapshot}
+        />
+      ) : null}
+      {isLoading ? <MockLoadingPopup /> : null}
+      {operationError ? (
+        <ErrorPopup
+          error={operationError}
+          onClose={() => setOperationError(null)}
         />
       ) : null}
     </>
