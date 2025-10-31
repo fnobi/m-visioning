@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { maxBy } from "~/common/lib/array-util";
 import { parseString } from "~/common/lib/parser-helper";
-import { type BankRow } from "~/app/lib/useSimulatorRows";
+import { type SimulatorRow } from "~/app/lib/useSimulatorRows";
 import { THEME_COLOR } from "~/app/lib//emotion-mixin";
 
 const useGraphRenderer = ({
@@ -14,7 +14,7 @@ const useGraphRenderer = ({
   startDate: number;
   endDate: number;
   bankEvents: {
-    rows: BankRow[];
+    rows: SimulatorRow[];
   };
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);

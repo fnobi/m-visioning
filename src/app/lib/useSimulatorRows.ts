@@ -7,7 +7,7 @@ import { type ToMoneyNode, type FromMoneyNode } from "~/app/scheme/MoneyPlan";
 import type CardSnapshot from "~/app/scheme/CardSnapshot";
 import { parseBankSnapshot } from "~/app/scheme/BankSnapshot";
 
-export type BankRow = {
+export type SimulatorRow = {
   id: string;
   date: number;
   label: string;
@@ -17,7 +17,7 @@ export type BankRow = {
   action:
     | { type: "plan"; planId: string }
     | {
-        type: "bank-snapshot";
+        type: "snapshot";
         snapshotId: string;
       }
     | {
@@ -151,10 +151,10 @@ const useSimulatorRows = ({
           amount = data.amount;
           minDate = Math.max(minDate, data.timestamp);
 
-          const array: BankRow[] = [];
+          const array: SimulatorRow[] = [];
 
-          const action: BankRow["action"] = {
-            type: "bank-snapshot",
+          const action: SimulatorRow["action"] = {
+            type: "snapshot",
             snapshotId: id
           };
 
@@ -229,7 +229,12 @@ const useSimulatorRows = ({
   );
 
   const calcRowsFromCardTerm = useCallback(
-    ({ snapshotList, termStart, termEnd, cardId }: CardTerm) =>
+    ({
+      snapshotList,
+      termStart,
+      termEnd,
+      cardId
+    }: Pick<CardTerm, "snapshotList" | "termStart" | "termEnd" | "cardId">) =>
       calcRows({
         snapshotList,
         termStart,

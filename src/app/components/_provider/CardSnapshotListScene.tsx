@@ -1,13 +1,8 @@
-import {
-  type ComponentPropsWithoutRef,
-  useCallback,
-  useMemo,
-  useState
-} from "react";
-import MockListView from "~/common/components/MockListView";
+import { useCallback, useMemo, useState } from "react";
 import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
-import { formatDateTimeLabel } from "~/common/lib/date-util";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
+import type CommonActionParameter from "~/common/scheme/CommonActionParameter";
+import SimulatorTableView from "~/app/components/SimulatorTableView";
 import MonthCursorNavi from "~/app/components/MonthCursorNavi";
 import CardSnapshotFormPopup from "~/app/components/CardSnapshotPopup";
 import ErrorScene from "~/app/components/ErrorScene";
@@ -16,15 +11,21 @@ import { type AppErrorParameter } from "~/app/scheme/AppErrorParameter";
 import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
 import type CardSnapshot from "~/app/scheme/CardSnapshot";
 import type useMonthCursor from "~/app/lib/useMonthCursor";
+import useSimulatorRows, {
+  type SimulatorRow
+} from "~/app/lib/useSimulatorRows";
+import type MoneyPlan from "~/app/scheme/MoneyPlan";
 
 const CardSnapshotListScene = ({
   cardId,
   cardList,
+  planList,
   monthCursor,
   onChangeCard
 }: {
   cardId: string;
   cardList: TypedCollectionList<MoneyCardAccount>;
+  planList: TypedCollectionList<MoneyPlan>;
   monthCursor: ReturnType<typeof useMonthCursor>;
   onChangeCard: (id: string) => void;
 }) => {
@@ -33,18 +34,19 @@ const CardSnapshotListScene = ({
     null
   );
 
-  const { cardSnapshotList, writeCardSnapshot, deleteCardSnapshot } =
-    useCardSnapshotList({
-      userId: myId,
-      cardId,
-      minTimestamp: monthCursor.minTimestamp,
-      maxTimestamp: monthCursor.maxTimestamp,
-      onError: setStatusError
-    });
+  const { cardSnapshotList, writeCardSnapshot } = useCardSnapshotList({
+    userId: myId,
+    cardId,
+    minTimestamp: monthCursor.minTimestamp,
+    maxTimestamp: monthCursor.maxTimestamp,
+    onError: setStatusError
+  });
   const [editData, setEditData] = useState<{
     id: string;
     data: CardSnapshot;
   } | null>(null);
+
+  const { calcRowsFromCardTerm } = useSimulatorRows({ planList });
 
   // TODO: async handler噛ませて欲しい
   const handleSubmit = useCallback(
@@ -55,29 +57,52 @@ const CardSnapshotListScene = ({
     [writeCardSnapshot]
   );
 
-  const list = useMemo(
-    (): ComponentPropsWithoutRef<typeof MockListView>["dataList"] | null =>
-      cardSnapshotList
-        ? cardSnapshotList.map(({ id, data }) => ({
-            key: id,
-            title: `¥${data.amount}`,
-            subTitle: formatDateTimeLabel(data.timestamp),
-            mainAction: {
-              type: "button",
-              onClick: () => setEditData({ id, data })
-            },
-            actions: [
-              {
-                children: "削除",
-                action: {
-                  type: "button",
-                  onClick: () => deleteCardSnapshot(id)
-                }
+  const rows = useMemo(() => {
+    if (!cardSnapshotList) {
+      return null;
+    }
+
+    const res = calcRowsFromCardTerm({
+      cardId,
+      snapshotList: cardSnapshotList,
+      termStart: monthCursor.minTimestamp,
+      termEnd: monthCursor.maxTimestamp
+    });
+    return res.rows.reverse();
+  }, [
+    calcRowsFromCardTerm,
+    cardId,
+    cardSnapshotList,
+    monthCursor.maxTimestamp,
+    monthCursor.minTimestamp
+  ]);
+
+  const calcRowAction = useCallback(
+    (action: SimulatorRow["action"]): CommonActionParameter | null => {
+      if (!action) {
+        return null;
+      }
+      switch (action.type) {
+        case "snapshot":
+          return {
+            type: "button",
+            onClick: () => {
+              if (!cardSnapshotList) {
+                return;
               }
-            ]
-          }))
-        : null,
-    [cardSnapshotList, deleteCardSnapshot]
+              const m = cardSnapshotList.find(p => p.id === action.snapshotId);
+              if (!m) {
+                return;
+              }
+              setEditData(m);
+            }
+          };
+        default:
+          // eslint-disable-next-line no-console
+          return { type: "button", onClick: () => console.log(action) };
+      }
+    },
+    [cardSnapshotList]
   );
 
   if (statusError) {
@@ -96,7 +121,13 @@ const CardSnapshotListScene = ({
         </select>
       </div>
       <MonthCursorNavi monthCursor={monthCursor} />
-      {list ? <MockListView dataList={list} /> : <>loading...</>}
+      {rows ? (
+        <SimulatorTableView
+          rows={rows}
+          lastSnapshot={null}
+          calcRowAction={calcRowAction}
+        />
+      ) : null}
       {editData ? (
         <CardSnapshotFormPopup
           defaultValue={editData.data}

@@ -1,15 +1,14 @@
 import { Fragment, useCallback, useMemo } from "react";
-import styled from "@emotion/styled";
 import { uniqBy } from "~/common/lib/array-util";
-import { em, percent } from "~/common/lib/css-util";
+import { percent } from "~/common/lib/css-util";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
-import { formatDateLabel } from "~/common/lib/date-util";
 import MockActionButton from "~/common/components/MockActionButton";
 import { parseString } from "~/common/lib/parser-helper";
 import type CommonActionParameter from "~/common/scheme/CommonActionParameter";
+import SimulatorTableView from "~/app/components/SimulatorTableView";
 import useGraphRenderer from "~/app/lib/useGraphRenderer";
 import useSimulatorRows, {
-  type BankRow,
+  type SimulatorRow,
   calcDateParamInt,
   type CardTerm
 } from "~/app/lib/useSimulatorRows";
@@ -45,13 +44,6 @@ export const calcDateInt = (d: Date) =>
     month: d.getMonth() + 1,
     day: d.getDate()
   });
-
-const TableCell = styled.p<{ isArchive: boolean; align?: "left" | "right" }>(
-  ({ isArchive, align = "left" }) => ({
-    opacity: isArchive ? 0.5 : 1,
-    textAlign: align
-  })
-);
 
 const BankTableScene = ({
   bankId,
@@ -230,7 +222,7 @@ const BankTableScene = ({
   });
 
   const calcRowAction = useCallback(
-    (action: BankRow["action"]): CommonActionParameter | null => {
+    (action: SimulatorRow["action"]): CommonActionParameter | null => {
       if (!action) {
         return null;
       }
@@ -243,7 +235,7 @@ const BankTableScene = ({
               month: parseString(action.monthCode)
             })
           };
-        case "bank-snapshot":
+        case "snapshot":
           return {
             type: "button",
             onClick: () => {
@@ -325,43 +317,11 @@ const BankTableScene = ({
           </Fragment>
         ))}
       </p>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: em(4, "auto", 6, 6)
-        }}
-      >
-        {lastBankSnapshot ? (
-          <>
-            <TableCell isArchive />
-            <TableCell isArchive />
-            <TableCell isArchive />
-            <TableCell isArchive align="right">
-              {lastBankSnapshot.amount}
-            </TableCell>
-          </>
-        ) : null}
-        {bankEvents.rows.map(
-          ({ date, id, label, price, amount, isArchive, action }) => (
-            <Fragment key={[date, id].join("_")}>
-              <TableCell isArchive={isArchive}>
-                {formatDateLabel(date)}
-              </TableCell>
-              <TableCell isArchive={isArchive}>
-                <MockActionButton action={calcRowAction(action)}>
-                  {label}
-                </MockActionButton>
-              </TableCell>
-              <TableCell isArchive={isArchive} align="right">
-                {price}
-              </TableCell>
-              <TableCell isArchive={isArchive} align="right">
-                {amount}
-              </TableCell>
-            </Fragment>
-          )
-        )}
-      </div>
+      <SimulatorTableView
+        lastSnapshot={lastBankSnapshot}
+        rows={bankEvents.rows}
+        calcRowAction={calcRowAction}
+      />
     </>
   );
 };
