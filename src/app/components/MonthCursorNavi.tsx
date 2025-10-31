@@ -1,18 +1,24 @@
+import { type ReactNode } from "react";
 import { formatDateLabel } from "~/common/lib/date-util";
 import MockActionButton from "~/common/components/MockActionButton";
 import type useMonthCursor from "~/app/lib/useMonthCursor";
 
 const MonthCursorNavi = ({
-  monthCursor
+  monthCursor,
+  children
 }: {
   monthCursor: ReturnType<typeof useMonthCursor>;
+  children?: ReactNode;
 }) => {
   if (!monthCursor.monthStartDate) {
     return null;
   }
   return (
     <div>
-      <p>{formatDateLabel(monthCursor.monthStartDate, true)}-</p>
+      <p>
+        {formatDateLabel(monthCursor.minTimestamp, true)}&nbsp;-&nbsp;
+        {formatDateLabel(monthCursor.maxTimestamp, true)}
+      </p>
       <p>
         <MockActionButton
           action={{
@@ -22,7 +28,7 @@ const MonthCursorNavi = ({
         >
           &lt;前へ
         </MockActionButton>
-        ・
+        ・{children ? <>{children}・</> : null}
         <MockActionButton
           action={{
             type: "button",

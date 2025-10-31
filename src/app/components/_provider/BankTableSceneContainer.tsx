@@ -2,8 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { compact } from "~/common/lib/array-util";
 import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
 import { parseNumber, parseString } from "~/common/lib/parser-helper";
-import { formatDateLabel } from "~/common/lib/date-util";
 import MockLoadingPopup from "~/common/components/MockLoadingPopup";
+import usePageEntryQuery from "~/common/lib/usePageEntryQuery";
+import MonthCursorNavi from "~/app/components/MonthCursorNavi";
 import PlanFormPopup from "~/app/components/PlanFormPopup";
 import ErrorPopup from "~/app/components/ErrorPopup";
 import CardSnapshotFormPopup from "~/app/components/CardSnapshotPopup";
@@ -22,8 +23,51 @@ import useCommonMoneyStore from "~/app/lib/database/useCommonMoneyStore";
 import useAsyncHandler from "~/app/lib/useAsyncHandler";
 import { useMyMoneyPlanTools } from "~/app/lib/database/money-plan-database";
 import type MoneyPlan from "~/app/scheme/MoneyPlan";
+import useMonthCursor from "~/app/lib/useMonthCursor";
+import { PAGE_TOP } from "~/app/lib/page-path";
 
 const PERIOD_OPTIONS = [3, 12, 24];
+
+const useBankSimulatorPageQuery = () => {
+  const { params, setParams } = usePageEntryQuery(PAGE_TOP);
+
+  const bankId = useMemo(() => params.bank, [params]);
+  const monthCode = useMemo(() => parseNumber(params.month), [params]);
+  const period = useMemo(() => {
+    const n = parseNumber(params.period);
+    return PERIOD_OPTIONS.includes(n) ? n : PERIOD_OPTIONS[0];
+  }, [params]);
+
+  const setBankId = useCallback(
+    (v: string) =>
+      setParams({
+        bank: v,
+        month: parseString(monthCode),
+        period: parseString(period)
+      }),
+    [monthCode, period, setParams]
+  );
+  const setMonthCode = useCallback(
+    (v: number) =>
+      setParams({
+        bank: bankId,
+        month: parseString(v),
+        period: parseString(period)
+      }),
+    [bankId, period, setParams]
+  );
+  const setPeriod = useCallback(
+    (v: number) =>
+      setParams({
+        bank: bankId,
+        month: parseString(monthCode),
+        period: parseString(v)
+      }),
+    [bankId, monthCode, setParams]
+  );
+
+  return { bankId, monthCode, period, setBankId, setMonthCode, setPeriod };
+};
 
 const BankTableSceneContainer = () => {
   const { myId } = useAuthorizedUser();
@@ -32,9 +76,6 @@ const BankTableSceneContainer = () => {
     cardAccountList: cardList,
     moneyPlanList: planList
   } = useCommonMoneyStore();
-  const [startDate, setStartDate] = useState(0);
-  const [periodLength, setPeriodLength] = useState(PERIOD_OPTIONS[0]);
-  const [bankId, setBankId] = useState<string | null>(null);
   const [statusError, setStatusError] = useState<AppErrorParameter | null>(
     null
   );
@@ -45,15 +86,25 @@ const BankTableSceneContainer = () => {
   const { isLoading, runAsyncHandler } = useAsyncHandler({
     onError: setOperationError
   });
+  const { bankId, monthCode, period, setBankId, setMonthCode, setPeriod } =
+    useBankSimulatorPageQuery();
 
-  const endDate = useMemo(() => {
-    if (!startDate) {
-      return startDate;
-    }
-    const d = new Date(startDate);
-    d.setMonth(d.getMonth() + periodLength);
-    return d.getTime();
-  }, [startDate, periodLength]);
+  const monthCursor = useMonthCursor({
+    monthCode,
+    setMonthCode,
+    startDay: 5,
+    period
+  });
+
+  const startDate = useMemo(
+    () => monthCursor.minTimestamp,
+    [monthCursor.minTimestamp]
+  );
+
+  const endDate = useMemo(
+    () => monthCursor.maxTimestamp,
+    [monthCursor.maxTimestamp]
+  );
 
   const { bankSnapshotList, createBankSnapshot, writeBankSnapshot } =
     useBankSnapshotList({
@@ -143,18 +194,7 @@ const BankTableSceneContainer = () => {
     if (!bankId || !bankList.find(({ id }) => id === bankId)) {
       setBankId(first.id);
     }
-  }, [bankId, bankList]);
-
-  useEffect(() => {
-    setStartDate(v => {
-      if (v) {
-        return v;
-      }
-      const d = new Date();
-      d.setDate(1);
-      return d.getTime();
-    });
-  }, []);
+  }, [bankId, bankList, setBankId]);
 
   const handleCreateBankSnapshot = useCallback(
     (v: BankSnapshot) => {
@@ -206,22 +246,18 @@ const BankTableSceneContainer = () => {
 
   return (
     <>
-      <div>
-        <p>期間設定</p>
-        <p>
-          {formatDateLabel(startDate, true)}・
-          <select
-            value={parseString(periodLength)}
-            onChange={e => setPeriodLength(parseNumber(e.target.value))}
-          >
-            {PERIOD_OPTIONS.map(l => (
-              <option key={l} value={l}>
-                {l}ヶ月
-              </option>
-            ))}
-          </select>
-        </p>
-      </div>
+      <MonthCursorNavi monthCursor={monthCursor}>
+        <select
+          value={period}
+          onChange={e => setPeriod(parseNumber(e.target.value))}
+        >
+          {PERIOD_OPTIONS.map(n => (
+            <option key={n} value={n}>
+              {n}ヶ月
+            </option>
+          ))}
+        </select>
+      </MonthCursorNavi>
       {bankId ? (
         <div>
           <p>口座</p>

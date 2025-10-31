@@ -3,11 +3,13 @@ import { useCallback, useEffect, useMemo } from "react";
 const useMonthCursor = ({
   monthCode,
   setMonthCode,
-  startDay
+  startDay,
+  period = 1
 }: {
   monthCode: number;
   setMonthCode: (v: number) => void;
   startDay: number;
+  period?: number;
 }) => {
   const monthStartDate = useMemo(() => {
     if (!monthCode || !startDay) {
@@ -28,9 +30,9 @@ const useMonthCursor = ({
       return 0;
     }
     const endDate = new Date(monthStartDate);
-    endDate.setMonth(endDate.getMonth() + 1);
+    endDate.setMonth(endDate.getMonth() + period);
     return endDate.getTime();
-  }, [monthStartDate]);
+  }, [monthStartDate, period]);
 
   const setMonthCodeWithDate = useCallback(
     (d: Date) => setMonthCode(d.getFullYear() * 100 + (d.getMonth() + 1)),

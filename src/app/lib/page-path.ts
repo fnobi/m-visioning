@@ -1,7 +1,10 @@
 import PageEntry from "~/common/lib/PageEntry";
 import { BASE_URL } from "~/common/lib/constants";
 
-const PAGE_ROOT = new PageEntry(BASE_URL);
+const PAGE_ROOT = new PageEntry<
+  string,
+  { bank: string; month: string; period: string }
+>(BASE_URL);
 
 export const PAGE_TOP = PAGE_ROOT;
 export const PAGE_PLAN_LIST = PAGE_ROOT.child("plan-list");
