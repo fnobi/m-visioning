@@ -135,7 +135,16 @@ const BankTableSceneContainer = () => {
 
   const cardTerms = useMemo(
     () =>
-      (startDate ? calcRangeDayArray(startDate, endDate) : [])
+      (startDate
+        ? calcRangeDayArray(
+            Math.min(
+              startDate,
+              lastBankSnapshot ? lastBankSnapshot.timestamp : startDate
+            ),
+            endDate
+          )
+        : []
+      )
         .map(({ year, month, day }) =>
           compact(
             (cardList || []).map(({ id, data: card }) => {
@@ -172,7 +181,7 @@ const BankTableSceneContainer = () => {
           )
         )
         .flat(),
-    [bankId, startDate, cardList, cardSnapshotList, endDate]
+    [startDate, lastBankSnapshot, endDate, cardList, bankId, cardSnapshotList]
   );
 
   const currentBank = useMemo(() => {

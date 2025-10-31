@@ -70,7 +70,7 @@ export const calcDayArray = (st: number, length: number) =>
   });
 
 export const calcRangeDayArray = (st: number, end: number) =>
-  calcDayArray(st, (end - st) / (1000 * 60 * 60 * 24));
+  calcDayArray(st, Math.floor((end - st) / (1000 * 60 * 60 * 24)));
 
 export const matchMoneyNode = (
   n1: FromMoneyNode | ToMoneyNode,
@@ -280,14 +280,17 @@ const BankTableScene = ({
     ({
       termStart,
       termEnd,
-      baseAmount,
+      baseSnapshot,
       snapshotList,
       nodeFilter,
       sourcePlanList
     }: {
       termStart: number;
       termEnd: number;
-      baseAmount: number;
+      baseSnapshot?: {
+        amount: number;
+        timestamp: number;
+      };
       snapshotList: TypedCollectionList<BankSnapshot | CardSnapshot>;
       // TODO: cardId/bankIdで絞り込み済みのplanListを渡すようにして、1個にまとめたい
       nodeFilter: FromMoneyNode;
@@ -309,8 +312,8 @@ const BankTableScene = ({
         })
       );
 
-      let amount = baseAmount;
-      let minDate = 0;
+      let amount = baseSnapshot?.amount ?? 0;
+      let minDate = baseSnapshot?.timestamp ?? 0;
       const rows = [...snapshotList]
         .reverse()
         .map(({ id, data }) => {
@@ -354,11 +357,8 @@ const BankTableScene = ({
         })
         .flat();
 
-      calcRangeDayArray(termStart, termEnd).forEach(cdata => {
+      calcRangeDayArray(minDate, termEnd).forEach(cdata => {
         const { date, year: cy, month: cm, day: cd } = cdata;
-        if (minDate >= date) {
-          return;
-        }
         sourcePlanList2.forEach(({ id, data }) => {
           const { year, month, day, label, price, repeat, cardSummary } = data;
           const validRepeat = checkIsAfter(data, cdata) ? repeat : null;
@@ -371,6 +371,10 @@ const BankTableScene = ({
           }
 
           amount += price;
+
+          if (date < termStart) {
+            return;
+          }
           rows.push({
             id,
             date,
@@ -409,7 +413,6 @@ const BankTableScene = ({
         }) => {
           const key = [year, month, cardId].join("_");
           const { amount } = calcRows({
-            baseAmount: 0,
             snapshotList,
             termStart,
             termEnd,
@@ -450,7 +453,7 @@ const BankTableScene = ({
       }
     }));
     return calcRows({
-      baseAmount: lastBankSnapshot ? lastBankSnapshot.amount : 0,
+      baseSnapshot: lastBankSnapshot || undefined,
       snapshotList: bankSnapshotList,
       termStart: startDate,
       termEnd: endDate,
@@ -526,7 +529,6 @@ const BankTableScene = ({
       }
 
       const res = calcRows({
-        baseAmount: 0,
         snapshotList: terms.snapshotList,
         termStart: terms.termStart,
         termEnd: terms.termEnd,
