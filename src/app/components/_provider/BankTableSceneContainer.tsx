@@ -11,7 +11,6 @@ import CardSnapshotFormPopup from "~/app/components/CardSnapshotPopup";
 import BankSnapshotFormPopup from "~/app/components/BankSnapshotPopup";
 import ErrorScene from "~/app/components/ErrorScene";
 import BankTableScene, {
-  calcRangeDayArray,
   type PopupParams
 } from "~/app/components/BankTableScene";
 import { useBankSnapshotList } from "~/app/lib/database/bank-snapshot-database";
@@ -25,6 +24,7 @@ import { useMyMoneyPlanTools } from "~/app/lib/database/money-plan-database";
 import type MoneyPlan from "~/app/scheme/MoneyPlan";
 import useMonthCursor from "~/app/lib/useMonthCursor";
 import { PAGE_TOP } from "~/app/lib/page-path";
+import { calcRangeDayArray } from "~/app/lib/useSimulatorRows";
 
 const PERIOD_OPTIONS = [3, 12, 24];
 
