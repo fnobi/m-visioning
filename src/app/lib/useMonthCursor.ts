@@ -10,7 +10,7 @@ const useMonthCursor = ({
   startDay: number;
 }) => {
   const monthStartDate = useMemo(() => {
-    if (!monthCode) {
+    if (!monthCode || !startDay) {
       return null;
     }
     const y = Math.floor(monthCode / 100);
@@ -50,7 +50,7 @@ const useMonthCursor = ({
   );
 
   useEffect(() => {
-    if (monthCode) {
+    if (monthCode || !startDay) {
       return;
     }
     const startDate = new Date();

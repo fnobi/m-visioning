@@ -40,7 +40,7 @@ const CardListSceneContainer = () => {
   const monthCursor = useMonthCursor({
     monthCode,
     setMonthCode,
-    startDay: currentCard ? currentCard.data.startDay : 1
+    startDay: currentCard ? currentCard.data.startDay : 0
   });
 
   useEffect(() => {
