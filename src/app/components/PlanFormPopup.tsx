@@ -1,17 +1,14 @@
 import { useMemo, useState } from "react";
-import styled from "@emotion/styled";
 import MockPopup from "~/common/components/MockPopup";
 import {
   FormCommonRowWrapper,
+  MockDateFormRow,
   MockFormFrame,
   MockNumberFormRow,
   MockPulldownFormRow,
   MockStringFormRow
 } from "~/common/components/mock-form-ui";
 import FormOrganizer from "~/common/lib/FormOrganizer";
-import { parseNumber } from "~/common/lib/parser-helper";
-import MockActionButton from "~/common/components/MockActionButton";
-import { em, percent } from "~/common/lib/css-util";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import { requiredValidator } from "~/common/lib/form-validator";
 import { matchMoneyNode } from "~/app/components/BankTableScene";
@@ -31,60 +28,6 @@ const formOrganizer = new FormOrganizer<MoneyPlan>()
   .fieldValidator("year", requiredValidator())
   .fieldValidator("month", requiredValidator())
   .fieldValidator("day", requiredValidator());
-
-const DateInputRow = styled.div({
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center"
-});
-
-const DateInputUnit = styled.div<{ cols: number }>(({ cols }) => ({
-  width: em(cols),
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center"
-}));
-
-const DateInputCell = styled.input({
-  width: percent(100),
-  textAlign: "center"
-});
-
-const DateNumPair = ({
-  value,
-  onChange,
-  getNew,
-  cols,
-  postfix
-}: {
-  value: number;
-  onChange: (v: number) => void;
-  getNew: () => number;
-  cols: number;
-  postfix: string;
-}) => (
-  <>
-    <DateInputUnit cols={cols}>
-      {value ? (
-        <DateInputCell
-          type="number"
-          value={value}
-          onChange={e => onChange(parseNumber(e.target.value))}
-        />
-      ) : (
-        <MockActionButton
-          action={{
-            type: "button",
-            onClick: () => onChange(getNew())
-          }}
-        >
-          *
-        </MockActionButton>
-      )}
-    </DateInputUnit>
-    <span>{postfix}</span>
-  </>
-);
 
 const PlanFormPopup = ({
   defaultValue,
@@ -167,46 +110,15 @@ const PlanFormPopup = ({
             onChange={v => setValue(vv => ({ ...vv, price: v }))}
             error={errors.price}
           />
-          <FormCommonRowWrapper label="日付" error={null}>
-            <DateInputRow>
-              <DateNumPair
-                value={value.year}
-                onChange={v =>
-                  setValue(vv => ({
-                    ...vv,
-                    year: v
-                  }))
-                }
-                postfix="年"
-                cols={3}
-                getNew={() => new Date().getFullYear()}
-              />
-              <DateNumPair
-                value={value.month}
-                onChange={v =>
-                  setValue(vv => ({
-                    ...vv,
-                    month: v
-                  }))
-                }
-                postfix="月"
-                cols={2}
-                getNew={() => new Date().getMonth() + 1}
-              />
-              <DateNumPair
-                value={value.day}
-                onChange={v =>
-                  setValue(vv => ({
-                    ...vv,
-                    day: v
-                  }))
-                }
-                postfix="日"
-                cols={2}
-                getNew={() => new Date().getDate()}
-              />
-            </DateInputRow>
-          </FormCommonRowWrapper>
+          <MockDateFormRow
+            label="日付"
+            error={errors.year || errors.month || errors.day}
+            value={[value.year, value.month, value.day]}
+            onChange={v => {
+              const [y, m, d] = v;
+              setValue(vv => ({ ...vv, year: y, month: m, day: d }));
+            }}
+          />
           <MockPulldownFormRow
             label="繰り返し"
             value={value.repeat || "none"}

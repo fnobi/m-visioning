@@ -16,7 +16,7 @@ import {
   px
 } from "~/common/lib/css-util";
 import { formatClock } from "~/common/lib/date-util";
-import { formatDatetimeValue } from "~/common/lib/string-util";
+import { formatDatetimeValue, padLeft } from "~/common/lib/string-util";
 import { parseNumber } from "~/common/lib/parser-helper";
 import type CommonActionParameter from "~/common/scheme/CommonActionParameter";
 
@@ -392,6 +392,42 @@ export const MockDateTimeFormRow = ({
           </MockActionButton>
         </p>
       )}
+    </FormCommonRowWrapper>
+  );
+};
+
+export const MockDateFormRow = ({
+  label,
+  error,
+  value,
+  onChange
+}: FormRowCommonProps<[number, number, number]>) => {
+  const sValue = useMemo(() => {
+    const [y, m, d] = value;
+    return [y, padLeft(m, 2), padLeft(d, 2)].join("-");
+  }, [value]);
+  return (
+    <FormCommonRowWrapper label={label} error={error}>
+      <>
+        <input
+          type="date"
+          value={sValue}
+          onChange={e => {
+            const [y, m, d] = e.target.value.split(/-/).map(parseNumber);
+            onChange([y, m, d]);
+          }}
+          style={{ backgroundColor: errorBgColor(error) }}
+        />
+        &nbsp;
+        <MockActionButton
+          action={{
+            type: "button",
+            onClick: () => onChange([0, 0, 0])
+          }}
+        >
+          クリア
+        </MockActionButton>
+      </>
     </FormCommonRowWrapper>
   );
 };
