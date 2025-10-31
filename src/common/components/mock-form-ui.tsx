@@ -494,13 +494,15 @@ export const MockPulldownFormRow = <T extends string>({
   value,
   error,
   options,
+  noBlank = false,
   onChange
 }: {
   options: { value: T; label: string }[];
+  noBlank?: boolean;
 } & FormRowCommonProps<T>) => (
   <FormCommonRowWrapper label={label} error={error}>
     <select value={value || ""} onChange={e => onChange(e.target.value as T)}>
-      <option value="">-</option>
+      {noBlank ? null : <option value="">-</option>}
       {options.map(({ value: v, label: l }) => (
         <option key={v} value={v}>
           {l}

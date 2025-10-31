@@ -1,7 +1,6 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import MockPopup from "~/common/components/MockPopup";
 import {
-  FormCommonRowWrapper,
   MockDateFormRow,
   MockFormFrame,
   MockNumberFormRow,
@@ -11,23 +10,29 @@ import {
 import FormOrganizer from "~/common/lib/FormOrganizer";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import { requiredValidator } from "~/common/lib/form-validator";
-import { matchMoneyNode } from "~/app/components/BankTableScene";
 import type MoneyPlan from "~/app/scheme/MoneyPlan";
 import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
 import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
-import {
-  type BankMoneyNode,
-  type ToMoneyNode,
-  type FromMoneyNode,
-  type CardMoneyNode,
-  parseMoneyPlanRepeat
-} from "~/app/scheme/MoneyPlan";
+import { parseMoneyPlanRepeat } from "~/app/scheme/MoneyPlan";
 
 const formOrganizer = new FormOrganizer<MoneyPlan>()
   .fieldValidator("label", requiredValidator())
   .fieldValidator("year", requiredValidator())
   .fieldValidator("month", requiredValidator())
   .fieldValidator("day", requiredValidator());
+
+type PlanFlowType =
+  | "bank-input"
+  | "bank-transfer"
+  | "card-output"
+  | "bank-output";
+
+const PLAN_FLOW_TYPE_LABEL: Record<PlanFlowType, string> = {
+  "bank-input": "収入",
+  "bank-output": "口座支払",
+  "card-output": "カード支払",
+  "bank-transfer": "振替"
+};
 
 const PlanFormPopup = ({
   defaultValue,
@@ -48,44 +53,27 @@ const PlanFormPopup = ({
     [value]
   );
 
+  const planFlowType = useMemo(() => {
+    if (value.from.type === "input") {
+      return "bank-input";
+    }
+    if (value.to.type === "bank") {
+      return "bank-transfer";
+    }
+    if (value.from.type === "card" && value.to.type === "output") {
+      return "card-output";
+    }
+    return "bank-output";
+  }, [value.from.type, value.to.type]);
+
   const bankOptions = useMemo(
-    () =>
-      bankList.map<{ id: string; label: string; data: BankMoneyNode }>(
-        ({ id, data }) => ({
-          id: `bank_${id}`,
-          label: `口座: ${data.label}`,
-          data: { type: "bank", bankId: id }
-        })
-      ),
+    () => bankList.map(({ id, data }) => ({ value: id, label: data.label })),
     [bankList]
   );
   const cardOptions = useMemo(
-    () =>
-      cardList.map<{ id: string; label: string; data: CardMoneyNode }>(
-        ({ id, data }) => ({
-          id: `card_${id}`,
-          label: `カード: ${data.label}`,
-          data: { type: "card", cardId: id }
-        })
-      ),
+    () => cardList.map(({ id, data }) => ({ value: id, label: data.label })),
     [cardList]
   );
-  const fromOptions = useMemo(
-    (): { id: string; label: string; data: FromMoneyNode }[] => [
-      { id: "input", label: "収入", data: { type: "input" } },
-      ...bankOptions,
-      ...cardOptions
-    ],
-    [bankOptions, cardOptions]
-  );
-  const toOptions = useMemo(
-    (): { id: string; label: string; data: ToMoneyNode }[] => [
-      { id: "output", label: "支出", data: { type: "output" } },
-      ...bankOptions
-    ],
-    [bankOptions]
-  );
-
   const repeatOptions = useMemo(
     () => [
       { value: "year", label: "年" },
@@ -93,6 +81,52 @@ const PlanFormPopup = ({
     ],
     []
   );
+
+  const handleChangeFlowType = useCallback((t: PlanFlowType) => {
+    switch (t) {
+      case "bank-input":
+        return setValue(vv => ({
+          ...vv,
+          from: { type: "input" },
+          to: {
+            type: "bank",
+            bankId: vv.to.type === "bank" ? vv.to.bankId : ""
+          }
+        }));
+      case "bank-transfer":
+        return setValue(vv => ({
+          ...vv,
+          from: {
+            type: "bank",
+            bankId: vv.from.type === "bank" ? vv.from.bankId : ""
+          },
+          to: {
+            type: "bank",
+            bankId: vv.to.type === "bank" ? vv.to.bankId : ""
+          }
+        }));
+      case "card-output":
+        return setValue(vv => ({
+          ...vv,
+          from: {
+            type: "card",
+            cardId: vv.from.type === "card" ? vv.from.cardId : ""
+          },
+          to: {
+            type: "output"
+          }
+        }));
+      default:
+        return setValue(vv => ({
+          ...vv,
+          from: {
+            type: "bank",
+            bankId: vv.from.type === "bank" ? vv.from.bankId : ""
+          },
+          to: { type: "output" }
+        }));
+    }
+  }, []);
 
   return (
     <MockPopup onClose={onClose}>
@@ -107,6 +141,7 @@ const PlanFormPopup = ({
           <MockNumberFormRow
             label="金額"
             value={value.price}
+            min={0}
             onChange={v => setValue(vv => ({ ...vv, price: v }))}
             error={errors.price}
           />
@@ -128,50 +163,60 @@ const PlanFormPopup = ({
             options={repeatOptions}
             error={errors.repeat}
           />
-          <FormCommonRowWrapper label="from" error={null}>
-            {fromOptions.map(({ id, label, data }) => (
-              <p key={id}>
-                <label>
-                  <input
-                    type="radio"
-                    name="from"
-                    checked={matchMoneyNode(value.from, data)}
-                    onChange={e => {
-                      if (e.target.checked) {
-                        setValue(v => ({
-                          ...v,
-                          from: data
-                        }));
-                      }
-                    }}
-                  />
-                  {label}
-                </label>
-              </p>
-            ))}
-          </FormCommonRowWrapper>
-          <FormCommonRowWrapper label="to" error={null}>
-            {toOptions.map(({ id, label, data }) => (
-              <p key={id}>
-                <label>
-                  <input
-                    type="radio"
-                    name="to"
-                    checked={matchMoneyNode(value.to, data)}
-                    onChange={e => {
-                      if (e.target.checked) {
-                        setValue(v => ({
-                          ...v,
-                          to: data
-                        }));
-                      }
-                    }}
-                  />
-                  {label}
-                </label>
-              </p>
-            ))}
-          </FormCommonRowWrapper>
+          <MockPulldownFormRow
+            label="種別"
+            options={Object.entries(PLAN_FLOW_TYPE_LABEL).map(([k, v]) => ({
+              value: k,
+              label: v
+            }))}
+            noBlank
+            value={planFlowType}
+            onChange={v => handleChangeFlowType(v as PlanFlowType)}
+            error={null}
+          />
+          {planFlowType === "bank-output" ||
+          planFlowType === "bank-transfer" ? (
+            <MockPulldownFormRow
+              label={planFlowType === "bank-transfer" ? "振込元" : "口座"}
+              options={bankOptions}
+              value={value.from.type === "bank" ? value.from.bankId : ""}
+              onChange={v =>
+                setValue(vv => ({
+                  ...vv,
+                  from: { type: "bank", bankId: v }
+                }))
+              }
+              error={errors.from}
+            />
+          ) : null}
+          {planFlowType === "card-output" ? (
+            <MockPulldownFormRow
+              label="カード"
+              options={cardOptions}
+              value={value.from.type === "card" ? value.from.cardId : ""}
+              onChange={v =>
+                setValue(vv => ({
+                  ...vv,
+                  from: { type: "card", cardId: v }
+                }))
+              }
+              error={errors.from}
+            />
+          ) : null}
+          {planFlowType === "bank-input" || planFlowType === "bank-transfer" ? (
+            <MockPulldownFormRow
+              label={planFlowType === "bank-transfer" ? "振込先" : "口座"}
+              options={bankOptions}
+              value={value.to.type === "bank" ? value.to.bankId : ""}
+              onChange={v =>
+                setValue(vv => ({
+                  ...vv,
+                  to: { type: "bank", bankId: v }
+                }))
+              }
+              error={errors.to}
+            />
+          ) : null}
         </MockFormFrame>
       </div>
     </MockPopup>
