@@ -414,6 +414,10 @@ const BankTableScene = ({
           const key = [year, month, cardId].join("_");
           const { amount } = calcRows({
             snapshotList,
+            baseSnapshot: {
+              timestamp: termStart,
+              amount: 0
+            },
             termStart,
             termEnd,
             nodeFilter: { type: "card", cardId },
