@@ -313,7 +313,7 @@ const BankTableScene = ({
       );
 
       let amount = baseSnapshot?.amount ?? 0;
-      let minDate = baseSnapshot?.timestamp ?? 0;
+      let minDate = baseSnapshot?.timestamp ?? termStart;
       const rows = [...snapshotList]
         .reverse()
         .map(({ id, data }) => {
@@ -398,38 +398,35 @@ const BankTableScene = ({
     []
   );
 
+  const calcRowsFromCardTerm = useCallback(
+    ({
+      snapshotList,
+      termStart,
+      termEnd,
+      cardId
+    }: (typeof cardTerms)[number]) =>
+      calcRows({
+        snapshotList,
+        termStart,
+        termEnd,
+        nodeFilter: { type: "card", cardId },
+        sourcePlanList: planList.map(({ id, data }) => ({
+          id,
+          data: { ...data, cardSummary: null }
+        }))
+      }),
+    [calcRows, planList]
+  );
+
   const cardAmount = useMemo(
     () =>
-      cardTerms.map(
-        ({
-          cardId,
-          year,
-          month,
-          day,
-          label,
-          termStart,
-          termEnd,
-          snapshotList
-        }) => {
-          const key = [year, month, cardId].join("_");
-          const { amount } = calcRows({
-            snapshotList,
-            baseSnapshot: {
-              timestamp: termStart,
-              amount: 0
-            },
-            termStart,
-            termEnd,
-            nodeFilter: { type: "card", cardId },
-            sourcePlanList: planList.map(({ id, data }) => ({
-              id,
-              data: { ...data, cardSummary: null }
-            }))
-          });
-          return { key, cardId, year, month, day, label, amount };
-        }
-      ),
-    [calcRows, cardTerms, planList]
+      cardTerms.map(t => {
+        const { cardId, year, month, day, label } = t;
+        const key = [year, month, cardId].join("_");
+        const { amount } = calcRowsFromCardTerm(t);
+        return { key, cardId, year, month, day, label, amount };
+      }),
+    [calcRowsFromCardTerm, cardTerms]
   );
 
   const bankEvents = useMemo(() => {
@@ -532,16 +529,7 @@ const BankTableScene = ({
         return;
       }
 
-      const res = calcRows({
-        snapshotList: terms.snapshotList,
-        termStart: terms.termStart,
-        termEnd: terms.termEnd,
-        nodeFilter: { type: "card", cardId },
-        sourcePlanList: planList.map(({ id, data }) => ({
-          id,
-          data: { ...data, cardSummary: null }
-        }))
-      });
+      const res = calcRowsFromCardTerm(terms);
 
       const diffSnapshot = terms.snapshotList.length
         ? terms.snapshotList[0].data
@@ -571,7 +559,7 @@ const BankTableScene = ({
         }
       });
     },
-    [calcRows, cardTerms, onPopup, planList]
+    [calcRowsFromCardTerm, cardTerms, onPopup]
   );
 
   const { canvasRef } = useGraphRenderer({
