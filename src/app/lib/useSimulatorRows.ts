@@ -124,6 +124,10 @@ const useSimulatorRows = () => {
         MoneyPlan & { cardSummary: string | null }
       >;
     }) => {
+      if (termStart >= termEnd) {
+        return { rows: [], amount: 0 };
+      }
+
       const sourcePlanList2 = compact(
         sourcePlanList.map(pair => {
           const { id, data } = pair;
