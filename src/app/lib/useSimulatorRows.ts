@@ -44,19 +44,21 @@ export type CardTerm = {
 };
 
 export const calcDayArray = (st: number, length: number) =>
-  makeArray(length).map((z, i) => {
-    const date = st + 1000 * 60 * 60 * 24 * i;
-    const d = new Date(date);
-    return {
-      date,
-      year: d.getFullYear(),
-      month: d.getMonth() + 1,
-      day: d.getDate()
-    };
-  });
+  length > 0
+    ? makeArray(Math.floor(length)).map((z, i) => {
+        const date = st + 1000 * 60 * 60 * 24 * i;
+        const d = new Date(date);
+        return {
+          date,
+          year: d.getFullYear(),
+          month: d.getMonth() + 1,
+          day: d.getDate()
+        };
+      })
+    : [];
 
 export const calcRangeDayArray = (st: number, end: number) =>
-  calcDayArray(st, Math.floor((end - st) / (1000 * 60 * 60 * 24)));
+  calcDayArray(st, (end - st) / (1000 * 60 * 60 * 24));
 
 const calcMonthCode = (d: { year: number; month: number }) =>
   d.year * 100 + d.month;
@@ -189,7 +191,10 @@ const useSimulatorRows = () => {
         })
         .flat();
 
-      calcRangeDayArray(minDate, termEnd).forEach(cdata => {
+      const planStart = new Date(minDate);
+      planStart.setDate(planStart.getDate() + 1);
+
+      calcRangeDayArray(planStart.getTime(), termEnd).forEach(cdata => {
         const { date, year: cy, month: cm, day: cd } = cdata;
         sourcePlanList2.forEach(({ id, data }) => {
           const { year, month, day, label, price, repeat, cardLink } = data;
