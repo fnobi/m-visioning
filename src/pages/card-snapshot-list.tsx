@@ -28,7 +28,8 @@ const useCardListSnapshotListPageQuery = () => {
 };
 
 const CardListSceneContainer = () => {
-  const { cardAccountList, moneyPlanList } = useCommonMoneyStore();
+  const { cardAccountList, bankAccountList, moneyPlanList } =
+    useCommonMoneyStore();
   const { cardId, monthCode, setCardId, setMonthCode } =
     useCardListSnapshotListPageQuery();
 
@@ -50,7 +51,7 @@ const CardListSceneContainer = () => {
     }
   }, [cardAccountList, cardId, currentCard, setCardId]);
 
-  if (!cardAccountList || !moneyPlanList || !cardId) {
+  if (!cardAccountList || !bankAccountList || !moneyPlanList || !cardId) {
     return <MockLoadingScene />;
   }
 
@@ -58,6 +59,7 @@ const CardListSceneContainer = () => {
     <CardSnapshotListScene
       cardId={cardId}
       cardList={cardAccountList}
+      bankList={bankAccountList}
       planList={moneyPlanList}
       monthCursor={monthCursor}
       onChangeCard={setCardId}

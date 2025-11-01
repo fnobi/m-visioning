@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
+import PlanFormPopup from "~/app/components/PlanFormPopup";
 import SimulatorTableView from "~/app/components/SimulatorTableView";
 import MonthCursorNavi from "~/app/components/MonthCursorNavi";
 import CardSnapshotFormPopup from "~/app/components/CardSnapshotPopup";
@@ -14,16 +15,36 @@ import useSimulatorRows, {
   type SimulatorRow
 } from "~/app/lib/useSimulatorRows";
 import type MoneyPlan from "~/app/scheme/MoneyPlan";
+import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
+import { useMyMoneyPlanTools } from "~/app/lib/database/money-plan-database";
+
+type PopupParams =
+  | {
+      type: "create-card-snapshot";
+      defaultValue: CardSnapshot;
+    }
+  | {
+      type: "edit-card-snapshot";
+      snapshotId: string;
+      defaultValue: CardSnapshot;
+    }
+  | {
+      type: "edit-plan";
+      planId: string;
+      defaultValue: MoneyPlan;
+    };
 
 const CardSnapshotListScene = ({
   cardId,
   cardList,
+  bankList,
   planList,
   monthCursor,
   onChangeCard
 }: {
   cardId: string;
   cardList: TypedCollectionList<MoneyCardAccount>;
+  bankList: TypedCollectionList<MoneyBankAccount>;
   planList: TypedCollectionList<MoneyPlan>;
   monthCursor: ReturnType<typeof useMonthCursor>;
   onChangeCard: (id: string) => void;
@@ -32,6 +53,7 @@ const CardSnapshotListScene = ({
   const [statusError, setStatusError] = useState<AppErrorParameter | null>(
     null
   );
+  const [popup, setPopup] = useState<PopupParams | null>(null);
 
   const { cardSnapshotList, writeCardSnapshot, deleteCardSnapshot } =
     useCardSnapshotList({
@@ -41,30 +63,44 @@ const CardSnapshotListScene = ({
       maxTimestamp: monthCursor.maxTimestamp,
       onError: setStatusError
     });
-  const [editData, setEditData] = useState<{
-    id: string;
-    data: CardSnapshot;
-  } | null>(null);
+  const { writeMoneyPlan } = useMyMoneyPlanTools();
 
   const { calcRowsFromCardTerm } = useSimulatorRows();
 
-  // TODO: async handler噛ませて欲しい
-  const handleSubmit = useCallback(
-    async (id: string, v: CardSnapshot) => {
-      await writeCardSnapshot(id, v);
-      setEditData(null);
+  const handleUpdateCardSnapshot = useCallback(
+    async (v: CardSnapshot) => {
+      if (popup?.type !== "edit-card-snapshot") {
+        return null;
+      }
+      setPopup(null);
+      const { snapshotId } = popup;
+      // TODO: async handler噛ませて欲しい
+      return writeCardSnapshot(snapshotId, v);
     },
-    [writeCardSnapshot]
+    [popup, writeCardSnapshot]
   );
 
   const handleDeletePopupSnapshot = useCallback(async () => {
-    if (!editData) {
-      return;
+    if (popup?.type !== "edit-card-snapshot") {
+      return null;
     }
-    const { id } = editData;
-    await deleteCardSnapshot(id);
-    setEditData(null);
-  }, [deleteCardSnapshot, editData]);
+    setPopup(null);
+    const { snapshotId } = popup;
+    // TODO: async handler噛ませて欲しい
+    return deleteCardSnapshot(snapshotId);
+  }, [deleteCardSnapshot, popup]);
+
+  const handleUpdatePlan = useCallback(
+    (v: MoneyPlan) => {
+      if (popup?.type !== "edit-plan") {
+        return null;
+      }
+      setPopup(null);
+      const { planId } = popup;
+      return writeMoneyPlan(planId, v);
+    },
+    [popup, writeMoneyPlan]
+  );
 
   const rows = useMemo(() => {
     if (!cardSnapshotList) {
@@ -98,10 +134,24 @@ const CardSnapshotListScene = ({
         if (!m) {
           return;
         }
-        setEditData(m);
+        setPopup({
+          type: "edit-card-snapshot",
+          snapshotId: action.snapshotId,
+          defaultValue: m.data
+        });
+      } else if (action?.type === "plan") {
+        const m = planList.find(p => p.id === action.planId);
+        if (!m) {
+          return;
+        }
+        setPopup({
+          type: "edit-plan",
+          planId: action.planId,
+          defaultValue: m.data
+        });
       }
     },
-    [cardSnapshotList]
+    [cardSnapshotList, planList]
   );
 
   if (statusError) {
@@ -127,12 +177,21 @@ const CardSnapshotListScene = ({
           onClickRow={handleRowClick}
         />
       ) : null}
-      {editData ? (
+      {popup?.type === "edit-card-snapshot" ? (
         <CardSnapshotFormPopup
-          defaultValue={editData.data}
-          onSubmit={v => handleSubmit(editData.id, v)}
+          defaultValue={popup.defaultValue}
+          onSubmit={handleUpdateCardSnapshot}
           onDelete={handleDeletePopupSnapshot}
-          onClose={() => setEditData(null)}
+          onClose={() => setPopup(null)}
+        />
+      ) : null}
+      {popup?.type === "edit-plan" ? (
+        <PlanFormPopup
+          defaultValue={popup.defaultValue}
+          bankList={bankList}
+          cardList={cardList}
+          onClose={() => setPopup(null)}
+          onSubmit={handleUpdatePlan}
         />
       ) : null}
     </>
