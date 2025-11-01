@@ -101,11 +101,7 @@ const checkIsAfter = (
   a: { year: number; month: number; day: number }
 ) => calcDateParamInt(b) <= calcDateParamInt(a);
 
-const useSimulatorRows = ({
-  planList
-}: {
-  planList: TypedCollectionList<MoneyPlan>;
-}) => {
+const useSimulatorRows = () => {
   const calcRows = useCallback(
     ({
       termStart,
@@ -233,8 +229,11 @@ const useSimulatorRows = ({
       snapshotList,
       termStart,
       termEnd,
-      cardId
-    }: Pick<CardTerm, "snapshotList" | "termStart" | "termEnd" | "cardId">) =>
+      cardId,
+      planList
+    }: Pick<CardTerm, "snapshotList" | "termStart" | "termEnd" | "cardId"> & {
+      planList: TypedCollectionList<MoneyPlan>;
+    }) =>
       calcRows({
         snapshotList,
         termStart,
@@ -245,7 +244,7 @@ const useSimulatorRows = ({
           data: { ...data, cardSummary: null }
         }))
       }),
-    [calcRows, planList]
+    [calcRows]
   );
 
   return { calcRows, calcRowsFromCardTerm };

@@ -68,17 +68,17 @@ const BankTableScene = ({
 }) => {
   const [graphMode, setGraphMode] = useState(false);
 
-  const { calcRows, calcRowsFromCardTerm } = useSimulatorRows({ planList });
+  const { calcRows, calcRowsFromCardTerm } = useSimulatorRows();
 
   const cardAmount = useMemo(
     () =>
       cardTerms.map(t => {
         const { cardId, year, month, day, label } = t;
         const key = [year, month, cardId].join("_");
-        const { amount } = calcRowsFromCardTerm(t);
+        const { amount } = calcRowsFromCardTerm({ ...t, planList });
         return { key, cardId, year, month, day, label, amount };
       }),
-    [calcRowsFromCardTerm, cardTerms]
+    [calcRowsFromCardTerm, cardTerms, planList]
   );
 
   const cardPaymentPlanList = useMemo(
@@ -188,7 +188,7 @@ const BankTableScene = ({
         return;
       }
 
-      const res = calcRowsFromCardTerm(terms);
+      const res = calcRowsFromCardTerm({ ...terms, planList });
 
       const diffSnapshot = terms.snapshotList.length
         ? terms.snapshotList[0].data
@@ -218,7 +218,7 @@ const BankTableScene = ({
         }
       });
     },
-    [calcRowsFromCardTerm, cardTerms, onPopup]
+    [calcRowsFromCardTerm, cardTerms, onPopup, planList]
   );
 
   const { canvasRef } = useGraphRenderer({

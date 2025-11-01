@@ -46,7 +46,7 @@ const CardSnapshotListScene = ({
     data: CardSnapshot;
   } | null>(null);
 
-  const { calcRowsFromCardTerm } = useSimulatorRows({ planList });
+  const { calcRowsFromCardTerm } = useSimulatorRows();
 
   // TODO: async handler噛ませて欲しい
   const handleSubmit = useCallback(
@@ -66,7 +66,8 @@ const CardSnapshotListScene = ({
       cardId,
       snapshotList: cardSnapshotList,
       termStart: monthCursor.minTimestamp,
-      termEnd: monthCursor.maxTimestamp
+      termEnd: monthCursor.maxTimestamp,
+      planList
     });
     return res.rows.reverse();
   }, [
@@ -74,7 +75,8 @@ const CardSnapshotListScene = ({
     cardId,
     cardSnapshotList,
     monthCursor.maxTimestamp,
-    monthCursor.minTimestamp
+    monthCursor.minTimestamp,
+    planList
   ]);
 
   const calcRowAction = useCallback(
