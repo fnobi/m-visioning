@@ -1,4 +1,4 @@
-import MockPopup from "~/common/components/MockPopup";
+import AppCommonPopup from "~/app/components/AppCommonPopup";
 import type CardSnapshot from "~/app/scheme/CardSnapshot";
 import SnapshotForm from "~/app/components/SnapshotForm";
 
@@ -13,14 +13,13 @@ const CardSnapshotFormPopup = ({
   onDelete?: () => void;
   onSubmit: (v: CardSnapshot) => void;
 }) => (
-  <MockPopup onClose={onClose}>
-    <p>カードログ</p>
+  <AppCommonPopup title="カードログ" onClose={onClose}>
     <SnapshotForm
       defaultValue={defaultValue}
       onDelete={onDelete}
       onSubmit={v => onSubmit({ ...v, cardId: defaultValue.cardId })}
     />
-  </MockPopup>
+  </AppCommonPopup>
 );
 
 export default CardSnapshotFormPopup;

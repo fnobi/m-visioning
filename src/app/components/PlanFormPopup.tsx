@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useState } from "react";
-import MockPopup from "~/common/components/MockPopup";
 import {
   MockDateFormRow,
   MockFormFrame,
@@ -10,6 +9,7 @@ import {
 import FormOrganizer from "~/common/lib/FormOrganizer";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import { requiredValidator } from "~/common/lib/form-validator";
+import AppCommonPopup from "~/app/components/AppCommonPopup";
 import type MoneyPlan from "~/app/scheme/MoneyPlan";
 import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
 import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
@@ -129,7 +129,7 @@ const PlanFormPopup = ({
   }, []);
 
   return (
-    <MockPopup onClose={onClose}>
+    <AppCommonPopup title="入出金予定" onClose={onClose}>
       <div style={{ textAlign: "left" }}>
         <MockFormFrame validValue={validValue} onSubmit={onSubmit}>
           <MockStringFormRow
@@ -219,7 +219,7 @@ const PlanFormPopup = ({
           ) : null}
         </MockFormFrame>
       </div>
-    </MockPopup>
+    </AppCommonPopup>
   );
 };
 

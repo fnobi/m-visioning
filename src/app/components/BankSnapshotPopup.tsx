@@ -1,6 +1,6 @@
-import MockPopup from "~/common/components/MockPopup";
 import type BankSnapshot from "~/app/scheme/BankSnapshot";
 import SnapshotForm from "~/app/components/SnapshotForm";
+import AppCommonPopup from "~/app/components/AppCommonPopup";
 
 const BankSnapshotFormPopup = ({
   defaultValue,
@@ -13,14 +13,13 @@ const BankSnapshotFormPopup = ({
   onDelete?: () => void;
   onSubmit: (v: BankSnapshot) => void;
 }) => (
-  <MockPopup onClose={onClose}>
-    <p>口座ログ</p>
+  <AppCommonPopup title="口座ログ" onClose={onClose}>
     <SnapshotForm
       defaultValue={defaultValue}
       onDelete={onDelete}
       onSubmit={v => onSubmit({ ...v, bankId: defaultValue.bankId })}
     />
-  </MockPopup>
+  </AppCommonPopup>
 );
 
 export default BankSnapshotFormPopup;

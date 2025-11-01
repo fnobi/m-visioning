@@ -3,14 +3,14 @@ import { type ComponentPropsWithoutRef } from "react";
 import { em, percent, PRIMITIVE_COLOR } from "~/common/lib/css-util";
 import PopupBase from "~/common/components/PopupBase";
 
-const ScrollWrapper = styled.div({
+const ScrollWrapper = styled.div<{ maxHeight: string }>(({ maxHeight }) => ({
   position: "relative",
-  maxHeight: percent(100),
+  maxHeight,
   overflowY: "auto",
   display: "flex",
   justifyContent: "center",
   alignItems: "flex-start"
-});
+}));
 
 const PopupBody = styled.div({
   backgroundColor: PRIMITIVE_COLOR.WHITE,
@@ -20,11 +20,12 @@ const PopupBody = styled.div({
 
 const MockPopup = ({
   children,
+  maxHeight = percent(100),
   ...props
-}: ComponentPropsWithoutRef<typeof PopupBase>) => (
+}: ComponentPropsWithoutRef<typeof PopupBase> & { maxHeight?: string }) => (
   // eslint-disable-next-line react/jsx-props-no-spreading
   <PopupBase {...props}>
-    <ScrollWrapper>
+    <ScrollWrapper maxHeight={maxHeight}>
       <PopupBody>{children}</PopupBody>
     </ScrollWrapper>
   </PopupBase>
