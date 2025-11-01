@@ -51,8 +51,10 @@ export const calcDayArray = (st: number, length: number) =>
     };
   });
 
-export const calcRangeDayArray = (st: number, end: number) =>
-  calcDayArray(st, Math.floor((end - st) / (1000 * 60 * 60 * 24)));
+export const calcRangeDayArray = (st: number, end: number) => {
+  console.log("calc range day array:", new Date(st), new Date(end));
+  return calcDayArray(st, Math.floor((end - st) / (1000 * 60 * 60 * 24)));
+};
 
 const calcMonthCode = (d: { year: number; month: number }) =>
   d.year * 100 + d.month;

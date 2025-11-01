@@ -106,14 +106,18 @@ const BankTableSceneContainer = () => {
     [monthCursor.maxTimestamp]
   );
 
-  const { bankSnapshotList, createBankSnapshot, writeBankSnapshot } =
-    useBankSnapshotList({
-      userId: myId,
-      bankId: bankId || "",
-      minTimestamp: startDate,
-      maxTimestamp: endDate,
-      onError: setStatusError
-    });
+  const {
+    bankSnapshotList,
+    createBankSnapshot,
+    writeBankSnapshot,
+    deleteBankSnapshot
+  } = useBankSnapshotList({
+    userId: myId,
+    bankId: bankId || "",
+    minTimestamp: startDate,
+    maxTimestamp: endDate,
+    onError: setStatusError
+  });
   const { bankSnapshotList: beforeSnapshotList } = useBankSnapshotList({
     userId: myId,
     bankId: bankId || "",
@@ -233,6 +237,15 @@ const BankTableSceneContainer = () => {
     [popup, runAsyncHandler, writeBankSnapshot]
   );
 
+  const handleDeletePopupSnapshot = useCallback(async () => {
+    if (popup?.type !== "edit-bank-snapshot") {
+      return null;
+    }
+    setPopup(null);
+    const { snapshotId } = popup;
+    return runAsyncHandler(() => deleteBankSnapshot(snapshotId));
+  }, [deleteBankSnapshot, popup, runAsyncHandler]);
+
   const handleUpdatePlan = useCallback(
     (v: MoneyPlan) => {
       if (popup?.type !== "edit-plan") {
@@ -313,6 +326,7 @@ const BankTableSceneContainer = () => {
         <BankSnapshotFormPopup
           defaultValue={popup.defaultValue}
           onClose={() => setPopup(null)}
+          onDelete={handleDeletePopupSnapshot}
           onSubmit={handleUpdateBankSnapshot}
         />
       ) : null}

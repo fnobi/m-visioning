@@ -11,6 +11,7 @@ import {
   requiredValidator,
   subArrayFieldValidator
 } from "~/common/lib/form-validator";
+import MockActionButton from "~/common/components/MockActionButton";
 import type CardSnapshot from "~/app/scheme/CardSnapshot";
 import type BankSnapshot from "~/app/scheme/BankSnapshot";
 
@@ -57,9 +58,11 @@ const SnapshotDetailForm = ({
 
 const SnapshotForm = ({
   defaultValue,
+  onDelete,
   onSubmit
 }: {
   defaultValue: BankSnapshot | CardSnapshot;
+  onDelete?: () => void;
   onSubmit: (v: BankSnapshot | CardSnapshot) => void;
 }) => {
   const [value, setValue] = useState(defaultValue);
@@ -98,6 +101,13 @@ const SnapshotForm = ({
           })}
           Item={SnapshotDetailForm}
         />
+        {onDelete ? (
+          <p>
+            <MockActionButton action={{ type: "button", onClick: onDelete }}>
+              このログを削除
+            </MockActionButton>
+          </p>
+        ) : null}
       </MockFormFrame>
     </div>
   );

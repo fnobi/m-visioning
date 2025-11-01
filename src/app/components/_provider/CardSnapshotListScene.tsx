@@ -34,13 +34,14 @@ const CardSnapshotListScene = ({
     null
   );
 
-  const { cardSnapshotList, writeCardSnapshot } = useCardSnapshotList({
-    userId: myId,
-    cardId,
-    minTimestamp: monthCursor.minTimestamp,
-    maxTimestamp: monthCursor.maxTimestamp,
-    onError: setStatusError
-  });
+  const { cardSnapshotList, writeCardSnapshot, deleteCardSnapshot } =
+    useCardSnapshotList({
+      userId: myId,
+      cardId,
+      minTimestamp: monthCursor.minTimestamp,
+      maxTimestamp: monthCursor.maxTimestamp,
+      onError: setStatusError
+    });
   const [editData, setEditData] = useState<{
     id: string;
     data: CardSnapshot;
@@ -56,6 +57,15 @@ const CardSnapshotListScene = ({
     },
     [writeCardSnapshot]
   );
+
+  const handleDeletePopupSnapshot = useCallback(async () => {
+    if (!editData) {
+      return;
+    }
+    const { id } = editData;
+    await deleteCardSnapshot(id);
+    setEditData(null);
+  }, [deleteCardSnapshot, editData]);
 
   const rows = useMemo(() => {
     if (!cardSnapshotList) {
@@ -134,6 +144,7 @@ const CardSnapshotListScene = ({
         <CardSnapshotFormPopup
           defaultValue={editData.data}
           onSubmit={v => handleSubmit(editData.id, v)}
+          onDelete={handleDeletePopupSnapshot}
           onClose={() => setEditData(null)}
         />
       ) : null}
