@@ -4,6 +4,7 @@ import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
 import { parseNumber, parseString } from "~/common/lib/parser-helper";
 import MockLoadingPopup from "~/common/components/MockLoadingPopup";
 import usePageEntryQuery from "~/common/lib/usePageEntryQuery";
+import { MockPulldownFormRow } from "~/common/components/mock-form-ui";
 import MonthCursorNavi from "~/app/components/MonthCursorNavi";
 import PlanFormPopup from "~/app/components/PlanFormPopup";
 import ErrorPopup from "~/app/components/ErrorPopup";
@@ -81,7 +82,6 @@ const BankTableSceneContainer = () => {
   );
   const [operationError, setOperationError] =
     useState<AppErrorParameter | null>(null);
-  const [graphMode, setGraphMode] = useState(false);
   const [popup, setPopup] = useState<PopupParams | null>(null);
   const { isLoading, runAsyncHandler } = useAsyncHandler({
     onError: setOperationError
@@ -255,6 +255,19 @@ const BankTableSceneContainer = () => {
 
   return (
     <>
+      {bankId ? (
+        <MockPulldownFormRow
+          label="口座"
+          options={bankList.map(({ id, data }) => ({
+            value: id,
+            label: data.label
+          }))}
+          noBlank
+          value={bankId}
+          onChange={setBankId}
+          error={null}
+        />
+      ) : null}
       <MonthCursorNavi monthCursor={monthCursor}>
         <select
           value={period}
@@ -267,29 +280,6 @@ const BankTableSceneContainer = () => {
           ))}
         </select>
       </MonthCursorNavi>
-      {bankId ? (
-        <div>
-          <p>口座</p>
-          <p>
-            <select value={bankId} onChange={e => setBankId(e.target.value)}>
-              {bankList.map(({ id, data }) => (
-                <option key={id} value={id}>
-                  {data.label}
-                </option>
-              ))}
-            </select>
-            &nbsp;
-            <label>
-              <input
-                type="checkbox"
-                checked={graphMode}
-                onChange={e => setGraphMode(e.target.checked)}
-              />
-              graph
-            </label>
-          </p>
-        </div>
-      ) : null}
       {bankSnapshotList ? (
         <BankTableScene
           bankId={bankId}
@@ -300,7 +290,6 @@ const BankTableSceneContainer = () => {
           cardTerms={cardTerms}
           bankSnapshotList={bankSnapshotList}
           lastBankSnapshot={lastBankSnapshot}
-          graphMode={graphMode}
           onPopup={setPopup}
         />
       ) : (

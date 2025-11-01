@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useMemo } from "react";
+import { Fragment, useCallback, useMemo, useState } from "react";
 import { uniqBy } from "~/common/lib/array-util";
 import { percent } from "~/common/lib/css-util";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
@@ -54,7 +54,6 @@ const BankTableScene = ({
   planList,
   bankSnapshotList,
   lastBankSnapshot,
-  graphMode,
   onPopup
 }: {
   bankId: string;
@@ -65,9 +64,10 @@ const BankTableScene = ({
   planList: TypedCollectionList<MoneyPlan>;
   bankSnapshotList: TypedCollectionList<BankSnapshot>;
   lastBankSnapshot: BankSnapshot | null;
-  graphMode: boolean;
   onPopup: (p: PopupParams) => void;
 }) => {
+  const [graphMode, setGraphMode] = useState(false);
+
   const { calcRows, calcRowsFromCardTerm } = useSimulatorRows({ planList });
 
   const cardAmount = useMemo(
@@ -81,54 +81,61 @@ const BankTableScene = ({
     [calcRowsFromCardTerm, cardTerms]
   );
 
-  const bankEvents = useMemo(() => {
-    const cardPaymentPlanList = cardAmount.map<{
-      id: string;
-      data: MoneyPlan & { cardSummary: string };
-    }>(({ key, cardId, year, month, day, label, amount }) => ({
-      id: key,
-      source: "card",
-      data: {
-        year,
-        month,
-        day,
-        repeat: null,
-        price: -amount,
-        label,
-        from: {
-          type: "bank",
-          bankId
-        },
-        to: {
-          type: "output"
-        },
-        cardSummary: cardId
-      }
-    }));
-    return calcRows({
-      baseSnapshot: lastBankSnapshot || undefined,
-      snapshotList: bankSnapshotList,
-      termStart: startDate,
-      termEnd: endDate,
-      nodeFilter: { type: "bank", bankId },
-      sourcePlanList: [
-        ...planList.map(({ id, data }) => ({
-          id,
-          data: { ...data, cardSummary: null }
-        })),
-        ...cardPaymentPlanList
-      ]
-    });
-  }, [
-    cardAmount,
-    calcRows,
-    lastBankSnapshot,
-    bankSnapshotList,
-    startDate,
-    endDate,
-    bankId,
-    planList
-  ]);
+  const cardPaymentPlanList = useMemo(
+    () =>
+      cardAmount.map<{
+        id: string;
+        data: MoneyPlan & { cardSummary: string };
+      }>(({ key, cardId, year, month, day, label, amount }) => ({
+        id: key,
+        source: "card",
+        data: {
+          year,
+          month,
+          day,
+          repeat: null,
+          price: -amount,
+          label,
+          from: {
+            type: "bank",
+            bankId
+          },
+          to: {
+            type: "output"
+          },
+          cardSummary: cardId
+        }
+      })),
+    [bankId, cardAmount]
+  );
+
+  const bankEvents = useMemo(
+    () =>
+      calcRows({
+        baseSnapshot: lastBankSnapshot || undefined,
+        snapshotList: bankSnapshotList,
+        termStart: startDate,
+        termEnd: endDate,
+        nodeFilter: { type: "bank", bankId },
+        sourcePlanList: [
+          ...planList.map(({ id, data }) => ({
+            id,
+            data: { ...data, cardSummary: null }
+          })),
+          ...cardPaymentPlanList
+        ]
+      }),
+    [
+      calcRows,
+      lastBankSnapshot,
+      bankSnapshotList,
+      startDate,
+      endDate,
+      bankId,
+      planList,
+      cardPaymentPlanList
+    ]
+  );
 
   const createBankSnapshotDraft = useMemo(() => {
     if (!bankId) {
@@ -273,55 +280,65 @@ const BankTableScene = ({
     [bankSnapshotList, onPopup, planList]
   );
 
-  if (graphMode) {
-    return (
-      <div>
-        <canvas
-          ref={canvasRef}
-          style={{
-            width: percent(100),
-            height: "auto"
-          }}
-        />
-      </div>
-    );
-  }
-
   return (
     <>
       <p>
-        ログ追加&nbsp;
-        <MockActionButton
-          action={
-            createBankSnapshotDraft
-              ? {
-                  type: "button",
-                  onClick: createBankSnapshotDraft
-                }
-              : null
-          }
-        >
-          {currentBank.label}
-        </MockActionButton>
-        {uniqBy(cardTerms, c => c.cardId).map(({ cardId, label }) => (
-          <Fragment key={cardId}>
-            &nbsp;
-            <MockActionButton
-              action={{
-                type: "button",
-                onClick: () => createCardSnapshotDraft(cardId)
-              }}
-            >
-              {label}
-            </MockActionButton>
-          </Fragment>
-        ))}
+        <label>
+          <input
+            type="checkbox"
+            checked={graphMode}
+            onChange={e => setGraphMode(e.target.checked)}
+          />
+          graph
+        </label>
       </p>
-      <SimulatorTableView
-        lastSnapshot={lastBankSnapshot}
-        rows={bankEvents.rows}
-        calcRowAction={calcRowAction}
-      />
+      {graphMode ? (
+        <div>
+          <canvas
+            ref={canvasRef}
+            style={{
+              width: percent(100),
+              height: "auto"
+            }}
+          />
+        </div>
+      ) : (
+        <>
+          <p>
+            ログ追加&nbsp;
+            <MockActionButton
+              action={
+                createBankSnapshotDraft
+                  ? {
+                      type: "button",
+                      onClick: createBankSnapshotDraft
+                    }
+                  : null
+              }
+            >
+              {currentBank.label}
+            </MockActionButton>
+            {uniqBy(cardTerms, c => c.cardId).map(({ cardId, label }) => (
+              <Fragment key={cardId}>
+                &nbsp;
+                <MockActionButton
+                  action={{
+                    type: "button",
+                    onClick: () => createCardSnapshotDraft(cardId)
+                  }}
+                >
+                  {label}
+                </MockActionButton>
+              </Fragment>
+            ))}
+          </p>
+          <SimulatorTableView
+            lastSnapshot={lastBankSnapshot}
+            rows={bankEvents.rows}
+            calcRowAction={calcRowAction}
+          />
+        </>
+      )}
     </>
   );
 };
