@@ -1,6 +1,8 @@
 import { useCallback, useMemo, useState } from "react";
 import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
+import MockLoadingPopup from "~/common/components/MockLoadingPopup";
+import ErrorPopup from "~/app/components/ErrorPopup";
 import PlanFormPopup from "~/app/components/PlanFormPopup";
 import SimulatorTableView from "~/app/components/SimulatorTableView";
 import MonthCursorNavi from "~/app/components/MonthCursorNavi";
@@ -17,6 +19,7 @@ import useSimulatorRows, {
 import type MoneyPlan from "~/app/scheme/MoneyPlan";
 import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
 import { useMyMoneyPlanTools } from "~/app/lib/database/money-plan-database";
+import useAsyncHandler from "~/app/lib/useAsyncHandler";
 
 type PopupParams =
   | {
@@ -53,7 +56,12 @@ const CardSnapshotListScene = ({
   const [statusError, setStatusError] = useState<AppErrorParameter | null>(
     null
   );
+  const [operationError, setOperationError] =
+    useState<AppErrorParameter | null>(null);
   const [popup, setPopup] = useState<PopupParams | null>(null);
+  const { isLoading, runAsyncHandler } = useAsyncHandler({
+    onError: setOperationError
+  });
 
   const { cardSnapshotList, writeCardSnapshot, deleteCardSnapshot } =
     useCardSnapshotList({
@@ -74,10 +82,9 @@ const CardSnapshotListScene = ({
       }
       setPopup(null);
       const { snapshotId } = popup;
-      // TODO: async handler噛ませて欲しい
-      return writeCardSnapshot(snapshotId, v);
+      return runAsyncHandler(() => writeCardSnapshot(snapshotId, v));
     },
-    [popup, writeCardSnapshot]
+    [popup, runAsyncHandler, writeCardSnapshot]
   );
 
   const handleDeletePopupSnapshot = useCallback(async () => {
@@ -86,9 +93,8 @@ const CardSnapshotListScene = ({
     }
     setPopup(null);
     const { snapshotId } = popup;
-    // TODO: async handler噛ませて欲しい
-    return deleteCardSnapshot(snapshotId);
-  }, [deleteCardSnapshot, popup]);
+    return runAsyncHandler(() => deleteCardSnapshot(snapshotId));
+  }, [deleteCardSnapshot, popup, runAsyncHandler]);
 
   const handleUpdatePlan = useCallback(
     (v: MoneyPlan) => {
@@ -97,9 +103,9 @@ const CardSnapshotListScene = ({
       }
       setPopup(null);
       const { planId } = popup;
-      return writeMoneyPlan(planId, v);
+      return runAsyncHandler(() => writeMoneyPlan(planId, v));
     },
-    [popup, writeMoneyPlan]
+    [popup, runAsyncHandler, writeMoneyPlan]
   );
 
   const rows = useMemo(() => {
@@ -192,6 +198,13 @@ const CardSnapshotListScene = ({
           cardList={cardList}
           onClose={() => setPopup(null)}
           onSubmit={handleUpdatePlan}
+        />
+      ) : null}
+      {isLoading ? <MockLoadingPopup /> : null}
+      {operationError ? (
+        <ErrorPopup
+          error={operationError}
+          onClose={() => setOperationError(null)}
         />
       ) : null}
     </>
