@@ -237,6 +237,7 @@ const CardSnapshotListScene = ({
   return (
     <>
       <div>
+        <p>カード</p>
         <select value={cardId} onChange={e => onChangeCard(e.target.value)}>
           {cardList.map(({ id, data }) => (
             <option key={id} value={id}>

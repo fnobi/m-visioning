@@ -4,7 +4,6 @@ import { signOut } from "firebase/auth";
 import styled from "@emotion/styled";
 import { buildTransform } from "css-transform-builder";
 import {
-  FaSignal,
   FaListCheck,
   FaRegCreditCard,
   FaSackDollar,
@@ -26,7 +25,6 @@ import {
 import { pcStyle, spStyle, THEME_COLOR } from "~/app/lib/emotion-mixin";
 import AuthFrame from "~/app/components/AuthFrame";
 import {
-  PAGE_BANK_SNAPSHOT_LIST,
   PAGE_CARD_SNAPSHOT_LIST,
   PAGE_PLAN_LIST,
   PAGE_TOP
@@ -36,24 +34,19 @@ type TabEntry = { label: string; icon: ReactNode; page: PageEntry };
 
 const TABS = [
   {
-    label: "口座シミュレーション",
-    icon: <FaSignal />,
+    label: "口座予測",
+    icon: <FaSackDollar />,
     page: PAGE_TOP
+  },
+  {
+    label: "カード予測",
+    icon: <FaRegCreditCard />,
+    page: PAGE_CARD_SNAPSHOT_LIST
   },
   {
     label: "入出金予定一覧",
     icon: <FaListCheck />,
     page: PAGE_PLAN_LIST
-  },
-  {
-    label: "口座ログ一覧",
-    icon: <FaSackDollar />,
-    page: PAGE_BANK_SNAPSHOT_LIST
-  },
-  {
-    label: "カードログ一覧",
-    icon: <FaRegCreditCard />,
-    page: PAGE_CARD_SNAPSHOT_LIST
   }
 ] as const satisfies TabEntry[];
 
