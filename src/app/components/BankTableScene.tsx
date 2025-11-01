@@ -70,43 +70,48 @@ const BankTableScene = ({
 
   const { calcRows, calcRowsFromCardTerm } = useSimulatorRows();
 
-  const cardAmount = useMemo(
+  const cardPaymentPlanList = useMemo(
     () =>
-      cardTerms.map(t => {
+      cardTerms.map<{
+        id: string;
+        data: MoneyPlan & { cardSummary: string };
+      }>(t => {
         const { cardId, year, month, day, label } = t;
         const key = [year, month, cardId].join("_");
         const { amount } = calcRowsFromCardTerm({ ...t, planList });
-        return { key, cardId, year, month, day, label, amount };
+        return {
+          id: key,
+          source: "card",
+          data: {
+            year,
+            month,
+            day,
+            repeat: null,
+            price: -amount,
+            label,
+            from: {
+              type: "bank",
+              bankId
+            },
+            to: {
+              type: "output"
+            },
+            cardSummary: cardId
+          }
+        };
       }),
-    [calcRowsFromCardTerm, cardTerms, planList]
+    [bankId, calcRowsFromCardTerm, cardTerms, planList]
   );
 
-  const cardPaymentPlanList = useMemo(
-    () =>
-      cardAmount.map<{
-        id: string;
-        data: MoneyPlan & { cardSummary: string };
-      }>(({ key, cardId, year, month, day, label, amount }) => ({
-        id: key,
-        source: "card",
-        data: {
-          year,
-          month,
-          day,
-          repeat: null,
-          price: -amount,
-          label,
-          from: {
-            type: "bank",
-            bankId
-          },
-          to: {
-            type: "output"
-          },
-          cardSummary: cardId
-        }
+  const sourcePlanList = useMemo(
+    () => [
+      ...planList.map(({ id, data }) => ({
+        id,
+        data: { ...data, cardSummary: null }
       })),
-    [bankId, cardAmount]
+      ...cardPaymentPlanList
+    ],
+    [cardPaymentPlanList, planList]
   );
 
   const bankEvents = useMemo(
@@ -117,13 +122,7 @@ const BankTableScene = ({
         termStart: startDate,
         termEnd: endDate,
         nodeFilter: { type: "bank", bankId },
-        sourcePlanList: [
-          ...planList.map(({ id, data }) => ({
-            id,
-            data: { ...data, cardSummary: null }
-          })),
-          ...cardPaymentPlanList
-        ]
+        sourcePlanList
       }),
     [
       calcRows,
@@ -132,8 +131,7 @@ const BankTableScene = ({
       startDate,
       endDate,
       bankId,
-      planList,
-      cardPaymentPlanList
+      sourcePlanList
     ]
   );
 
