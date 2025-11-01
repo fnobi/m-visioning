@@ -1,7 +1,8 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import MockLoadingPopup from "~/common/components/MockLoadingPopup";
+import MockActionButton from "~/common/components/MockActionButton";
 import ErrorPopup from "~/app/components/ErrorPopup";
 import PlanFormPopup from "~/app/components/PlanFormPopup";
 import SimulatorTableView from "~/app/components/SimulatorTableView";
@@ -62,18 +63,57 @@ const CardSnapshotListScene = ({
   const { isLoading, runAsyncHandler } = useAsyncHandler({
     onError: setOperationError
   });
+  const [draftTimestamp, setDraftTimestamp] = useState(0);
 
-  const { cardSnapshotList, writeCardSnapshot, deleteCardSnapshot } =
-    useCardSnapshotList({
-      userId: myId,
-      cardId,
-      minTimestamp: monthCursor.minTimestamp,
-      maxTimestamp: monthCursor.maxTimestamp,
-      onError: setStatusError
-    });
+  const {
+    cardSnapshotList,
+    writeCardSnapshot,
+    deleteCardSnapshot,
+    createCardSnapshot
+  } = useCardSnapshotList({
+    userId: myId,
+    cardId,
+    minTimestamp: monthCursor.minTimestamp,
+    maxTimestamp: monthCursor.maxTimestamp,
+    onError: setStatusError
+  });
   const { writeMoneyPlan } = useMyMoneyPlanTools();
 
   const { calcRowsFromCardTerm } = useSimulatorRows();
+
+  useEffect(() => {
+    setDraftTimestamp(Date.now());
+  }, []);
+
+  const rows = useMemo(() => {
+    if (!cardSnapshotList) {
+      return null;
+    }
+
+    const res = calcRowsFromCardTerm({
+      cardId,
+      snapshotList: cardSnapshotList,
+      termStart: monthCursor.minTimestamp,
+      termEnd: monthCursor.maxTimestamp,
+      planList
+    });
+    return res.rows;
+  }, [
+    calcRowsFromCardTerm,
+    cardId,
+    cardSnapshotList,
+    monthCursor.maxTimestamp,
+    monthCursor.minTimestamp,
+    planList
+  ]);
+
+  const handleCreateCardSnapshot = useCallback(
+    (v: CardSnapshot) => {
+      setPopup(null);
+      return runAsyncHandler(() => createCardSnapshot(v));
+    },
+    [createCardSnapshot, runAsyncHandler]
+  );
 
   const handleUpdateCardSnapshot = useCallback(
     async (v: CardSnapshot) => {
@@ -108,26 +148,56 @@ const CardSnapshotListScene = ({
     [popup, runAsyncHandler, writeMoneyPlan]
   );
 
-  const rows = useMemo(() => {
-    if (!cardSnapshotList) {
-      return null;
+  const createCardSnapshotDraft = useCallback(() => {
+    if (
+      !cardSnapshotList ||
+      !rows ||
+      draftTimestamp < monthCursor.minTimestamp
+    ) {
+      return;
     }
 
-    const res = calcRowsFromCardTerm({
-      cardId,
-      snapshotList: cardSnapshotList,
-      termStart: monthCursor.minTimestamp,
-      termEnd: monthCursor.maxTimestamp,
-      planList
+    let timestamp = draftTimestamp;
+
+    if (timestamp >= monthCursor.maxTimestamp) {
+      const d = new Date(monthCursor.maxTimestamp);
+      d.setMinutes(d.getMinutes() - 1);
+      timestamp = d.getTime();
+    }
+
+    const [firstSnapshotPair] = cardSnapshotList;
+    const diffSnapshot = firstSnapshotPair ? firstSnapshotPair.data : null;
+
+    const detail: CardSnapshot["detail"] = rows
+      .filter(
+        r => r.date > (diffSnapshot?.timestamp ?? 0) && r.date <= Date.now()
+      )
+      .map(r => ({
+        label: r.label,
+        price: r.price,
+        date: r.date
+      }));
+    let amount = diffSnapshot?.amount ?? 0;
+    detail.forEach(r => {
+      amount += r.price;
     });
-    return res.rows;
+
+    setPopup({
+      type: "create-card-snapshot",
+      defaultValue: {
+        cardId,
+        amount,
+        timestamp,
+        detail
+      }
+    });
   }, [
-    calcRowsFromCardTerm,
     cardId,
     cardSnapshotList,
+    draftTimestamp,
     monthCursor.maxTimestamp,
     monthCursor.minTimestamp,
-    planList
+    rows
   ]);
 
   const handleRowClick = useCallback(
@@ -176,11 +246,30 @@ const CardSnapshotListScene = ({
         </select>
       </div>
       <MonthCursorNavi monthCursor={monthCursor} />
+      {draftTimestamp >= monthCursor.minTimestamp ? (
+        <p>
+          <MockActionButton
+            action={{
+              type: "button",
+              onClick: createCardSnapshotDraft
+            }}
+          >
+            ログ追加
+          </MockActionButton>
+        </p>
+      ) : null}
       {rows ? (
         <SimulatorTableView
           rows={rows}
           lastSnapshot={null}
           onClickRow={handleRowClick}
+        />
+      ) : null}
+      {popup?.type === "create-card-snapshot" ? (
+        <CardSnapshotFormPopup
+          defaultValue={popup.defaultValue}
+          onClose={() => setPopup(null)}
+          onSubmit={handleCreateCardSnapshot}
         />
       ) : null}
       {popup?.type === "edit-card-snapshot" ? (

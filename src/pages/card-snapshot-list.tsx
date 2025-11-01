@@ -57,6 +57,7 @@ const CardListSceneContainer = () => {
 
   return (
     <CardSnapshotListScene
+      key={[cardId, monthCode].join("-")}
       cardId={cardId}
       cardList={cardAccountList}
       bankList={bankAccountList}
