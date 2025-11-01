@@ -8,7 +8,6 @@ import { MockPulldownFormRow } from "~/common/components/mock-form-ui";
 import MonthCursorNavi from "~/app/components/MonthCursorNavi";
 import PlanFormPopup from "~/app/components/PlanFormPopup";
 import ErrorPopup from "~/app/components/ErrorPopup";
-import CardSnapshotFormPopup from "~/app/components/CardSnapshotPopup";
 import BankSnapshotFormPopup from "~/app/components/BankSnapshotPopup";
 import ErrorScene from "~/app/components/ErrorScene";
 import BankTableScene, {
@@ -18,7 +17,6 @@ import { useBankSnapshotList } from "~/app/lib/database/bank-snapshot-database";
 import { type AppErrorParameter } from "~/app/scheme/AppErrorParameter";
 import { useCardSnapshotList } from "~/app/lib/database/card-snapshot-database";
 import type BankSnapshot from "~/app/scheme/BankSnapshot";
-import type CardSnapshot from "~/app/scheme/CardSnapshot";
 import useCommonMoneyStore from "~/app/lib/database/useCommonMoneyStore";
 import useAsyncHandler from "~/app/lib/useAsyncHandler";
 import { useMyMoneyPlanTools } from "~/app/lib/database/money-plan-database";
@@ -125,7 +123,7 @@ const BankTableSceneContainer = () => {
     limit: 1,
     onError: setStatusError
   });
-  const { cardSnapshotList, createCardSnapshot } = useCardSnapshotList({
+  const { cardSnapshotList } = useCardSnapshotList({
     // TODO: 全件検索やめたいね
     userId: myId,
     onError: setStatusError
@@ -217,14 +215,6 @@ const BankTableSceneContainer = () => {
     [createBankSnapshot, runAsyncHandler]
   );
 
-  const handleCreateCardSnapshot = useCallback(
-    (v: CardSnapshot) => {
-      setPopup(null);
-      return runAsyncHandler(() => createCardSnapshot(v));
-    },
-    [createCardSnapshot, runAsyncHandler]
-  );
-
   const handleUpdateBankSnapshot = useCallback(
     (v: BankSnapshot) => {
       if (popup?.type !== "edit-bank-snapshot") {
@@ -296,7 +286,6 @@ const BankTableSceneContainer = () => {
       {bankSnapshotList ? (
         <BankTableScene
           bankId={bankId}
-          currentBank={currentBank}
           planList={planList}
           startDate={startDate}
           endDate={endDate}
@@ -313,13 +302,6 @@ const BankTableSceneContainer = () => {
           defaultValue={popup.defaultValue}
           onClose={() => setPopup(null)}
           onSubmit={handleCreateBankSnapshot}
-        />
-      ) : null}
-      {popup?.type === "create-card-snapshot" ? (
-        <CardSnapshotFormPopup
-          defaultValue={popup.defaultValue}
-          onClose={() => setPopup(null)}
-          onSubmit={handleCreateCardSnapshot}
         />
       ) : null}
       {popup?.type === "edit-bank-snapshot" ? (

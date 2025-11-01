@@ -1,5 +1,4 @@
-import { Fragment, useCallback, useMemo, useState } from "react";
-import { uniqBy } from "~/common/lib/array-util";
+import { useCallback, useMemo, useState } from "react";
 import { percent } from "~/common/lib/css-util";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import MockActionButton from "~/common/components/MockActionButton";
@@ -12,19 +11,13 @@ import useSimulatorRows, {
   type MoneyPlanWithCardLink,
   calcCardStartMonthCode
 } from "~/app/lib/useSimulatorRows";
-import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
 import type MoneyPlan from "~/app/scheme/MoneyPlan";
 import type BankSnapshot from "~/app/scheme/BankSnapshot";
-import type CardSnapshot from "~/app/scheme/CardSnapshot";
 
 export type PopupParams =
   | {
       type: "create-bank-snapshot";
       defaultValue: BankSnapshot;
-    }
-  | {
-      type: "create-card-snapshot";
-      defaultValue: CardSnapshot;
     }
   | {
       type: "edit-bank-snapshot";
@@ -46,7 +39,6 @@ export const calcDateInt = (d: Date) =>
 
 const BankTableScene = ({
   bankId,
-  currentBank,
   cardTerms,
   startDate,
   endDate,
@@ -56,7 +48,6 @@ const BankTableScene = ({
   onPopup
 }: {
   bankId: string;
-  currentBank: MoneyBankAccount;
   cardTerms: CardTerm[];
   startDate: number;
   endDate: number;
@@ -170,53 +161,6 @@ const BankTableScene = ({
     };
   }, [bankEvents.rows, bankId, bankSnapshotList, lastBankSnapshot, onPopup]);
 
-  const createCardSnapshotDraft = useCallback(
-    (cardId: string) => {
-      const timestamp = Date.now();
-
-      const terms = cardTerms.find(
-        c =>
-          c.cardId === cardId &&
-          timestamp >= c.termStart &&
-          timestamp < c.termEnd
-      );
-      if (!terms) {
-        return;
-      }
-
-      const res = calcRowsFromCardTerm({ ...terms, planList });
-
-      const diffSnapshot = terms.snapshotList.length
-        ? terms.snapshotList[0].data
-        : null;
-
-      const detail: CardSnapshot["detail"] = res.rows
-        .filter(
-          r => r.date > (diffSnapshot?.timestamp ?? 0) && r.date <= Date.now()
-        )
-        .map(r => ({
-          label: r.label,
-          price: r.price,
-          date: r.date
-        }));
-      let amount = diffSnapshot?.amount ?? 0;
-      detail.forEach(r => {
-        amount += r.price;
-      });
-
-      onPopup({
-        type: "create-card-snapshot",
-        defaultValue: {
-          cardId,
-          amount,
-          timestamp,
-          detail
-        }
-      });
-    },
-    [calcRowsFromCardTerm, cardTerms, onPopup, planList]
-  );
-
   const { canvasRef } = useGraphRenderer({
     isActive: graphMode,
     startDate,
@@ -276,7 +220,6 @@ const BankTableScene = ({
       ) : (
         <>
           <p>
-            ログ追加&nbsp;
             <MockActionButton
               action={
                 createBankSnapshotDraft
@@ -287,21 +230,8 @@ const BankTableScene = ({
                   : null
               }
             >
-              {currentBank.label}
+              ログ追加
             </MockActionButton>
-            {uniqBy(cardTerms, c => c.cardId).map(({ cardId, label }) => (
-              <Fragment key={cardId}>
-                &nbsp;
-                <MockActionButton
-                  action={{
-                    type: "button",
-                    onClick: () => createCardSnapshotDraft(cardId)
-                  }}
-                >
-                  {label}
-                </MockActionButton>
-              </Fragment>
-            ))}
           </p>
           <SimulatorTableView
             lastSnapshot={lastBankSnapshot}
