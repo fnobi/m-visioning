@@ -7,6 +7,15 @@ import { type ToMoneyNode, type FromMoneyNode } from "~/app/scheme/MoneyPlan";
 import type CardSnapshot from "~/app/scheme/CardSnapshot";
 import { parseBankSnapshot } from "~/app/scheme/BankSnapshot";
 
+type CardLink = {
+  cardLink?: {
+    cardId: string;
+    monthCode: number;
+  };
+};
+
+export type MoneyPlanWithCardLink = MoneyPlan & CardLink;
+
 export type SimulatorRow = {
   id: string;
   date: number;
@@ -14,19 +23,14 @@ export type SimulatorRow = {
   amount: number;
   price: number;
   isArchive: boolean;
-  action:
+  source:
     | { type: "plan"; planId: string }
     | {
         type: "snapshot";
         snapshotId: string;
       }
-    | {
-        type: "card-table";
-        cardId: string;
-        monthCode: number;
-      }
     | null;
-};
+} & CardLink;
 
 export type CardTerm = {
   cardId: string;
@@ -63,7 +67,7 @@ export const calcDateParamInt = (d: {
   day: number;
 }) => calcMonthCode(d) * 100 + d.day;
 
-const calcCardStartMonthCode = ({
+export const calcCardStartMonthCode = ({
   year,
   month,
   day
@@ -120,9 +124,7 @@ const useSimulatorRows = () => {
       snapshotList: TypedCollectionList<BankSnapshot | CardSnapshot>;
       // TODO: cardId/bankIdで絞り込み済みのplanListを渡すようにして、1個にまとめたい
       nodeFilter: FromMoneyNode;
-      sourcePlanList: TypedCollectionList<
-        MoneyPlan & { cardSummary: string | null }
-      >;
+      sourcePlanList: TypedCollectionList<MoneyPlanWithCardLink>;
     }) => {
       if (termStart >= termEnd) {
         return { rows: [], amount: 0 };
@@ -153,7 +155,7 @@ const useSimulatorRows = () => {
 
           const array: SimulatorRow[] = [];
 
-          const action: SimulatorRow["action"] = {
+          const source: SimulatorRow["source"] = {
             type: "snapshot",
             snapshotId: id
           };
@@ -167,7 +169,7 @@ const useSimulatorRows = () => {
               price: d.price,
               amount: cache,
               isArchive: true,
-              action
+              source
             });
           });
 
@@ -179,7 +181,7 @@ const useSimulatorRows = () => {
               amount,
               price: amount - cache,
               isArchive: true,
-              action
+              source
             });
           }
 
@@ -190,7 +192,7 @@ const useSimulatorRows = () => {
       calcRangeDayArray(minDate, termEnd).forEach(cdata => {
         const { date, year: cy, month: cm, day: cd } = cdata;
         sourcePlanList2.forEach(({ id, data }) => {
-          const { year, month, day, label, price, repeat, cardSummary } = data;
+          const { year, month, day, label, price, repeat, cardLink } = data;
           const validRepeat = checkIsAfter(data, cdata) ? repeat : null;
           const flag =
             (year === cy || validRepeat) &&
@@ -212,13 +214,8 @@ const useSimulatorRows = () => {
             amount,
             price,
             isArchive: false,
-            action: cardSummary
-              ? {
-                  type: "card-table",
-                  cardId: cardSummary,
-                  monthCode: calcCardStartMonthCode(data)
-                }
-              : { type: "plan", planId: id }
+            source: { type: "plan", planId: id },
+            cardLink
           });
         });
       });
@@ -243,10 +240,7 @@ const useSimulatorRows = () => {
         termStart,
         termEnd,
         nodeFilter: { type: "card", cardId },
-        sourcePlanList: planList.map(({ id, data }) => ({
-          id,
-          data: { ...data, cardSummary: null }
-        }))
+        sourcePlanList: planList
       }),
     [calcRows]
   );

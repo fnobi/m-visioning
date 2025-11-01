@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
-import type CommonActionParameter from "~/common/scheme/CommonActionParameter";
 import SimulatorTableView from "~/app/components/SimulatorTableView";
 import MonthCursorNavi from "~/app/components/MonthCursorNavi";
 import CardSnapshotFormPopup from "~/app/components/CardSnapshotPopup";
@@ -79,7 +78,7 @@ const CardSnapshotListScene = ({
       termEnd: monthCursor.maxTimestamp,
       planList
     });
-    return res.rows.reverse();
+    return res.rows;
   }, [
     calcRowsFromCardTerm,
     cardId,
@@ -89,29 +88,17 @@ const CardSnapshotListScene = ({
     planList
   ]);
 
-  const calcRowAction = useCallback(
-    (action: SimulatorRow["action"]): CommonActionParameter | null => {
-      if (!action) {
-        return null;
-      }
-      switch (action.type) {
-        case "snapshot":
-          return {
-            type: "button",
-            onClick: () => {
-              if (!cardSnapshotList) {
-                return;
-              }
-              const m = cardSnapshotList.find(p => p.id === action.snapshotId);
-              if (!m) {
-                return;
-              }
-              setEditData(m);
-            }
-          };
-        default:
-          // eslint-disable-next-line no-console
-          return { type: "button", onClick: () => console.log(action) };
+  const handleRowClick = useCallback(
+    (action: SimulatorRow["source"]) => {
+      if (action?.type === "snapshot") {
+        if (!cardSnapshotList) {
+          return;
+        }
+        const m = cardSnapshotList.find(p => p.id === action.snapshotId);
+        if (!m) {
+          return;
+        }
+        setEditData(m);
       }
     },
     [cardSnapshotList]
@@ -137,7 +124,7 @@ const CardSnapshotListScene = ({
         <SimulatorTableView
           rows={rows}
           lastSnapshot={null}
-          calcRowAction={calcRowAction}
+          onClickRow={handleRowClick}
         />
       ) : null}
       {editData ? (

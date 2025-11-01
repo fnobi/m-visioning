@@ -3,16 +3,15 @@ import { uniqBy } from "~/common/lib/array-util";
 import { percent } from "~/common/lib/css-util";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import MockActionButton from "~/common/components/MockActionButton";
-import { parseString } from "~/common/lib/parser-helper";
-import type CommonActionParameter from "~/common/scheme/CommonActionParameter";
 import SimulatorTableView from "~/app/components/SimulatorTableView";
 import useGraphRenderer from "~/app/lib/useGraphRenderer";
 import useSimulatorRows, {
   type SimulatorRow,
   calcDateParamInt,
-  type CardTerm
+  type CardTerm,
+  type MoneyPlanWithCardLink,
+  calcCardStartMonthCode
 } from "~/app/lib/useSimulatorRows";
-import { PAGE_CARD_SNAPSHOT_LIST } from "~/app/lib/page-path";
 import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
 import type MoneyPlan from "~/app/scheme/MoneyPlan";
 import type BankSnapshot from "~/app/scheme/BankSnapshot";
@@ -74,7 +73,7 @@ const BankTableScene = ({
     () =>
       cardTerms.map<{
         id: string;
-        data: MoneyPlan & { cardSummary: string };
+        data: MoneyPlanWithCardLink;
       }>(t => {
         const { cardId, year, month, day, label } = t;
         const key = [year, month, cardId].join("_");
@@ -96,7 +95,12 @@ const BankTableScene = ({
             to: {
               type: "output"
             },
-            cardSummary: cardId
+            cardLink: cardId
+              ? {
+                  cardId,
+                  monthCode: calcCardStartMonthCode({ year, month, day })
+                }
+              : undefined
           }
         };
       }),
@@ -104,13 +108,7 @@ const BankTableScene = ({
   );
 
   const sourcePlanList = useMemo(
-    () => [
-      ...planList.map(({ id, data }) => ({
-        id,
-        data: { ...data, cardSummary: null }
-      })),
-      ...cardPaymentPlanList
-    ],
+    () => [...planList, ...cardPaymentPlanList],
     [cardPaymentPlanList, planList]
   );
 
@@ -226,53 +224,28 @@ const BankTableScene = ({
     bankEvents
   });
 
-  const calcRowAction = useCallback(
-    (action: SimulatorRow["action"]): CommonActionParameter | null => {
-      if (!action) {
-        return null;
-      }
-      switch (action.type) {
-        case "card-table":
-          return {
-            type: "page-link",
-            page: PAGE_CARD_SNAPSHOT_LIST.withQuery({
-              card: action.cardId,
-              month: parseString(action.monthCode)
-            })
-          };
-        case "snapshot":
-          return {
-            type: "button",
-            onClick: () => {
-              const m = bankSnapshotList.find(p => p.id === action.snapshotId);
-              if (!m) {
-                return;
-              }
-              onPopup({
-                type: "edit-bank-snapshot",
-                snapshotId: action.snapshotId,
-                defaultValue: m.data
-              });
-            }
-          };
-        case "plan":
-          return {
-            type: "button",
-            onClick: () => {
-              const m = planList.find(p => p.id === action.planId);
-              if (!m) {
-                return;
-              }
-              onPopup({
-                type: "edit-plan",
-                planId: action.planId,
-                defaultValue: m.data
-              });
-            }
-          };
-        default:
-          // eslint-disable-next-line no-console
-          return { type: "button", onClick: () => console.log(action) };
+  const handleRowClick = useCallback(
+    (action: SimulatorRow["source"]) => {
+      if (action?.type === "snapshot") {
+        const m = bankSnapshotList.find(p => p.id === action.snapshotId);
+        if (!m) {
+          return;
+        }
+        onPopup({
+          type: "edit-bank-snapshot",
+          snapshotId: action.snapshotId,
+          defaultValue: m.data
+        });
+      } else if (action?.type === "plan") {
+        const m = planList.find(p => p.id === action.planId);
+        if (!m) {
+          return;
+        }
+        onPopup({
+          type: "edit-plan",
+          planId: action.planId,
+          defaultValue: m.data
+        });
       }
     },
     [bankSnapshotList, onPopup, planList]
@@ -333,7 +306,7 @@ const BankTableScene = ({
           <SimulatorTableView
             lastSnapshot={lastBankSnapshot}
             rows={bankEvents.rows}
-            calcRowAction={calcRowAction}
+            onClickRow={handleRowClick}
           />
         </>
       )}
