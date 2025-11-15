@@ -28,6 +28,9 @@ export type PopupParams =
       type: "edit-plan";
       planId: string;
       defaultValue: MoneyPlan;
+    }
+  | {
+      type: "select-bank";
     };
 
 export const calcDateInt = (d: Date) =>

@@ -3,6 +3,7 @@ import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import MockLoadingPopup from "~/common/components/MockLoadingPopup";
 import MockActionButton from "~/common/components/MockActionButton";
+import CardSelectPopup from "~/app/components/CardSelectPopup";
 import ErrorPopup from "~/app/components/ErrorPopup";
 import PlanFormPopup from "~/app/components/PlanFormPopup";
 import SimulatorTableView from "~/app/components/SimulatorTableView";
@@ -36,6 +37,9 @@ type PopupParams =
       type: "edit-plan";
       planId: string;
       defaultValue: MoneyPlan;
+    }
+  | {
+      type: "select-card";
     };
 
 const CardSnapshotListScene = ({
@@ -238,13 +242,20 @@ const CardSnapshotListScene = ({
     <>
       <div>
         <p>カード</p>
-        <select value={cardId} onChange={e => onChangeCard(e.target.value)}>
-          {cardList.map(({ id, data }) => (
-            <option key={id} value={id}>
-              {data.label}
-            </option>
-          ))}
-        </select>
+        {cardList.map(({ id, data }) =>
+          id === cardId ? (
+            <p key={id}>
+              <MockActionButton
+                action={{
+                  type: "button",
+                  onClick: () => setPopup({ type: "select-card" })
+                }}
+              >
+                {data.label}
+              </MockActionButton>
+            </p>
+          ) : null
+        )}
       </div>
       <MonthCursorNavi monthCursor={monthCursor} />
       {draftTimestamp >= monthCursor.minTimestamp ? (
@@ -288,6 +299,14 @@ const CardSnapshotListScene = ({
           cardList={cardList}
           onClose={() => setPopup(null)}
           onSubmit={handleUpdatePlan}
+        />
+      ) : null}
+      {popup?.type === "select-card" ? (
+        <CardSelectPopup
+          defaultValue={cardId}
+          cardList={cardList}
+          onClose={() => setPopup(null)}
+          onSubmit={onChangeCard}
         />
       ) : null}
       {isLoading ? <MockLoadingPopup /> : null}

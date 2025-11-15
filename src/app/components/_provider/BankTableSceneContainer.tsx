@@ -4,7 +4,8 @@ import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
 import { parseNumber, parseString } from "~/common/lib/parser-helper";
 import MockLoadingPopup from "~/common/components/MockLoadingPopup";
 import usePageEntryQuery from "~/common/lib/usePageEntryQuery";
-import { MockPulldownFormRow } from "~/common/components/mock-form-ui";
+import MockActionButton from "~/common/components/MockActionButton";
+import BankSelectPopup from "~/app/components/BankSelectPopup";
 import MonthCursorNavi from "~/app/components/MonthCursorNavi";
 import PlanFormPopup from "~/app/components/PlanFormPopup";
 import ErrorPopup from "~/app/components/ErrorPopup";
@@ -259,17 +260,23 @@ const BankTableSceneContainer = () => {
   return (
     <>
       {bankId ? (
-        <MockPulldownFormRow
-          label="口座"
-          options={bankList.map(({ id, data }) => ({
-            value: id,
-            label: data.label
-          }))}
-          noBlank
-          value={bankId}
-          onChange={setBankId}
-          error={null}
-        />
+        <div>
+          <p>口座</p>
+          {bankList.map(({ id, data }) =>
+            id === bankId ? (
+              <p key={id}>
+                <MockActionButton
+                  action={{
+                    type: "button",
+                    onClick: () => setPopup({ type: "select-bank" })
+                  }}
+                >
+                  {data.label}
+                </MockActionButton>
+              </p>
+            ) : null
+          )}
+        </div>
       ) : null}
       <MonthCursorNavi monthCursor={monthCursor}>
         <select
@@ -327,6 +334,17 @@ const BankTableSceneContainer = () => {
             <MockLoadingPopup />
           )}
         </>
+      ) : null}
+      {popup?.type === "select-bank" ? (
+        <BankSelectPopup
+          defaultValue={bankId}
+          bankList={bankList}
+          onClose={() => setPopup(null)}
+          onSubmit={v => {
+            setPopup(null);
+            setBankId(v);
+          }}
+        />
       ) : null}
       {isLoading ? <MockLoadingPopup /> : null}
       {operationError ? (
