@@ -3,7 +3,6 @@ import {
   MockArrayFormRow,
   MockDateTimeFormRow,
   MockFormFrame,
-  MockNumberFormRow,
   MockStringFormRow
 } from "~/common/components/mock-form-ui";
 import FormOrganizer from "~/common/lib/FormOrganizer";
@@ -12,6 +11,7 @@ import {
   subArrayFieldValidator
 } from "~/common/lib/form-validator";
 import MockActionButton from "~/common/components/MockActionButton";
+import PriceFormRow from "~/app/components/PriceFormRow";
 import type CardSnapshot from "~/app/scheme/CardSnapshot";
 import type BankSnapshot from "~/app/scheme/BankSnapshot";
 
@@ -26,10 +26,12 @@ const formOrganizer1 = new FormOrganizer<
 
 const SnapshotDetailForm = ({
   value,
-  onChange
+  onChange,
+  minus
 }: {
   value: BankSnapshot["detail"][number];
   onChange: (v: BankSnapshot["detail"][number]) => void;
+  minus: boolean;
 }) => {
   const errors = useMemo(() => formOrganizer2.getErrors(value), [value]);
   return (
@@ -46,8 +48,9 @@ const SnapshotDetailForm = ({
         onChange={v => onChange({ ...value, label: v })}
         error={errors.label}
       />
-      <MockNumberFormRow
+      <PriceFormRow
         label="金額"
+        minus={minus}
         value={value.price}
         onChange={v => onChange({ ...value, price: v })}
         error={errors.price}
@@ -57,10 +60,12 @@ const SnapshotDetailForm = ({
 };
 
 const SnapshotForm = ({
+  type,
   defaultValue,
   onDelete,
   onSubmit
 }: {
+  type: "bank" | "card";
   defaultValue: BankSnapshot | CardSnapshot;
   onDelete?: () => void;
   onSubmit: (v: BankSnapshot | CardSnapshot) => void;
@@ -70,6 +75,7 @@ const SnapshotForm = ({
     () => formOrganizer1.getValidValue(value),
     [value]
   );
+  const minus = useMemo(() => type === "card", [type]);
   return (
     <div
       style={{
@@ -83,9 +89,10 @@ const SnapshotForm = ({
           onChange={v => setValue(vv => ({ ...vv, timestamp: v }))}
           error={errors.timestamp}
         />
-        <MockNumberFormRow
+        <PriceFormRow
           label="金額"
           value={value.amount}
+          minus={minus}
           onChange={v => setValue(vv => ({ ...vv, amount: v }))}
           error={errors.amount}
         />
@@ -99,6 +106,7 @@ const SnapshotForm = ({
             price: 0,
             date: value.timestamp
           })}
+          props={{ minus }}
           Item={SnapshotDetailForm}
         />
         {onDelete ? (

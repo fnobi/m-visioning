@@ -15,6 +15,7 @@ const BankSnapshotFormPopup = ({
 }) => (
   <AppCommonPopup title="口座ログ" onClose={onClose}>
     <SnapshotForm
+      type="bank"
       defaultValue={defaultValue}
       onDelete={onDelete}
       onSubmit={v => onSubmit({ ...v, bankId: defaultValue.bankId })}

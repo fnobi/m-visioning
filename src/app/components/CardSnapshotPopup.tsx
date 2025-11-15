@@ -15,6 +15,7 @@ const CardSnapshotFormPopup = ({
 }) => (
   <AppCommonPopup title="カードログ" onClose={onClose}>
     <SnapshotForm
+      type="card"
       defaultValue={defaultValue}
       onDelete={onDelete}
       onSubmit={v => onSubmit({ ...v, cardId: defaultValue.cardId })}

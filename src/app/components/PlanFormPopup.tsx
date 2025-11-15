@@ -2,13 +2,13 @@ import { useCallback, useMemo, useState } from "react";
 import {
   MockDateFormRow,
   MockFormFrame,
-  MockNumberFormRow,
   MockPulldownFormRow,
   MockStringFormRow
 } from "~/common/components/mock-form-ui";
 import FormOrganizer from "~/common/lib/FormOrganizer";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import { requiredValidator } from "~/common/lib/form-validator";
+import PriceFormRow from "~/app/components/PriceFormRow";
 import AppCommonPopup from "~/app/components/AppCommonPopup";
 import type MoneyPlan from "~/app/scheme/MoneyPlan";
 import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
@@ -138,10 +138,9 @@ const PlanFormPopup = ({
             onChange={v => setValue(vv => ({ ...vv, label: v }))}
             error={errors.label}
           />
-          <MockNumberFormRow
+          <PriceFormRow
             label="金額"
             value={value.price}
-            min={0}
             onChange={v => setValue(vv => ({ ...vv, price: v }))}
             error={errors.price}
           />

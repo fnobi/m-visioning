@@ -48,5 +48,6 @@ export const THEME_COLOR = {
   BROWN: "#712636",
   BG_YELLOW: "#FFFABA",
   WAVE_YELLOW: "#ffeb3c",
-  PINK: "#E4007F"
+  PINK: "#E4007F",
+  MINUS: "#FF0000"
 } satisfies Record<string, `#${string}`>;

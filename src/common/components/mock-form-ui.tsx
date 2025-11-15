@@ -592,16 +592,18 @@ export const MockFileFormRow = ({
   </FormCommonRowWrapper>
 );
 
-export const MockArrayFormRow = <T,>({
+export const MockArrayFormRow = <T, R>({
   label,
   value,
   makeNew,
   onChange,
   error,
+  props,
   Item
 }: {
   makeNew: (s: unknown) => T;
-  Item: FunctionComponent<CommonFormFieldProps<T>>;
+  Item: FunctionComponent<CommonFormFieldProps<T> & R>;
+  props: R;
 } & FormRowCommonProps<T[]>) => {
   const handleMinus = useMemo(
     (): CommonActionParameter | null =>
@@ -636,7 +638,7 @@ export const MockArrayFormRow = <T,>({
           <NestSection key={i}>
             <FormLayoutGrid>
               {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-              <Item {...r} />
+              <Item {...r} {...props} />
             </FormLayoutGrid>
           </NestSection>
         ))}
