@@ -17,7 +17,7 @@ const MonthCursorNavi = ({
     <div>
       <p>
         {formatDateLabel(monthCursor.minTimestamp, true)}&nbsp;-&nbsp;
-        {formatDateLabel(monthCursor.maxTimestamp, true)}
+        {formatDateLabel(monthCursor.maxTimestamp - 1, true)}
       </p>
       <p>
         <MockActionButton
