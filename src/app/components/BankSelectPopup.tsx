@@ -18,12 +18,14 @@ const BankSelectPopup = ({
   defaultValue,
   bankList,
   onDetail,
+  onCreate,
   onSubmit,
   onClose
 }: {
   defaultValue: string;
   bankList: TypedCollectionList<MoneyBankAccount>;
   onDetail: (id: string, data: MoneyBankAccount) => void;
+  onCreate: (v: Partial<MoneyBankAccount>) => void;
   onSubmit: (v: string) => void;
   onClose: () => void;
 }) => {
@@ -56,6 +58,16 @@ const BankSelectPopup = ({
               </MockActionButton>
             </p>
           ))}
+          <p>
+            <MockActionButton
+              action={{
+                type: "button",
+                onClick: () => onCreate({ order: bankList.length + 1 })
+              }}
+            >
+              新規作成
+            </MockActionButton>
+          </p>
         </WrapperList>
       </MockFormFrame>
     </AppCommonPopup>

@@ -43,6 +43,19 @@ export const useBankAccountList = ({
 export const useMyBankAccountTools = () => {
   const { myId: userId } = useAuthorizedUser();
 
+  const createBankAccount = useCallback(
+    (data: MoneyBankAccount) => {
+      if (!userId) {
+        throw new AppError({ type: "bad-parameter" });
+      }
+      return moneyBankDataStore.addItem({
+        userId,
+        data
+      });
+    },
+    [userId]
+  );
+
   const writeBankAccount = useCallback(
     (bankId: string, data: MoneyBankAccount) => {
       if (!userId) {
@@ -70,5 +83,5 @@ export const useMyBankAccountTools = () => {
     [userId]
   );
 
-  return { writeBankAccount, deleteBankAccount };
+  return { createBankAccount, writeBankAccount, deleteBankAccount };
 };

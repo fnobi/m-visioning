@@ -36,6 +36,10 @@ export type PopupParams =
       type: "edit-bank-account";
       bankId: string;
       defaultValue: MoneyBankAccount;
+    }
+  | {
+      type: "create-bank-account";
+      defaultValue: MoneyBankAccount;
     };
 
 export const calcDateInt = (d: Date) =>

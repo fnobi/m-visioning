@@ -33,6 +33,7 @@ import {
 } from "~/app/lib/useSimulatorRows";
 import { useMyBankAccountTools } from "~/app/lib/database/bank-account-database";
 import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
+import { parseMoneyBankAccount } from "~/app/scheme/MoneyBankAccount";
 
 const PERIOD_OPTIONS = [3, 12, 24];
 
@@ -138,7 +139,7 @@ const BankTableSceneContainer = () => {
     userId: myId,
     onError: setStatusError
   });
-  const { writeBankAccount } = useMyBankAccountTools();
+  const { createBankAccount, writeBankAccount } = useMyBankAccountTools();
   const { writeMoneyPlan } = useMyMoneyPlanTools();
 
   const lastBankSnapshot = useMemo(() => {
@@ -263,6 +264,17 @@ const BankTableSceneContainer = () => {
     [clearPopup, popup, runAsyncHandler, writeBankAccount]
   );
 
+  const handleCreateBankAccount = useCallback(
+    (v: MoneyBankAccount) => {
+      if (popup?.type !== "create-bank-account") {
+        return null;
+      }
+      clearPopup();
+      return runAsyncHandler(() => createBankAccount(v));
+    },
+    [clearPopup, createBankAccount, popup?.type, runAsyncHandler]
+  );
+
   const handleUpdatePlan = useCallback(
     (v: MoneyPlan) => {
       if (popup?.type !== "edit-plan") {
@@ -372,6 +384,12 @@ const BankTableSceneContainer = () => {
               defaultValue: data
             })
           }
+          onCreate={v =>
+            addPopup({
+              type: "create-bank-account",
+              defaultValue: parseMoneyBankAccount(v)
+            })
+          }
           onClose={closeCurrentPopup}
           onSubmit={v => {
             closeCurrentPopup();
@@ -383,6 +401,13 @@ const BankTableSceneContainer = () => {
         <BankAccountFormPopup
           defaultValue={popup.defaultValue}
           onSubmit={handleUpdateBankAccount}
+          onClose={closeCurrentPopup}
+        />
+      ) : null}
+      {popup?.type === "create-bank-account" ? (
+        <BankAccountFormPopup
+          defaultValue={popup.defaultValue}
+          onSubmit={handleCreateBankAccount}
           onClose={closeCurrentPopup}
         />
       ) : null}

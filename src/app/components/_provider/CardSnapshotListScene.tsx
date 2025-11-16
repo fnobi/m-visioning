@@ -351,10 +351,10 @@ const CardSnapshotListScene = ({
               defaultValue: data
             })
           }
-          onCreate={order =>
+          onCreate={v =>
             addPopup({
               type: "create-card-account",
-              defaultValue: parseMoneyCardAccount({ order })
+              defaultValue: parseMoneyCardAccount(v)
             })
           }
           onClose={closeCurrentPopup}

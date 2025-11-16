@@ -25,7 +25,7 @@ const CardSelectPopup = ({
   defaultValue: string;
   cardList: TypedCollectionList<MoneyCardAccount>;
   onDetail: (id: string, data: MoneyCardAccount) => void;
-  onCreate: (order: number) => void;
+  onCreate: (v: Partial<MoneyCardAccount>) => void;
   onSubmit: (v: string) => void;
   onClose: () => void;
 }) => {
@@ -65,7 +65,7 @@ const CardSelectPopup = ({
             <MockActionButton
               action={{
                 type: "button",
-                onClick: () => onCreate(cardList.length + 1)
+                onClick: () => onCreate({ order: cardList.length + 1 })
               }}
             >
               新規作成
