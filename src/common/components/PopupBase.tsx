@@ -5,10 +5,11 @@ import { alphaColor, percent, PRIMITIVE_COLOR } from "~/common/lib/css-util";
 type StyleProps = {
   position?: "fixed" | "absolute";
   verticalAlign?: "center" | "flex-end";
+  zIndex?: number;
 };
 
 const Wrapper = styled.div<StyleProps>(
-  ({ position = "fixed", verticalAlign = "center" }) => ({
+  ({ position = "fixed", verticalAlign = "center", zIndex }) => ({
     position,
     left: 0,
     top: 0,
@@ -17,7 +18,8 @@ const Wrapper = styled.div<StyleProps>(
     backgroundColor: alphaColor(PRIMITIVE_COLOR.BLACK, 0.6),
     display: "flex",
     justifyContent: "center",
-    alignItems: verticalAlign
+    alignItems: verticalAlign,
+    zIndex
   })
 );
 
@@ -25,7 +27,8 @@ const PopupBase = ({
   children,
   onClose,
   position,
-  verticalAlign
+  verticalAlign,
+  zIndex
 }: {
   children?: ReactNode;
   onClose?: () => void;
@@ -36,6 +39,7 @@ const PopupBase = ({
       ref={wrapperRef}
       position={position}
       verticalAlign={verticalAlign}
+      zIndex={zIndex}
       onClick={e => {
         if (onClose && e.target === wrapperRef.current) {
           onClose();

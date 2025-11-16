@@ -51,3 +51,7 @@ export const THEME_COLOR = {
   PINK: "#E4007F",
   MINUS: "#FF0000"
 } satisfies Record<string, `#${string}`>;
+
+export const Z_INDEX_KEYS = <const>["default", "popup"];
+export const zIndexFromKey = (k: (typeof Z_INDEX_KEYS)[number]) =>
+  Z_INDEX_KEYS.indexOf(k);

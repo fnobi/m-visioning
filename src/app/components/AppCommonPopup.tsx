@@ -1,6 +1,7 @@
 import { type ReactNode } from "react";
 import MockPopup from "~/common/components/MockPopup";
 import { px, vh } from "~/common/lib/css-util";
+import { zIndexFromKey } from "~/app/lib/emotion-mixin";
 
 const AppCommonPopup = ({
   title,
@@ -11,7 +12,11 @@ const AppCommonPopup = ({
   onClose: () => void;
   children?: ReactNode;
 }) => (
-  <MockPopup onClose={onClose} maxHeight={`calc(${vh(100)} - ${px(150)})`}>
+  <MockPopup
+    onClose={onClose}
+    maxHeight={`calc(${vh(100)} - ${px(150)})`}
+    zIndex={zIndexFromKey("popup")}
+  >
     <p>{title}</p>
     {children}
   </MockPopup>
