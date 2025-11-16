@@ -130,11 +130,7 @@ const MVisionFrame = ({ children }: { children: ReactNode }) => {
           <MenuItem key={page.href}>
             {icon}
             <MockActionButton
-              action={
-                page.basePath === router.pathname
-                  ? null
-                  : { type: "page-link", page }
-              }
+              action={page.test(router) ? null : { type: "page-link", page }}
             >
               {label}
             </MockActionButton>

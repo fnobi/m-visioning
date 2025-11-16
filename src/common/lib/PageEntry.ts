@@ -1,3 +1,5 @@
+import { type NextRouter } from "next/router";
+
 class PageEntry<
   T extends string = string,
   Q extends Record<string, string> = {}
@@ -53,6 +55,13 @@ class PageEntry<
     arr: TT[]
   ) {
     return arr.map(id => page.child(id).basePath);
+  }
+
+  public test(router: NextRouter) {
+    return (
+      (this.basePath === "" && router.pathname === "/") ||
+      this.basePath === router.pathname
+    );
   }
 }
 
