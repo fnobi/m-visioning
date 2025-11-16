@@ -36,10 +36,13 @@ const PriceFormRow = ({
   onChange: (v: number) => void;
   error: ValidationErrorType | null;
 }) => {
-  const normalizedValue = useMemo(
-    () => (minus ? -1 : 1) * value,
-    [minus, value]
-  );
+  const normalizedValue = useMemo(() => {
+    // 0は空文字に正規化
+    if (!value) {
+      return "";
+    }
+    return (minus ? -1 : 1) * value;
+  }, [minus, value]);
   const handleChange = (v: number) => onChange((minus ? -1 : 1) * v);
   return (
     <FormCommonRowWrapper label={label} error={error}>
