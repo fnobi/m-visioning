@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { type ComponentPropsWithoutRef, useMemo, useState } from "react";
 import {
   MockArrayFormRow,
   MockDateTimeFormRow,
@@ -20,18 +20,18 @@ const formOrganizer2 = new FormOrganizer<BankSnapshot["detail"][number]>()
   .fieldValidator("price", requiredValidator())
   .fieldValidator("date", requiredValidator());
 
-const formOrganizer1 = new FormOrganizer<
-  BankSnapshot | CardSnapshot
->().fieldValidator("detail", subArrayFieldValidator(formOrganizer2));
+const formOrganizer1 = new FormOrganizer<BankSnapshot | CardSnapshot>()
+  .fieldValidator("amount", requiredValidator())
+  .fieldValidator("detail", subArrayFieldValidator(formOrganizer2));
 
 const SnapshotDetailForm = ({
   value,
   onChange,
-  minus
+  lock
 }: {
   value: BankSnapshot["detail"][number];
   onChange: (v: BankSnapshot["detail"][number]) => void;
-  minus: boolean;
+  lock: ComponentPropsWithoutRef<typeof PriceFormRow>["lock"];
 }) => {
   const errors = useMemo(() => formOrganizer2.getErrors(value), [value]);
   return (
@@ -50,7 +50,7 @@ const SnapshotDetailForm = ({
       />
       <PriceFormRow
         label="金額"
-        minus={minus}
+        lock={lock}
         value={value.price}
         onChange={v => onChange({ ...value, price: v })}
         error={errors.price}
@@ -75,7 +75,6 @@ const SnapshotForm = ({
     () => formOrganizer1.getValidValue(value),
     [value]
   );
-  const minus = useMemo(() => type === "card", [type]);
   return (
     <div
       style={{
@@ -92,7 +91,8 @@ const SnapshotForm = ({
         <PriceFormRow
           label="金額"
           value={value.amount}
-          minus={minus}
+          // eslint-disable-next-line no-nested-ternary
+          lock={type === "bank" ? "plus" : type === "card" ? "minus" : null}
           onChange={v => setValue(vv => ({ ...vv, amount: v }))}
           error={errors.amount}
         />
@@ -106,7 +106,7 @@ const SnapshotForm = ({
             price: 0,
             date: value.timestamp
           })}
-          props={{ minus }}
+          props={{ lock: null }}
           Item={SnapshotDetailForm}
         />
         {onDelete ? (

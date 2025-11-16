@@ -26,13 +26,13 @@ const InputRow = styled.div<{ minus: boolean }>(({ minus }) => ({
 const PriceFormRow = ({
   label,
   value,
-  minus = false,
+  lock,
   onChange,
   error
 }: {
   label: string;
   value: number;
-  minus?: boolean;
+  lock: "plus" | "minus" | null;
   onChange: (v: number) => void;
   error: ValidationErrorType | null;
 }) => {
@@ -41,18 +41,18 @@ const PriceFormRow = ({
     if (!value) {
       return "";
     }
-    return (minus ? -1 : 1) * value;
-  }, [minus, value]);
-  const handleChange = (v: number) => onChange((minus ? -1 : 1) * v);
+    return (lock === "minus" ? -1 : 1) * value;
+  }, [lock, value]);
+  const handleChange = (v: number) => onChange((lock === "minus" ? -1 : 1) * v);
   return (
     <FormCommonRowWrapper label={label} error={error}>
-      <InputRow minus={minus}>
-        {minus ? <span>-</span> : null}
+      <InputRow minus={value < 0}>
+        {lock === "minus" ? <span>-</span> : null}
         <div style={{ flexGrow: 1 }}>
           <input
             type="number"
             value={normalizedValue}
-            min={0}
+            min={lock ? 0 : undefined}
             onChange={e => handleChange(parseNumber(e.target.value))}
           />
         </div>

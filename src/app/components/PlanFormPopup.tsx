@@ -142,6 +142,7 @@ const PlanFormPopup = ({
             label="金額"
             value={value.price}
             onChange={v => setValue(vv => ({ ...vv, price: v }))}
+            lock="plus"
             error={errors.price}
           />
           <MockDateFormRow
