@@ -25,6 +25,7 @@ import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
 import { useMyMoneyPlanTools } from "~/app/lib/database/money-plan-database";
 import useAsyncHandler from "~/app/lib/useAsyncHandler";
 import { useMyCardAccountTools } from "~/app/lib/database/card-account-database";
+import { parseMoneyCardAccount } from "~/app/scheme/MoneyCardAccount";
 
 type PopupParams =
   | {
@@ -47,6 +48,10 @@ type PopupParams =
   | {
       type: "edit-card-account";
       cardId: string;
+      defaultValue: MoneyCardAccount;
+    }
+  | {
+      type: "create-card-account";
       defaultValue: MoneyCardAccount;
     };
 
@@ -90,7 +95,7 @@ const CardSnapshotListScene = ({
     maxTimestamp: monthCursor.maxTimestamp,
     onError: setStatusError
   });
-  const { writeCardAccount } = useMyCardAccountTools();
+  const { createCardAccount, writeCardAccount } = useMyCardAccountTools();
   const { writeMoneyPlan } = useMyMoneyPlanTools();
 
   const { calcRowsFromCardTerm } = useSimulatorRows();
@@ -160,6 +165,17 @@ const CardSnapshotListScene = ({
       return runAsyncHandler(() => writeCardAccount(id, v));
     },
     [clearPopup, popup, runAsyncHandler, writeCardAccount]
+  );
+
+  const handleCreateCardAccount = useCallback(
+    (v: MoneyCardAccount) => {
+      if (popup?.type !== "create-card-account") {
+        return null;
+      }
+      clearPopup();
+      return runAsyncHandler(() => createCardAccount(v));
+    },
+    [clearPopup, createCardAccount, popup?.type, runAsyncHandler]
   );
 
   const handleUpdatePlan = useCallback(
@@ -335,6 +351,12 @@ const CardSnapshotListScene = ({
               defaultValue: data
             })
           }
+          onCreate={order =>
+            addPopup({
+              type: "create-card-account",
+              defaultValue: parseMoneyCardAccount({ order })
+            })
+          }
           onClose={closeCurrentPopup}
           onSubmit={onChangeCard}
         />
@@ -344,6 +366,14 @@ const CardSnapshotListScene = ({
           defaultValue={popup.defaultValue}
           bankList={bankList}
           onSubmit={handleUpdateCardAccount}
+          onClose={closeCurrentPopup}
+        />
+      ) : null}
+      {popup?.type === "create-card-account" ? (
+        <CardAccountFormPopup
+          defaultValue={popup.defaultValue}
+          bankList={bankList}
+          onSubmit={handleCreateCardAccount}
           onClose={closeCurrentPopup}
         />
       ) : null}
