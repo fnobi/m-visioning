@@ -279,25 +279,33 @@ const BankTableSceneContainer = () => {
 
   return (
     <>
-      {bankId ? (
-        <div>
-          <p>口座</p>
-          {bankList.map(({ id, data }) =>
-            id === bankId ? (
-              <p key={id}>
-                <MockActionButton
-                  action={{
-                    type: "button",
-                    onClick: () => addPopup({ type: "select-bank" })
-                  }}
-                >
-                  {data.label}
-                </MockActionButton>
-              </p>
-            ) : null
-          )}
-        </div>
-      ) : null}
+      <div>
+        <p>口座</p>
+        <p>
+          <MockActionButton
+            action={{
+              type: "button",
+              onClick: () => addPopup({ type: "select-bank" })
+            }}
+          >
+            {currentBank.label}
+          </MockActionButton>
+          &nbsp;
+          <MockActionButton
+            action={{
+              type: "button",
+              onClick: () =>
+                addPopup({
+                  type: "edit-bank-account",
+                  bankId,
+                  defaultValue: currentBank
+                })
+            }}
+          >
+            edit
+          </MockActionButton>
+        </p>
+      </div>
       <MonthCursorNavi monthCursor={monthCursor}>
         <select
           value={period}
@@ -361,13 +369,6 @@ const BankTableSceneContainer = () => {
         <BankSelectPopup
           defaultValue={bankId}
           bankList={bankList}
-          onDetail={(id, data) =>
-            addPopup({
-              type: "edit-bank-account",
-              bankId: id,
-              defaultValue: data
-            })
-          }
           onCreate={v =>
             addPopup({
               type: "create-bank-account",

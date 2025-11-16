@@ -100,6 +100,14 @@ const CardSnapshotListScene = ({
 
   const { calcRowsFromCardTerm } = useSimulatorRows();
 
+  const currentCard = useMemo(() => {
+    if (!cardList || !cardId) {
+      return null;
+    }
+    const matched = cardList.find(b => b.id === cardId);
+    return matched ? matched.data : null;
+  }, [cardId, cardList]);
+
   useEffect(() => {
     setDraftTimestamp(Date.now());
   }, []);
@@ -277,24 +285,38 @@ const CardSnapshotListScene = ({
     return <ErrorScene error={statusError} />;
   }
 
+  if (!currentCard) {
+    return <p>loading...</p>;
+  }
+
   return (
     <>
       <div>
         <p>カード</p>
-        {cardList.map(({ id, data }) =>
-          id === cardId ? (
-            <p key={id}>
-              <MockActionButton
-                action={{
-                  type: "button",
-                  onClick: () => addPopup({ type: "select-card" })
-                }}
-              >
-                {data.label}
-              </MockActionButton>
-            </p>
-          ) : null
-        )}
+        <p>
+          <MockActionButton
+            action={{
+              type: "button",
+              onClick: () => addPopup({ type: "select-card" })
+            }}
+          >
+            {currentCard.label}
+          </MockActionButton>
+          &nbsp;
+          <MockActionButton
+            action={{
+              type: "button",
+              onClick: () =>
+                addPopup({
+                  type: "edit-card-account",
+                  cardId,
+                  defaultValue: currentCard
+                })
+            }}
+          >
+            edit
+          </MockActionButton>
+        </p>
       </div>
       <MonthCursorNavi monthCursor={monthCursor} />
       {draftTimestamp >= monthCursor.minTimestamp ? (
@@ -344,13 +366,6 @@ const CardSnapshotListScene = ({
         <CardSelectPopup
           defaultValue={cardId}
           cardList={cardList}
-          onDetail={(id, data) =>
-            addPopup({
-              type: "edit-card-account",
-              cardId: id,
-              defaultValue: data
-            })
-          }
           onCreate={v =>
             addPopup({
               type: "create-card-account",
