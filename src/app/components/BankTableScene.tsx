@@ -9,8 +9,7 @@ import useSimulatorRows, {
   type SimulatorRow,
   calcDateParamInt,
   type CardTerm,
-  type MoneyPlanWithCardLink,
-  calcCardStartMonthCode
+  type MoneyPlanWithCardLink
 } from "~/app/lib/useSimulatorRows";
 import type MoneyPlan from "~/app/scheme/MoneyPlan";
 import type BankSnapshot from "~/app/scheme/BankSnapshot";
@@ -75,16 +74,14 @@ const BankTableScene = ({
         id: string;
         data: MoneyPlanWithCardLink;
       }>(t => {
-        const { cardId, year, month, day, label } = t;
-        const key = [year, month, cardId].join("_");
+        const { cardId, paymentDate, sourceMonthCode, label } = t;
+        const key = [sourceMonthCode, cardId].join("_");
         const { amount } = calcRowsFromCardTerm({ ...t, planList });
         return {
           id: key,
           source: "card",
           data: {
-            year,
-            month,
-            day,
+            ...paymentDate,
             repeat: null,
             price: -amount,
             label,
@@ -98,7 +95,7 @@ const BankTableScene = ({
             cardLink: cardId
               ? {
                   cardId,
-                  monthCode: calcCardStartMonthCode({ year, month, day })
+                  monthCode: sourceMonthCode
                 }
               : undefined
           }

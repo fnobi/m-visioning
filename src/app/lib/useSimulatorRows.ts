@@ -34,12 +34,15 @@ export type SimulatorRow = {
 
 export type CardTerm = {
   cardId: string;
-  year: number;
-  month: number;
-  day: number;
   label: string;
   termStart: number;
   termEnd: number;
+  paymentDate: {
+    year: number;
+    month: number;
+    day: number;
+  };
+  sourceMonthCode: number;
   snapshotList: TypedCollectionList<CardSnapshot>;
 };
 
@@ -60,7 +63,7 @@ export const calcDayArray = (st: number, length: number) =>
 export const calcRangeDayArray = (st: number, end: number) =>
   calcDayArray(st, (end - st) / (1000 * 60 * 60 * 24));
 
-const calcMonthCode = (d: { year: number; month: number }) =>
+export const calcMonthCode = (d: { year: number; month: number }) =>
   d.year * 100 + d.month;
 
 export const calcDateParamInt = (d: {

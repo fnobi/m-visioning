@@ -26,7 +26,11 @@ import { useMyMoneyPlanTools } from "~/app/lib/database/money-plan-database";
 import type MoneyPlan from "~/app/scheme/MoneyPlan";
 import useMonthCursor from "~/app/lib/useMonthCursor";
 import { PAGE_TOP } from "~/app/lib/page-path";
-import { calcRangeDayArray } from "~/app/lib/useSimulatorRows";
+import {
+  calcMonthCode,
+  calcRangeDayArray,
+  type CardTerm
+} from "~/app/lib/useSimulatorRows";
 import { useMyBankAccountTools } from "~/app/lib/database/bank-account-database";
 import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
 
@@ -156,18 +160,20 @@ const BankTableSceneContainer = () => {
       )
         .map(({ year, month, day }) =>
           compact(
-            (cardList || []).map(({ id, data: card }) => {
-              if (card.startDay !== day || card.bankId !== bankId) {
+            (cardList || []).map<CardTerm | null>(({ id, data: card }) => {
+              if (card.paymentDay !== day || card.bankId !== bankId) {
                 return null;
               }
 
-              const d = new Date(year, month - 1, day);
-              const termEndDate = new Date(d);
-              termEndDate.setMonth(termEndDate.getMonth() - 1);
-              const termEnd = termEndDate.getTime();
-              const termStartDate = new Date(termEndDate);
-              termStartDate.setMonth(termStartDate.getMonth() - 1);
+              const termStartDate = new Date(
+                year,
+                month - 1 - card.paymentMonthOffset,
+                card.startDay
+              );
               const termStart = termStartDate.getTime();
+              const termEndDate = new Date(termStart);
+              termEndDate.setMonth(termEndDate.getMonth() + 1);
+              const termEnd = termEndDate.getTime();
 
               const snapshotList = (cardSnapshotList || []).filter(
                 ({ data: snapshot }) =>
@@ -178,10 +184,12 @@ const BankTableSceneContainer = () => {
 
               return {
                 cardId: id,
-                year,
-                month,
-                day,
                 label: card.label,
+                paymentDate: { year, month, day },
+                sourceMonthCode: calcMonthCode({
+                  year: termStartDate.getFullYear(),
+                  month: termStartDate.getMonth() + 1
+                }),
                 termStart,
                 termEnd,
                 snapshotList

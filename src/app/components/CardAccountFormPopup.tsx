@@ -79,6 +79,30 @@ const CardAccountFormPopup = ({
             error={errors.startDay}
           />
           <MockNumberFormRow
+            label="支払日"
+            value={value.paymentDay}
+            min={0}
+            onChange={v =>
+              setValue(vv => ({
+                ...vv,
+                paymentDay: v
+              }))
+            }
+            error={errors.paymentDay}
+          />
+          <MockNumberFormRow
+            label="支払月"
+            value={value.paymentMonthOffset}
+            min={0}
+            onChange={v =>
+              setValue(vv => ({
+                ...vv,
+                paymentMonthOffset: v
+              }))
+            }
+            error={errors.paymentDay}
+          />
+          <MockNumberFormRow
             label="順序"
             value={value.order}
             min={0}
