@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { percent } from "~/common/lib/css-util";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import MockActionButton from "~/common/components/MockActionButton";
@@ -55,9 +55,11 @@ const BankTableScene = ({
   startDate,
   endDate,
   planList,
+  graphMode,
   bankSnapshotList,
   lastBankSnapshot,
-  onPopup
+  onPopup,
+  onChangeGraphMode
 }: {
   bankId: string;
   cardTerms: CardTerm[];
@@ -66,10 +68,10 @@ const BankTableScene = ({
   planList: TypedCollectionList<MoneyPlan>;
   bankSnapshotList: TypedCollectionList<BankSnapshot>;
   lastBankSnapshot: BankSnapshot | null;
+  graphMode: boolean;
   onPopup: (p: PopupParams) => void;
+  onChangeGraphMode: (f: boolean) => void;
 }) => {
-  const [graphMode, setGraphMode] = useState(false);
-
   const { calcRows, calcRowsFromCardTerm } = useSimulatorRows();
 
   const cardPaymentPlanList = useMemo(
@@ -212,7 +214,7 @@ const BankTableScene = ({
           <input
             type="checkbox"
             checked={graphMode}
-            onChange={e => setGraphMode(e.target.checked)}
+            onChange={e => onChangeGraphMode(e.target.checked)}
           />
           graph
         </label>

@@ -3,9 +3,9 @@ import { compact } from "~/common/lib/array-util";
 import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
 import { parseNumber, parseString } from "~/common/lib/parser-helper";
 import MockLoadingPopup from "~/common/components/MockLoadingPopup";
-import usePageEntryQuery from "~/common/lib/usePageEntryQuery";
 import MockActionButton from "~/common/components/MockActionButton";
 import usePopupOperation from "~/common/lib/usePopupOperation";
+import useTypedQuery, { parseBooleanQuery } from "~/common/lib/useTypedQuery";
 import BankAccountFormPopup from "~/app/components/BankAccountFormPopup";
 import BankSelectPopup from "~/app/components/BankSelectPopup";
 import MonthCursorNavi from "~/app/components/MonthCursorNavi";
@@ -25,9 +25,8 @@ import useAsyncHandler from "~/app/lib/useAsyncHandler";
 import { useMyMoneyPlanTools } from "~/app/lib/database/money-plan-database";
 import type MoneyPlan from "~/app/scheme/MoneyPlan";
 import useMonthCursor from "~/app/lib/useMonthCursor";
-import { PAGE_TOP } from "~/app/lib/page-path";
 import {
-  calcMonthCode,
+  calcMonthCodeFromDate,
   calcRangeDayArray,
   type CardTerm
 } from "~/app/lib/useSimulatorRows";
@@ -37,45 +36,9 @@ import { parseMoneyBankAccount } from "~/app/scheme/MoneyBankAccount";
 
 const PERIOD_OPTIONS = [3, 12, 24];
 
-const useBankSimulatorPageQuery = () => {
-  const { params, setParams } = usePageEntryQuery(PAGE_TOP);
-
-  const bankId = useMemo(() => params.bank, [params]);
-  const monthCode = useMemo(() => parseNumber(params.month), [params]);
-  const period = useMemo(() => {
-    const n = parseNumber(params.period);
-    return PERIOD_OPTIONS.includes(n) ? n : PERIOD_OPTIONS[0];
-  }, [params]);
-
-  const setBankId = useCallback(
-    (v: string) =>
-      setParams({
-        bank: v,
-        month: parseString(monthCode),
-        period: parseString(period)
-      }),
-    [monthCode, period, setParams]
-  );
-  const setMonthCode = useCallback(
-    (v: number) =>
-      setParams({
-        bank: bankId,
-        month: parseString(v),
-        period: parseString(period)
-      }),
-    [bankId, period, setParams]
-  );
-  const setPeriod = useCallback(
-    (v: number) =>
-      setParams({
-        bank: bankId,
-        month: parseString(monthCode),
-        period: parseString(v)
-      }),
-    [bankId, monthCode, setParams]
-  );
-
-  return { bankId, monthCode, period, setBankId, setMonthCode, setPeriod };
+const parsePeriodNumberQuery = (src: unknown) => {
+  const n = parseNumber(src);
+  return PERIOD_OPTIONS.includes(n) ? n : PERIOD_OPTIONS[0];
 };
 
 const BankTableSceneContainer = () => {
@@ -95,13 +58,35 @@ const BankTableSceneContainer = () => {
   const { isLoading, runAsyncHandler } = useAsyncHandler({
     onError: setOperationError
   });
-  const { bankId, monthCode, period, setBankId, setMonthCode, setPeriod } =
-    useBankSimulatorPageQuery();
+  const parseBankQuery = useCallback(
+    (src: unknown) => {
+      const options = (bankList || []).map(({ id }) => id);
+      const s = parseString(src);
+      return (options.includes(s) ? s : options[0]) || "";
+    },
+    [bankList]
+  );
+  const { queryValue: bankId, setQueryValue: setBankId } = useTypedQuery(
+    "bank",
+    parseBankQuery
+  );
+  const { queryValue: monthCode, setQueryValue: setMonthCode } = useTypedQuery(
+    "month",
+    parseNumber
+  );
+  const { queryValue: period, setQueryValue: setPeriod } = useTypedQuery(
+    "period",
+    parsePeriodNumberQuery
+  );
+  const { queryValue: graphMode, setQueryValue: setGraph } = useTypedQuery(
+    "graph",
+    parseBooleanQuery
+  );
 
   const monthCursor = useMonthCursor({
     monthCode,
     setMonthCode,
-    startDay: 5,
+    startDay: 1,
     period
   });
 
@@ -187,10 +172,7 @@ const BankTableSceneContainer = () => {
                 cardId: id,
                 label: card.label,
                 paymentDate: { year, month, day },
-                sourceMonthCode: calcMonthCode({
-                  year: termStartDate.getFullYear(),
-                  month: termStartDate.getMonth() + 1
-                }),
+                sourceMonthCode: calcMonthCodeFromDate(termStartDate),
                 termStart,
                 termEnd,
                 snapshotList
@@ -335,9 +317,11 @@ const BankTableSceneContainer = () => {
           startDate={startDate}
           endDate={endDate}
           cardTerms={cardTerms}
+          graphMode={graphMode}
           bankSnapshotList={bankSnapshotList}
           lastBankSnapshot={lastBankSnapshot}
           onPopup={addPopup}
+          onChangeGraphMode={setGraph}
         />
       ) : (
         <div>loading...</div>

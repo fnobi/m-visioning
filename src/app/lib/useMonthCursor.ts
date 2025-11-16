@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { calcMonthCodeFromDate } from "~/app/lib/useSimulatorRows";
 
 const useMonthCursor = ({
-  monthCode,
+  monthCode: srcMonthCode,
   setMonthCode,
   startDay,
   period = 1
@@ -11,6 +12,9 @@ const useMonthCursor = ({
   startDay: number;
   period?: number;
 }) => {
+  const [defaultMonthCode, setDefaultMonthCode] = useState(0);
+  const monthCode = srcMonthCode || defaultMonthCode;
+
   const monthStartDate = useMemo(() => {
     if (!monthCode || !startDay) {
       return null;
@@ -34,11 +38,6 @@ const useMonthCursor = ({
     return endDate.getTime();
   }, [monthStartDate, period]);
 
-  const setMonthCodeWithDate = useCallback(
-    (d: Date) => setMonthCode(d.getFullYear() * 100 + (d.getMonth() + 1)),
-    [setMonthCode]
-  );
-
   const incrementMonthCode = useCallback(
     (delta: number) => {
       if (!monthStartDate) {
@@ -46,22 +45,19 @@ const useMonthCursor = ({
       }
       const d = new Date(monthStartDate);
       d.setMonth(d.getMonth() + delta);
-      setMonthCodeWithDate(d);
+      setMonthCode(calcMonthCodeFromDate(d));
     },
-    [setMonthCodeWithDate, monthStartDate]
+    [monthStartDate, setMonthCode]
   );
 
   useEffect(() => {
-    if (monthCode || !startDay) {
-      return;
-    }
     const startDate = new Date();
     if (startDate.getDate() < startDay) {
       startDate.setMonth(startDate.getMonth() - 1);
     }
     startDate.setDate(startDay);
-    setMonthCodeWithDate(startDate);
-  }, [monthCode, setMonthCodeWithDate, startDay]);
+    setDefaultMonthCode(calcMonthCodeFromDate(startDate));
+  }, [startDay]);
 
   return { minTimestamp, maxTimestamp, monthStartDate, incrementMonthCode };
 };

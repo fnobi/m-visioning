@@ -3,7 +3,7 @@ import { BASE_URL } from "~/common/lib/constants";
 
 const PAGE_ROOT = new PageEntry<
   string,
-  { bank: string; month: string; period: string }
+  { bank: string; month: string; period: string; graph: string }
 >(BASE_URL);
 
 export const PAGE_TOP = PAGE_ROOT;

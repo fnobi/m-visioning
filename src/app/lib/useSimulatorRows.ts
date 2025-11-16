@@ -63,8 +63,14 @@ export const calcDayArray = (st: number, length: number) =>
 export const calcRangeDayArray = (st: number, end: number) =>
   calcDayArray(st, (end - st) / (1000 * 60 * 60 * 24));
 
-export const calcMonthCode = (d: { year: number; month: number }) =>
+const calcMonthCode = (d: { year: number; month: number }) =>
   d.year * 100 + d.month;
+
+export const calcMonthCodeFromDate = (d: Date) =>
+  calcMonthCode({
+    year: d.getFullYear(),
+    month: d.getMonth() + 1
+  });
 
 export const calcDateParamInt = (d: {
   year: number;

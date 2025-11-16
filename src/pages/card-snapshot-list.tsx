@@ -1,37 +1,31 @@
 import { useCallback, useEffect, useMemo } from "react";
 import MockLoadingScene from "~/common/components/MockLoadingScene";
-import usePageEntryQuery from "~/common/lib/usePageEntryQuery";
 import { parseNumber, parseString } from "~/common/lib/parser-helper";
+import useTypedQuery from "~/common/lib/useTypedQuery";
 import MVisionFrame from "~/app/components/MVisionFrame";
 import useCommonMoneyStore from "~/app/lib/database/useCommonMoneyStore";
 import CardSnapshotListScene from "~/app/components/_provider/CardSnapshotListScene";
-import { PAGE_CARD_SNAPSHOT_LIST } from "~/app/lib/page-path";
 import useMonthCursor from "~/app/lib/useMonthCursor";
-
-const useCardListSnapshotListPageQuery = () => {
-  const { params, setParams } = usePageEntryQuery(PAGE_CARD_SNAPSHOT_LIST);
-
-  const cardId = useMemo(() => params.card, [params]);
-  const monthCode = useMemo(() => parseNumber(params.month), [params]);
-
-  const setCardId = useCallback(
-    (v: string) => setParams({ card: v, month: parseString(monthCode) }),
-    [monthCode, setParams]
-  );
-
-  const setMonthCode = useCallback(
-    (v: number) => setParams({ card: cardId, month: parseString(v) }),
-    [cardId, setParams]
-  );
-
-  return { cardId, monthCode, setCardId, setMonthCode };
-};
 
 const CardListSceneContainer = () => {
   const { cardAccountList, bankAccountList, moneyPlanList } =
     useCommonMoneyStore();
-  const { cardId, monthCode, setCardId, setMonthCode } =
-    useCardListSnapshotListPageQuery();
+  const parseCardQuery = useCallback(
+    (src: unknown) => {
+      const options = (cardAccountList || []).map(({ id }) => id);
+      const s = parseString(src);
+      return (options.includes(s) ? s : options[0]) || "";
+    },
+    [cardAccountList]
+  );
+  const { queryValue: cardId, setQueryValue: setCardId } = useTypedQuery(
+    "card",
+    parseCardQuery
+  );
+  const { queryValue: monthCode, setQueryValue: setMonthCode } = useTypedQuery(
+    "month",
+    parseNumber
+  );
 
   const currentCard = useMemo(
     () => (cardAccountList ? cardAccountList.find(c => c.id === cardId) : null),
