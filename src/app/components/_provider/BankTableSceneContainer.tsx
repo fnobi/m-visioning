@@ -6,6 +6,7 @@ import MockLoadingPopup from "~/common/components/MockLoadingPopup";
 import usePageEntryQuery from "~/common/lib/usePageEntryQuery";
 import MockActionButton from "~/common/components/MockActionButton";
 import usePopupOperation from "~/common/lib/usePopupOperation";
+import BankAccountFormPopup from "~/app/components/BankAccountFormPopup";
 import BankSelectPopup from "~/app/components/BankSelectPopup";
 import MonthCursorNavi from "~/app/components/MonthCursorNavi";
 import PlanFormPopup from "~/app/components/PlanFormPopup";
@@ -26,6 +27,8 @@ import type MoneyPlan from "~/app/scheme/MoneyPlan";
 import useMonthCursor from "~/app/lib/useMonthCursor";
 import { PAGE_TOP } from "~/app/lib/page-path";
 import { calcRangeDayArray } from "~/app/lib/useSimulatorRows";
+import { useMyBankAccountTools } from "~/app/lib/database/bank-account-database";
+import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
 
 const PERIOD_OPTIONS = [3, 12, 24];
 
@@ -131,6 +134,7 @@ const BankTableSceneContainer = () => {
     userId: myId,
     onError: setStatusError
   });
+  const { writeBankAccount } = useMyBankAccountTools();
   const { writeMoneyPlan } = useMyMoneyPlanTools();
 
   const lastBankSnapshot = useMemo(() => {
@@ -239,6 +243,18 @@ const BankTableSceneContainer = () => {
     return runAsyncHandler(() => deleteBankSnapshot(snapshotId));
   }, [clearPopup, deleteBankSnapshot, popup, runAsyncHandler]);
 
+  const handleUpdateBankAccount = useCallback(
+    (v: MoneyBankAccount) => {
+      if (popup?.type !== "edit-bank-account") {
+        return null;
+      }
+      clearPopup();
+      const { bankId: id } = popup;
+      return runAsyncHandler(() => writeBankAccount(id, v));
+    },
+    [clearPopup, popup, runAsyncHandler, writeBankAccount]
+  );
+
   const handleUpdatePlan = useCallback(
     (v: MoneyPlan) => {
       if (popup?.type !== "edit-plan") {
@@ -341,11 +357,25 @@ const BankTableSceneContainer = () => {
         <BankSelectPopup
           defaultValue={bankId}
           bankList={bankList}
+          onDetail={(id, data) =>
+            addPopup({
+              type: "edit-bank-account",
+              bankId: id,
+              defaultValue: data
+            })
+          }
           onClose={closeCurrentPopup}
           onSubmit={v => {
             closeCurrentPopup();
             setBankId(v);
           }}
+        />
+      ) : null}
+      {popup?.type === "edit-bank-account" ? (
+        <BankAccountFormPopup
+          defaultValue={popup.defaultValue}
+          onSubmit={handleUpdateBankAccount}
+          onClose={closeCurrentPopup}
         />
       ) : null}
       {isLoading ? <MockLoadingPopup /> : null}

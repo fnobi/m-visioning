@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import { percent } from "~/common/lib/css-util";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import MockActionButton from "~/common/components/MockActionButton";
+import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
 import SimulatorTableView from "~/app/components/SimulatorTableView";
 import useGraphRenderer from "~/app/lib/useGraphRenderer";
 import useSimulatorRows, {
@@ -31,6 +32,11 @@ export type PopupParams =
     }
   | {
       type: "select-bank";
+    }
+  | {
+      type: "edit-bank-account";
+      bankId: string;
+      defaultValue: MoneyBankAccount;
     };
 
 export const calcDateInt = (d: Date) =>

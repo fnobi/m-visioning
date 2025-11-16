@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { ClientDataStoreAgent } from "~/common/lib/ClientDataStoreAgent";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
+import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
 import { extractClientError } from "~/app/lib/client-error-utils";
 import { moneyBankDataStoreScheme } from "~/app/scheme/app-data-store-scheme";
 import { type AppErrorParameter } from "~/app/scheme/AppErrorParameter";
@@ -36,6 +37,12 @@ export const useBankAccountList = ({
     });
   }, [userId, limit, onError]);
 
+  return { bankAccountList: list };
+};
+
+export const useMyBankAccountTools = () => {
+  const { myId: userId } = useAuthorizedUser();
+
   const writeBankAccount = useCallback(
     (bankId: string, data: MoneyBankAccount) => {
       if (!userId) {
@@ -63,5 +70,5 @@ export const useBankAccountList = ({
     [userId]
   );
 
-  return { bankAccountList: list, writeBankAccount, deleteBankAccount };
+  return { writeBankAccount, deleteBankAccount };
 };

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { ClientDataStoreAgent } from "~/common/lib/ClientDataStoreAgent";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
+import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
 import { extractClientError } from "~/app/lib/client-error-utils";
 import { moneyCardDataStoreScheme } from "~/app/scheme/app-data-store-scheme";
 import { type AppErrorParameter } from "~/app/scheme/AppErrorParameter";
@@ -69,4 +70,37 @@ export const useCardAccountList = ({
     writeCardAccount,
     deleteCardAccount
   };
+};
+
+export const useMyCardAccountTools = () => {
+  const { myId: userId } = useAuthorizedUser();
+
+  const writeCardAccount = useCallback(
+    (cardId: string, data: MoneyBankAccount) => {
+      if (!userId) {
+        throw new AppError({ type: "bad-parameter" });
+      }
+      return moneyCardDataStore.mergeItem({
+        userId,
+        cardId,
+        data
+      });
+    },
+    [userId]
+  );
+
+  const deleteCardAccount = useCallback(
+    (cardId: string) => {
+      if (!userId) {
+        throw new AppError({ type: "bad-parameter" });
+      }
+      return moneyCardDataStore.deleteItem({
+        userId,
+        cardId
+      });
+    },
+    [userId]
+  );
+
+  return { writeCardAccount, deleteCardAccount };
 };

@@ -4,6 +4,7 @@ import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import MockLoadingPopup from "~/common/components/MockLoadingPopup";
 import MockActionButton from "~/common/components/MockActionButton";
 import usePopupOperation from "~/common/lib/usePopupOperation";
+import CardAccountFormPopup from "~/app/components/CardAccountFormPopup";
 import CardSelectPopup from "~/app/components/CardSelectPopup";
 import ErrorPopup from "~/app/components/ErrorPopup";
 import PlanFormPopup from "~/app/components/PlanFormPopup";
@@ -23,6 +24,7 @@ import type MoneyPlan from "~/app/scheme/MoneyPlan";
 import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
 import { useMyMoneyPlanTools } from "~/app/lib/database/money-plan-database";
 import useAsyncHandler from "~/app/lib/useAsyncHandler";
+import { useMyCardAccountTools } from "~/app/lib/database/card-account-database";
 
 type PopupParams =
   | {
@@ -41,6 +43,11 @@ type PopupParams =
     }
   | {
       type: "select-card";
+    }
+  | {
+      type: "edit-card-account";
+      cardId: string;
+      defaultValue: MoneyCardAccount;
     };
 
 const CardSnapshotListScene = ({
@@ -83,6 +90,7 @@ const CardSnapshotListScene = ({
     maxTimestamp: monthCursor.maxTimestamp,
     onError: setStatusError
   });
+  const { writeCardAccount } = useMyCardAccountTools();
   const { writeMoneyPlan } = useMyMoneyPlanTools();
 
   const { calcRowsFromCardTerm } = useSimulatorRows();
@@ -141,6 +149,18 @@ const CardSnapshotListScene = ({
     const { snapshotId } = popup;
     return runAsyncHandler(() => deleteCardSnapshot(snapshotId));
   }, [clearPopup, deleteCardSnapshot, popup, runAsyncHandler]);
+
+  const handleUpdateCardAccount = useCallback(
+    (v: MoneyCardAccount) => {
+      if (popup?.type !== "edit-card-account") {
+        return null;
+      }
+      clearPopup();
+      const { cardId: id } = popup;
+      return runAsyncHandler(() => writeCardAccount(id, v));
+    },
+    [clearPopup, popup, runAsyncHandler, writeCardAccount]
+  );
 
   const handleUpdatePlan = useCallback(
     (v: MoneyPlan) => {
@@ -308,8 +328,23 @@ const CardSnapshotListScene = ({
         <CardSelectPopup
           defaultValue={cardId}
           cardList={cardList}
+          onDetail={(id, data) =>
+            addPopup({
+              type: "edit-card-account",
+              cardId: id,
+              defaultValue: data
+            })
+          }
           onClose={closeCurrentPopup}
           onSubmit={onChangeCard}
+        />
+      ) : null}
+      {popup?.type === "edit-card-account" ? (
+        <CardAccountFormPopup
+          defaultValue={popup.defaultValue}
+          bankList={bankList}
+          onSubmit={handleUpdateCardAccount}
+          onClose={closeCurrentPopup}
         />
       ) : null}
       {isLoading ? <MockLoadingPopup /> : null}

@@ -3,6 +3,7 @@ import styled from "@emotion/styled";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import { MockFormFrame } from "~/common/components/mock-form-ui";
 import { em } from "~/common/lib/css-util";
+import MockActionButton from "~/common/components/MockActionButton";
 import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
 import AppCommonPopup from "~/app/components/AppCommonPopup";
 
@@ -16,11 +17,13 @@ const WrapperList = styled.div({
 const CardSelectPopup = ({
   defaultValue,
   cardList,
+  onDetail,
   onSubmit,
   onClose
 }: {
   defaultValue: string;
   cardList: TypedCollectionList<MoneyCardAccount>;
+  onDetail: (id: string, data: MoneyCardAccount) => void;
   onSubmit: (v: string) => void;
   onClose: () => void;
 }) => {
@@ -36,19 +39,24 @@ const CardSelectPopup = ({
         <WrapperList>
           {cardList.map(({ id, data }) => (
             <p key={id}>
-              <label>
-                <input
-                  type="radio"
-                  checked={selected === id}
-                  onChange={e => {
-                    if (e.target.checked) {
-                      setSelected(id);
-                    }
-                  }}
-                />
-                &nbsp;
+              <input
+                type="radio"
+                checked={selected === id}
+                onChange={e => {
+                  if (e.target.checked) {
+                    setSelected(id);
+                  }
+                }}
+              />
+              &nbsp;
+              <MockActionButton
+                action={{
+                  type: "button",
+                  onClick: () => onDetail(id, data)
+                }}
+              >
                 {data.label}
-              </label>
+              </MockActionButton>
             </p>
           ))}
         </WrapperList>
