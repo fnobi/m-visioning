@@ -5,6 +5,7 @@ import { parseNumber, parseString } from "~/common/lib/parser-helper";
 import MockLoadingPopup from "~/common/components/MockLoadingPopup";
 import usePageEntryQuery from "~/common/lib/usePageEntryQuery";
 import MockActionButton from "~/common/components/MockActionButton";
+import usePopupOperation from "~/common/lib/usePopupOperation";
 import BankSelectPopup from "~/app/components/BankSelectPopup";
 import MonthCursorNavi from "~/app/components/MonthCursorNavi";
 import PlanFormPopup from "~/app/components/PlanFormPopup";
@@ -81,7 +82,8 @@ const BankTableSceneContainer = () => {
   );
   const [operationError, setOperationError] =
     useState<AppErrorParameter | null>(null);
-  const [popup, setPopup] = useState<PopupParams | null>(null);
+  const { popup, clearPopup, closeCurrentPopup, addPopup } =
+    usePopupOperation<PopupParams>();
   const { isLoading, runAsyncHandler } = useAsyncHandler({
     onError: setOperationError
   });
@@ -210,10 +212,10 @@ const BankTableSceneContainer = () => {
 
   const handleCreateBankSnapshot = useCallback(
     (v: BankSnapshot) => {
-      setPopup(null);
+      clearPopup();
       return runAsyncHandler(() => createBankSnapshot(v));
     },
-    [createBankSnapshot, runAsyncHandler]
+    [clearPopup, createBankSnapshot, runAsyncHandler]
   );
 
   const handleUpdateBankSnapshot = useCallback(
@@ -221,32 +223,32 @@ const BankTableSceneContainer = () => {
       if (popup?.type !== "edit-bank-snapshot") {
         return null;
       }
-      setPopup(null);
+      clearPopup();
       const { snapshotId } = popup;
       return runAsyncHandler(() => writeBankSnapshot(snapshotId, v));
     },
-    [popup, runAsyncHandler, writeBankSnapshot]
+    [clearPopup, popup, runAsyncHandler, writeBankSnapshot]
   );
 
   const handleDeletePopupSnapshot = useCallback(async () => {
     if (popup?.type !== "edit-bank-snapshot") {
       return null;
     }
-    setPopup(null);
+    clearPopup();
     const { snapshotId } = popup;
     return runAsyncHandler(() => deleteBankSnapshot(snapshotId));
-  }, [deleteBankSnapshot, popup, runAsyncHandler]);
+  }, [clearPopup, deleteBankSnapshot, popup, runAsyncHandler]);
 
   const handleUpdatePlan = useCallback(
     (v: MoneyPlan) => {
       if (popup?.type !== "edit-plan") {
         return null;
       }
-      setPopup(null);
+      clearPopup();
       const { planId } = popup;
       return runAsyncHandler(() => writeMoneyPlan(planId, v));
     },
-    [popup, runAsyncHandler, writeMoneyPlan]
+    [clearPopup, popup, runAsyncHandler, writeMoneyPlan]
   );
 
   if (statusError) {
@@ -268,7 +270,7 @@ const BankTableSceneContainer = () => {
                 <MockActionButton
                   action={{
                     type: "button",
-                    onClick: () => setPopup({ type: "select-bank" })
+                    onClick: () => addPopup({ type: "select-bank" })
                   }}
                 >
                   {data.label}
@@ -299,7 +301,7 @@ const BankTableSceneContainer = () => {
           cardTerms={cardTerms}
           bankSnapshotList={bankSnapshotList}
           lastBankSnapshot={lastBankSnapshot}
-          onPopup={setPopup}
+          onPopup={addPopup}
         />
       ) : (
         <div>loading...</div>
@@ -307,14 +309,14 @@ const BankTableSceneContainer = () => {
       {popup?.type === "create-bank-snapshot" ? (
         <BankSnapshotFormPopup
           defaultValue={popup.defaultValue}
-          onClose={() => setPopup(null)}
+          onClose={closeCurrentPopup}
           onSubmit={handleCreateBankSnapshot}
         />
       ) : null}
       {popup?.type === "edit-bank-snapshot" ? (
         <BankSnapshotFormPopup
           defaultValue={popup.defaultValue}
-          onClose={() => setPopup(null)}
+          onClose={closeCurrentPopup}
           onDelete={handleDeletePopupSnapshot}
           onSubmit={handleUpdateBankSnapshot}
         />
@@ -327,7 +329,7 @@ const BankTableSceneContainer = () => {
               defaultValue={popup.defaultValue}
               bankList={bankList}
               cardList={cardList}
-              onClose={() => setPopup(null)}
+              onClose={closeCurrentPopup}
               onSubmit={handleUpdatePlan}
             />
           ) : (
@@ -339,9 +341,9 @@ const BankTableSceneContainer = () => {
         <BankSelectPopup
           defaultValue={bankId}
           bankList={bankList}
-          onClose={() => setPopup(null)}
+          onClose={closeCurrentPopup}
           onSubmit={v => {
-            setPopup(null);
+            closeCurrentPopup();
             setBankId(v);
           }}
         />

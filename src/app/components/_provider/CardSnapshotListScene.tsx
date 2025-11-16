@@ -3,6 +3,7 @@ import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import MockLoadingPopup from "~/common/components/MockLoadingPopup";
 import MockActionButton from "~/common/components/MockActionButton";
+import usePopupOperation from "~/common/lib/usePopupOperation";
 import CardSelectPopup from "~/app/components/CardSelectPopup";
 import ErrorPopup from "~/app/components/ErrorPopup";
 import PlanFormPopup from "~/app/components/PlanFormPopup";
@@ -63,7 +64,8 @@ const CardSnapshotListScene = ({
   );
   const [operationError, setOperationError] =
     useState<AppErrorParameter | null>(null);
-  const [popup, setPopup] = useState<PopupParams | null>(null);
+  const { popup, clearPopup, addPopup, closeCurrentPopup } =
+    usePopupOperation<PopupParams>();
   const { isLoading, runAsyncHandler } = useAsyncHandler({
     onError: setOperationError
   });
@@ -113,10 +115,10 @@ const CardSnapshotListScene = ({
 
   const handleCreateCardSnapshot = useCallback(
     (v: CardSnapshot) => {
-      setPopup(null);
+      clearPopup();
       return runAsyncHandler(() => createCardSnapshot(v));
     },
-    [createCardSnapshot, runAsyncHandler]
+    [clearPopup, createCardSnapshot, runAsyncHandler]
   );
 
   const handleUpdateCardSnapshot = useCallback(
@@ -124,32 +126,32 @@ const CardSnapshotListScene = ({
       if (popup?.type !== "edit-card-snapshot") {
         return null;
       }
-      setPopup(null);
+      clearPopup();
       const { snapshotId } = popup;
       return runAsyncHandler(() => writeCardSnapshot(snapshotId, v));
     },
-    [popup, runAsyncHandler, writeCardSnapshot]
+    [clearPopup, popup, runAsyncHandler, writeCardSnapshot]
   );
 
   const handleDeletePopupSnapshot = useCallback(async () => {
     if (popup?.type !== "edit-card-snapshot") {
       return null;
     }
-    setPopup(null);
+    clearPopup();
     const { snapshotId } = popup;
     return runAsyncHandler(() => deleteCardSnapshot(snapshotId));
-  }, [deleteCardSnapshot, popup, runAsyncHandler]);
+  }, [clearPopup, deleteCardSnapshot, popup, runAsyncHandler]);
 
   const handleUpdatePlan = useCallback(
     (v: MoneyPlan) => {
       if (popup?.type !== "edit-plan") {
         return null;
       }
-      setPopup(null);
+      clearPopup();
       const { planId } = popup;
       return runAsyncHandler(() => writeMoneyPlan(planId, v));
     },
-    [popup, runAsyncHandler, writeMoneyPlan]
+    [clearPopup, popup, runAsyncHandler, writeMoneyPlan]
   );
 
   const createCardSnapshotDraft = useCallback(() => {
@@ -186,7 +188,7 @@ const CardSnapshotListScene = ({
       amount += r.price;
     });
 
-    setPopup({
+    addPopup({
       type: "create-card-snapshot",
       defaultValue: {
         cardId,
@@ -201,7 +203,8 @@ const CardSnapshotListScene = ({
     draftTimestamp,
     monthCursor.maxTimestamp,
     monthCursor.minTimestamp,
-    rows
+    rows,
+    addPopup
   ]);
 
   const handleRowClick = useCallback(
@@ -214,7 +217,7 @@ const CardSnapshotListScene = ({
         if (!m) {
           return;
         }
-        setPopup({
+        addPopup({
           type: "edit-card-snapshot",
           snapshotId: action.snapshotId,
           defaultValue: m.data
@@ -224,14 +227,14 @@ const CardSnapshotListScene = ({
         if (!m) {
           return;
         }
-        setPopup({
+        addPopup({
           type: "edit-plan",
           planId: action.planId,
           defaultValue: m.data
         });
       }
     },
-    [cardSnapshotList, planList]
+    [cardSnapshotList, planList, addPopup]
   );
 
   if (statusError) {
@@ -248,7 +251,7 @@ const CardSnapshotListScene = ({
               <MockActionButton
                 action={{
                   type: "button",
-                  onClick: () => setPopup({ type: "select-card" })
+                  onClick: () => addPopup({ type: "select-card" })
                 }}
               >
                 {data.label}
@@ -280,7 +283,7 @@ const CardSnapshotListScene = ({
       {popup?.type === "create-card-snapshot" ? (
         <CardSnapshotFormPopup
           defaultValue={popup.defaultValue}
-          onClose={() => setPopup(null)}
+          onClose={closeCurrentPopup}
           onSubmit={handleCreateCardSnapshot}
         />
       ) : null}
@@ -289,7 +292,7 @@ const CardSnapshotListScene = ({
           defaultValue={popup.defaultValue}
           onSubmit={handleUpdateCardSnapshot}
           onDelete={handleDeletePopupSnapshot}
-          onClose={() => setPopup(null)}
+          onClose={closeCurrentPopup}
         />
       ) : null}
       {popup?.type === "edit-plan" ? (
@@ -297,7 +300,7 @@ const CardSnapshotListScene = ({
           defaultValue={popup.defaultValue}
           bankList={bankList}
           cardList={cardList}
-          onClose={() => setPopup(null)}
+          onClose={closeCurrentPopup}
           onSubmit={handleUpdatePlan}
         />
       ) : null}
@@ -305,7 +308,7 @@ const CardSnapshotListScene = ({
         <CardSelectPopup
           defaultValue={cardId}
           cardList={cardList}
-          onClose={() => setPopup(null)}
+          onClose={closeCurrentPopup}
           onSubmit={onChangeCard}
         />
       ) : null}
