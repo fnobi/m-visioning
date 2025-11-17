@@ -1,5 +1,6 @@
 import styled from "@emotion/styled";
 import { type ComponentPropsWithoutRef, type ReactNode } from "react";
+import { toggleArrayItem } from "~/common/lib/array-util";
 import MockActionButton from "~/common/components/MockActionButton";
 import {
   alphaColor,
@@ -15,9 +16,8 @@ type TagParameter = {
   color: `#${string}`;
 };
 
-export type MockDataItemProps = {
-  key: string | number;
-  fav?: { checked: boolean };
+export type MockDataItemProps<T extends string | number> = {
+  key: T;
   statusTag?: TagParameter;
   title: ReactNode;
   subTitle?: ReactNode;
@@ -27,7 +27,6 @@ export type MockDataItemProps = {
   };
   mainAction?: CommonActionParameter;
   actions?: ComponentPropsWithoutRef<typeof MockActionButton<string>>[];
-  onFav?: (f: boolean) => void;
 };
 
 const ActionFooterWrapper = styled.ul({
@@ -68,7 +67,16 @@ const DataListImageCell = styled.div({
   backgroundPosition: "center"
 });
 
-const MockListView = ({ dataList }: { dataList: MockDataItemProps[] }) => {
+const MockListView = <T extends string | number>({
+  dataList,
+  fav
+}: {
+  dataList: MockDataItemProps<T>[];
+  fav?: {
+    value: T[];
+    onChange: (v: T[]) => void;
+  };
+}) => {
   if (!dataList.length) {
     return <div>データがありません</div>;
   }
@@ -77,15 +85,13 @@ const MockListView = ({ dataList }: { dataList: MockDataItemProps[] }) => {
       {dataList.map(
         ({
           key,
-          fav,
           statusTag,
           title,
           subTitle,
           tags,
           thumbnail,
           mainAction,
-          actions,
-          onFav
+          actions
         }) => (
           <DataListItem key={key}>
             {fav ? (
@@ -93,9 +99,13 @@ const MockListView = ({ dataList }: { dataList: MockDataItemProps[] }) => {
               <span
                 style={{
                   color: PRIMITIVE_COLOR.BLACK,
-                  opacity: fav.checked ? 1 : 0.2
+                  opacity: fav.value.includes(key) ? 1 : 0.2
                 }}
-                onClick={onFav ? () => onFav(!fav.checked) : undefined}
+                onClick={() =>
+                  fav.onChange(
+                    toggleArrayItem(fav.value, key, !fav.value.includes(key))
+                  )
+                }
               >
                 ★
               </span>

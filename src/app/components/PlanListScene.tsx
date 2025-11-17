@@ -6,7 +6,7 @@ import {
 } from "react";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import MockListView from "~/common/components/MockListView";
-import { sortBy, toggleArrayItem } from "~/common/lib/array-util";
+import { sortBy } from "~/common/lib/array-util";
 import MockActionButton from "~/common/components/MockActionButton";
 import { calcDateInt } from "~/app/components/BankTableScene";
 import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
@@ -93,7 +93,7 @@ const PlanListScene = ({
   );
 
   const list = useMemo(
-    (): ComponentPropsWithoutRef<typeof MockListView>["dataList"] =>
+    (): ComponentPropsWithoutRef<typeof MockListView<string>>["dataList"] =>
       sortBy(planList, ({ data }) => {
         const cd = new Date();
         const { year, month, day, repeat } = data;
@@ -125,8 +125,7 @@ const PlanListScene = ({
               onClick: () => onDelete(id)
             }
           }
-        ],
-        onFav: f => setFavList(l => toggleArrayItem(l, id, f))
+        ]
       })),
     [calcPlanDateLabel, calcPlanFlowLabel, favList, onDelete, planList]
   );
@@ -147,7 +146,10 @@ const PlanListScene = ({
           新規作成
         </MockActionButton>
       </p>
-      <MockListView dataList={list} />
+      <MockListView
+        dataList={list}
+        fav={{ value: favList, onChange: setFavList }}
+      />
       {editData ? (
         <PlanFormPopup
           defaultValue={editData.data}
