@@ -156,13 +156,16 @@ const useSimulatorRows = () => {
       );
 
       let amount = baseSnapshot?.amount ?? 0;
-      let minDate = baseSnapshot?.timestamp ?? termStart;
+      let lastSnapshotTimestamp = baseSnapshot?.timestamp ?? 0;
       const rows = [...snapshotList]
         .reverse()
         .map(({ id, data }) => {
           let cache = amount;
           amount = data.amount;
-          minDate = Math.max(minDate, data.timestamp);
+          lastSnapshotTimestamp = Math.max(
+            lastSnapshotTimestamp,
+            data.timestamp
+          );
 
           const array: SimulatorRow[] = [];
 
@@ -200,10 +203,16 @@ const useSimulatorRows = () => {
         })
         .flat();
 
-      const planStart = new Date(minDate);
-      planStart.setDate(planStart.getDate() + 1);
+      // planシミュレーション開始日
+      // snapshotがあるならその翌日から・ないなら期の最初から
+      let planStart = termStart;
+      if (lastSnapshotTimestamp) {
+        const d = new Date(lastSnapshotTimestamp);
+        d.setDate(d.getDate() + 1);
+        planStart = d.getTime();
+      }
 
-      calcRangeDayArray(planStart.getTime(), termEnd).forEach(cdata => {
+      calcRangeDayArray(planStart, termEnd).forEach(cdata => {
         const { date, year: cy, month: cm, day: cd } = cdata;
         sourcePlanList2.forEach(({ id, data }) => {
           const { year, month, day, label, price, repeat, cardLink } = data;
