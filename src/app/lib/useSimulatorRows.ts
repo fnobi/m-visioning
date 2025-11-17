@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { compact, makeArray } from "~/common/lib/array-util";
+import { compact, makeArray, sortBy } from "~/common/lib/array-util";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import type MoneyPlan from "~/app/scheme/MoneyPlan";
 import type BankSnapshot from "~/app/scheme/BankSnapshot";
@@ -174,18 +174,20 @@ const useSimulatorRows = () => {
             snapshotId: id
           };
 
-          parseBankSnapshot(data).detail.forEach((d, i) => {
-            cache += d.price;
-            array.push({
-              id: `${id}-${i}`,
-              date: d.date,
-              label: d.label,
-              price: d.price,
-              amount: cache,
-              isArchive: true,
-              source
-            });
-          });
+          sortBy([...parseBankSnapshot(data).detail], d => d.date).forEach(
+            (d, i) => {
+              cache += d.price;
+              array.push({
+                id: `${id}-${i}`,
+                date: d.date,
+                label: d.label,
+                price: d.price,
+                amount: cache,
+                isArchive: true,
+                source
+              });
+            }
+          );
 
           if (amount !== cache) {
             array.push({
