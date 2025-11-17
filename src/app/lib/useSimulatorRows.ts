@@ -130,7 +130,6 @@ const useSimulatorRows = () => {
       termEnd: number;
       baseSnapshot?: {
         amount: number;
-        timestamp: number;
       };
       snapshotList: TypedCollectionList<BankSnapshot | CardSnapshot>;
       // TODO: cardId/bankIdで絞り込み済みのplanListを渡すようにして、1個にまとめたい
@@ -156,7 +155,7 @@ const useSimulatorRows = () => {
       );
 
       let amount = baseSnapshot?.amount ?? 0;
-      let lastSnapshotTimestamp = baseSnapshot?.timestamp ?? 0;
+      let lastSnapshotTimestamp = 0;
       const rows = [...snapshotList]
         .reverse()
         .map(({ id, data }) => {
