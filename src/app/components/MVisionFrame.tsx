@@ -124,7 +124,7 @@ const MVisionFrame = ({ children }: { children: ReactNode }) => {
     <AuthFrame>
       <div style={{ height: px(MENU_HEIGHT) }} />
       <MockStaticLayout>{children}</MockStaticLayout>
-      <MenuMat flag={menuFlag} />
+      <MenuMat flag={menuFlag} onClick={() => setMenuFlag(false)} />
       <MenuRoot flag={menuFlag}>
         {TABS.map(({ label, icon, page }) => (
           <MenuItem key={page.href}>
