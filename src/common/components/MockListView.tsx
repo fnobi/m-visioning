@@ -17,6 +17,7 @@ type TagParameter = {
 
 export type MockDataItemProps = {
   key: string | number;
+  fav?: { checked: boolean };
   statusTag?: TagParameter;
   title: ReactNode;
   subTitle?: ReactNode;
@@ -26,6 +27,7 @@ export type MockDataItemProps = {
   };
   mainAction?: CommonActionParameter;
   actions?: ComponentPropsWithoutRef<typeof MockActionButton<string>>[];
+  onFav?: (f: boolean) => void;
 };
 
 const ActionFooterWrapper = styled.ul({
@@ -75,15 +77,29 @@ const MockListView = ({ dataList }: { dataList: MockDataItemProps[] }) => {
       {dataList.map(
         ({
           key,
+          fav,
           statusTag,
           title,
           subTitle,
           tags,
           thumbnail,
           mainAction,
-          actions
+          actions,
+          onFav
         }) => (
           <DataListItem key={key}>
+            {fav ? (
+              // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
+              <span
+                style={{
+                  color: PRIMITIVE_COLOR.BLACK,
+                  opacity: fav.checked ? 1 : 0.2
+                }}
+                onClick={onFav ? () => onFav(!fav.checked) : undefined}
+              >
+                ★
+              </span>
+            ) : null}
             {statusTag ? (
               <span style={{ backgroundColor: statusTag.color }}>
                 {statusTag.label}

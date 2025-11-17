@@ -6,7 +6,7 @@ import {
 } from "react";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import MockListView from "~/common/components/MockListView";
-import { sortBy } from "~/common/lib/array-util";
+import { sortBy, toggleArrayItem } from "~/common/lib/array-util";
 import MockActionButton from "~/common/components/MockActionButton";
 import { calcDateInt } from "~/app/components/BankTableScene";
 import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
@@ -34,6 +34,7 @@ const PlanListScene = ({
   onCreate: (data: MoneyPlan) => void;
   onDelete: (id: string) => void;
 }) => {
+  const [favList, setFavList] = useState<string[]>([]);
   const [editData, setEditData] = useState<{
     id: string;
     data: MoneyPlan;
@@ -109,6 +110,7 @@ const PlanListScene = ({
         return calcDateInt(td);
       }).map(({ id, data }) => ({
         key: id,
+        fav: { checked: favList.includes(id) },
         title: `${data.label} / ¥${data.price}`,
         subTitle: [calcPlanDateLabel(data), calcPlanFlowLabel(data)].join("\n"),
         mainAction: {
@@ -123,9 +125,10 @@ const PlanListScene = ({
               onClick: () => onDelete(id)
             }
           }
-        ]
+        ],
+        onFav: f => setFavList(l => toggleArrayItem(l, id, f))
       })),
-    [calcPlanDateLabel, calcPlanFlowLabel, onDelete, planList]
+    [calcPlanDateLabel, calcPlanFlowLabel, favList, onDelete, planList]
   );
 
   return (
