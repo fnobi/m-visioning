@@ -1,8 +1,10 @@
 import styled from "@emotion/styled";
 import { type ComponentPropsWithoutRef, type ReactNode } from "react";
+import { toggleArrayItem } from "~/common/lib/array-util";
 import MockActionButton from "~/common/components/MockActionButton";
 import {
   alphaColor,
+  buttonReset,
   em,
   percent,
   PRIMITIVE_COLOR,
@@ -15,8 +17,8 @@ type TagParameter = {
   color: `#${string}`;
 };
 
-export type MockDataItemProps = {
-  key: string | number;
+export type MockDataItemProps<T extends string | number> = {
+  key: T;
   statusTag?: TagParameter;
   title: ReactNode;
   subTitle?: ReactNode;
@@ -66,7 +68,26 @@ const DataListImageCell = styled.div({
   backgroundPosition: "center"
 });
 
-const MockListView = ({ dataList }: { dataList: MockDataItemProps[] }) => {
+const FavButton = styled.button<{ checked: boolean }>(
+  buttonReset,
+  ({ checked }) => ({
+    color: PRIMITIVE_COLOR.BLACK,
+    opacity: checked ? 1 : 0.2,
+    cursor: "pointer",
+    userSelect: "none"
+  })
+);
+
+const MockListView = <T extends string | number>({
+  dataList,
+  fav
+}: {
+  dataList: MockDataItemProps<T>[];
+  fav?: {
+    value: T[];
+    onChange: (v: T[]) => void;
+  };
+}) => {
   if (!dataList.length) {
     return <div>データがありません</div>;
   }
@@ -84,6 +105,19 @@ const MockListView = ({ dataList }: { dataList: MockDataItemProps[] }) => {
           actions
         }) => (
           <DataListItem key={key}>
+            {fav ? (
+              <FavButton
+                type="button"
+                onClick={() =>
+                  fav.onChange(
+                    toggleArrayItem(fav.value, key, !fav.value.includes(key))
+                  )
+                }
+                checked={fav.value.includes(key)}
+              >
+                ★
+              </FavButton>
+            ) : null}
             {statusTag ? (
               <span style={{ backgroundColor: statusTag.color }}>
                 {statusTag.label}
