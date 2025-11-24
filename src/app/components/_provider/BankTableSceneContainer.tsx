@@ -46,7 +46,8 @@ const BankTableSceneContainer = () => {
   const {
     bankAccountList: bankList,
     cardAccountList: cardList,
-    moneyPlanList: planList
+    moneyPlanList: planList,
+    myPageProperty
   } = useCommonMoneyStore();
   const [statusError, setStatusError] = useState<AppErrorParameter | null>(
     null
@@ -273,7 +274,15 @@ const BankTableSceneContainer = () => {
     return <ErrorScene error={statusError} />;
   }
 
-  if (!bankId || !currentBank || !startDate || !bankList || !planList) {
+  if (
+    !bankId ||
+    !currentBank ||
+    !startDate ||
+    !bankList ||
+    !cardList ||
+    !planList ||
+    !myPageProperty
+  ) {
     return <p>loading...</p>;
   }
 
@@ -328,6 +337,9 @@ const BankTableSceneContainer = () => {
           graphMode={graphMode}
           bankSnapshotList={bankSnapshotList}
           lastBankSnapshot={lastBankSnapshot}
+          myPageProperty={myPageProperty}
+          bankList={bankList}
+          cardList={cardList}
           onPopup={addPopup}
           onChangeGraphMode={setGraph}
         />

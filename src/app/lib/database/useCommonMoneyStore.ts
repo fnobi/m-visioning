@@ -71,6 +71,9 @@ export const useCommonMoneyRoot = () => {
   return { statusError };
 };
 
-const useCommonMoneyStore = () => useRecoilValue(commonMoneyStore);
+const useCommonMoneyStore = () => {
+  const data = useRecoilValue(commonMoneyStore);
+  return data;
+};
 
 export default useCommonMoneyStore;

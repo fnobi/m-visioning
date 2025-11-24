@@ -1,7 +1,12 @@
-import { useCallback, useMemo } from "react";
+import { type ComponentPropsWithoutRef, useCallback, useMemo } from "react";
 import { percent } from "~/common/lib/css-util";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import MockActionButton from "~/common/components/MockActionButton";
+import MockListView from "~/common/components/MockListView";
+import { compact } from "~/common/lib/array-util";
+import { usePlanListLabel } from "~/app/lib/plan-util";
+import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
+import type MyPageProperty from "~/app/scheme/MyPageProperty";
 import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
 import SimulatorTableView from "~/app/components/SimulatorTableView";
 import useGraphRenderer from "~/app/lib/useGraphRenderer";
@@ -58,6 +63,9 @@ const BankTableScene = ({
   graphMode,
   bankSnapshotList,
   lastBankSnapshot,
+  bankList,
+  cardList,
+  myPageProperty,
   onPopup,
   onChangeGraphMode
 }: {
@@ -67,12 +75,19 @@ const BankTableScene = ({
   endDate: number;
   planList: TypedCollectionList<MoneyPlan>;
   bankSnapshotList: TypedCollectionList<BankSnapshot>;
+  bankList: TypedCollectionList<MoneyBankAccount>;
+  cardList: TypedCollectionList<MoneyCardAccount>;
   lastBankSnapshot: BankSnapshot | null;
   graphMode: boolean;
+  myPageProperty: MyPageProperty;
   onPopup: (p: PopupParams) => void;
   onChangeGraphMode: (f: boolean) => void;
 }) => {
   const { calcRows, calcRowsFromCardTerm } = useSimulatorRows();
+  const { calcPlanTitle, calcPlanSubTitle } = usePlanListLabel({
+    bankList,
+    cardList
+  });
 
   const cardPaymentPlanList = useMemo(
     () =>
@@ -133,6 +148,43 @@ const BankTableScene = ({
       endDate,
       bankId,
       sourcePlanList
+    ]
+  );
+
+  const quickPlanList = useMemo(
+    () =>
+      compact(
+        myPageProperty.favPlanList.map<
+          | ComponentPropsWithoutRef<typeof MockListView>["dataList"][number]
+          | null
+        >(planId => {
+          const ent = planList.find(p => p.id === planId);
+          if (!ent) {
+            return null;
+          }
+          const { data: plan } = ent;
+          return {
+            key: planId,
+            title: calcPlanTitle(plan),
+            subTitle: calcPlanSubTitle(plan),
+            mainAction: {
+              type: "button",
+              onClick: () =>
+                onPopup({
+                  type: "edit-plan",
+                  planId,
+                  defaultValue: plan
+                })
+            }
+          };
+        })
+      ),
+    [
+      calcPlanSubTitle,
+      calcPlanTitle,
+      myPageProperty.favPlanList,
+      onPopup,
+      planList
     ]
   );
 
@@ -221,13 +273,16 @@ const BankTableScene = ({
       </p>
       {graphMode ? (
         <div>
-          <canvas
-            ref={canvasRef}
-            style={{
-              width: percent(100),
-              height: "auto"
-            }}
-          />
+          <div>
+            <canvas
+              ref={canvasRef}
+              style={{
+                width: percent(100),
+                height: "auto"
+              }}
+            />
+          </div>
+          <MockListView dataList={quickPlanList} />
         </div>
       ) : (
         <>
