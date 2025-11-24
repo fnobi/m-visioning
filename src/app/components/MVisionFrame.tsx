@@ -5,8 +5,6 @@ import styled from "@emotion/styled";
 import { buildTransform } from "css-transform-builder";
 import {
   FaListCheck,
-  FaRegCreditCard,
-  FaSackDollar,
   FaArrowRightToBracket,
   FaChevronRight,
   FaChevronLeft
@@ -22,6 +20,7 @@ import {
   PRIMITIVE_COLOR,
   px
 } from "~/common/lib/css-util";
+import { BankIcon, CardIcon } from "~/app/components/CommonIconSvg";
 import { pcStyle, spStyle, THEME_COLOR } from "~/app/lib/emotion-mixin";
 import AuthFrame from "~/app/components/AuthFrame";
 import {
@@ -35,12 +34,12 @@ type TabEntry = { label: string; icon: ReactNode; page: PageEntry };
 const TABS = [
   {
     label: "口座予測",
-    icon: <FaSackDollar />,
+    icon: <BankIcon />,
     page: PAGE_TOP
   },
   {
     label: "カード予測",
-    icon: <FaRegCreditCard />,
+    icon: <CardIcon />,
     page: PAGE_CARD_SNAPSHOT_LIST
   },
   {

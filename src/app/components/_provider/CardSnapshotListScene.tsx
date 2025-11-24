@@ -4,6 +4,7 @@ import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import MockLoadingPopup from "~/common/components/MockLoadingPopup";
 import MockActionButton from "~/common/components/MockActionButton";
 import usePopupOperation from "~/common/lib/usePopupOperation";
+import PickableTitle from "~/app/components/PickableTitle";
 import CardAccountFormPopup from "~/app/components/CardAccountFormPopup";
 import CardSelectPopup from "~/app/components/CardSelectPopup";
 import ErrorPopup from "~/app/components/ErrorPopup";
@@ -291,33 +292,19 @@ const CardSnapshotListScene = ({
 
   return (
     <>
-      <div>
-        <p>カード</p>
-        <p>
-          <MockActionButton
-            action={{
-              type: "button",
-              onClick: () => addPopup({ type: "select-card" })
-            }}
-          >
-            {currentCard.label}
-          </MockActionButton>
-          &nbsp;
-          <MockActionButton
-            action={{
-              type: "button",
-              onClick: () =>
-                addPopup({
-                  type: "edit-card-account",
-                  cardId,
-                  defaultValue: currentCard
-                })
-            }}
-          >
-            edit
-          </MockActionButton>
-        </p>
-      </div>
+      <PickableTitle
+        type="card"
+        onOpen={() => addPopup({ type: "select-card" })}
+        onEdit={() =>
+          addPopup({
+            type: "edit-card-account",
+            cardId,
+            defaultValue: currentCard
+          })
+        }
+      >
+        {currentCard.label}
+      </PickableTitle>
       <MonthCursorNavi monthCursor={monthCursor} />
       {draftTimestamp >= monthCursor.minTimestamp ? (
         <p>

@@ -3,9 +3,9 @@ import { compact } from "~/common/lib/array-util";
 import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
 import { parseNumber, parseString } from "~/common/lib/parser-helper";
 import MockLoadingPopup from "~/common/components/MockLoadingPopup";
-import MockActionButton from "~/common/components/MockActionButton";
 import usePopupOperation from "~/common/lib/usePopupOperation";
 import useTypedQuery, { parseBooleanQuery } from "~/common/lib/useTypedQuery";
+import PickableTitle from "~/app/components/PickableTitle";
 import BankAccountFormPopup from "~/app/components/BankAccountFormPopup";
 import BankSelectPopup from "~/app/components/BankSelectPopup";
 import MonthCursorNavi from "~/app/components/MonthCursorNavi";
@@ -288,33 +288,19 @@ const BankTableSceneContainer = () => {
 
   return (
     <>
-      <div>
-        <p>口座</p>
-        <p>
-          <MockActionButton
-            action={{
-              type: "button",
-              onClick: () => addPopup({ type: "select-bank" })
-            }}
-          >
-            {currentBank.label}
-          </MockActionButton>
-          &nbsp;
-          <MockActionButton
-            action={{
-              type: "button",
-              onClick: () =>
-                addPopup({
-                  type: "edit-bank-account",
-                  bankId,
-                  defaultValue: currentBank
-                })
-            }}
-          >
-            edit
-          </MockActionButton>
-        </p>
-      </div>
+      <PickableTitle
+        type="bank"
+        onOpen={() => addPopup({ type: "select-bank" })}
+        onEdit={() =>
+          addPopup({
+            type: "edit-bank-account",
+            bankId,
+            defaultValue: currentBank
+          })
+        }
+      >
+        {currentBank.label}
+      </PickableTitle>
       <MonthCursorNavi monthCursor={monthCursor}>
         <select
           value={period}
