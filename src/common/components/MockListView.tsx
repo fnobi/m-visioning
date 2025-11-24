@@ -4,6 +4,7 @@ import { toggleArrayItem } from "~/common/lib/array-util";
 import MockActionButton from "~/common/components/MockActionButton";
 import {
   alphaColor,
+  buttonReset,
   em,
   percent,
   PRIMITIVE_COLOR,
@@ -67,6 +68,16 @@ const DataListImageCell = styled.div({
   backgroundPosition: "center"
 });
 
+const FavButton = styled.button<{ checked: boolean }>(
+  buttonReset,
+  ({ checked }) => ({
+    color: PRIMITIVE_COLOR.BLACK,
+    opacity: checked ? 1 : 0.2,
+    cursor: "pointer",
+    userSelect: "none"
+  })
+);
+
 const MockListView = <T extends string | number>({
   dataList,
   fav
@@ -95,20 +106,17 @@ const MockListView = <T extends string | number>({
         }) => (
           <DataListItem key={key}>
             {fav ? (
-              // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
-              <span
-                style={{
-                  color: PRIMITIVE_COLOR.BLACK,
-                  opacity: fav.value.includes(key) ? 1 : 0.2
-                }}
+              <FavButton
+                type="button"
                 onClick={() =>
                   fav.onChange(
                     toggleArrayItem(fav.value, key, !fav.value.includes(key))
                   )
                 }
+                checked={fav.value.includes(key)}
               >
                 ★
-              </span>
+              </FavButton>
             ) : null}
             {statusTag ? (
               <span style={{ backgroundColor: statusTag.color }}>
