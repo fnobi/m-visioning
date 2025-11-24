@@ -15,7 +15,8 @@ import {
   type DocumentData,
   type Query,
   type DocumentReference,
-  runTransaction
+  runTransaction,
+  getCountFromServer
 } from "firebase/firestore";
 import {
   DataStoreAgent,
@@ -27,10 +28,7 @@ import {
 } from "~/common/lib/DataStoreAgent";
 import { firebaseFirestore } from "~/common/lib/firebase-app";
 
-const resolveCollectionGroupRef = (p: string) =>
-  collectionGroup(firebaseFirestore(), p);
-
-const makeQuery = <T>(
+const applyQueryChain = <T>(
   q: Query<DocumentData, DocumentData>,
   queryChain?: (c: QueryChain<T>) => unknown
 ) => {
@@ -62,9 +60,18 @@ export class ClientDataStoreAgent<
     return collection(firebaseFirestore(), collectionPath);
   }
 
-  protected documentReference(opts: { collectionPath: string; id?: string }) {
-    const { id } = opts;
-    const collectionRef = this.collectionReference(opts);
+  protected collectionGroupReference() {
+    return collectionGroup(firebaseFirestore(), this.scheme.name);
+  }
+
+  protected documentReference({
+    collectionPath,
+    id
+  }: {
+    collectionPath: string;
+    id?: string;
+  }) {
+    const collectionRef = this.collectionReference({ collectionPath });
     return id ? doc(collectionRef, id) : doc(collectionRef);
   }
 
@@ -99,7 +106,7 @@ export class ClientDataStoreAgent<
   }
 
   // eslint-disable-next-line class-methods-use-this
-  protected async getDocs(
+  protected async getQueryDocs(
     r: Query,
     {
       queryChain
@@ -107,19 +114,21 @@ export class ClientDataStoreAgent<
       queryChain?: (c: QueryChain<T>) => unknown;
     }
   ) {
-    const snapshot = await getDocs(makeQuery(r, queryChain));
+    const snapshot = await getDocs(applyQueryChain(r, queryChain));
     return snapshot.docs;
   }
 
-  protected async getGroupDocs({
-    queryChain
-  }: {
-    queryChain?: (c: QueryChain<T>) => unknown;
-  }) {
-    const collectionGroupRef = resolveCollectionGroupRef(this.scheme.name);
-    const collectionGroupQuery = makeQuery(collectionGroupRef, queryChain);
-    const snapshot = await getDocs(collectionGroupQuery);
-    return snapshot.docs;
+  // eslint-disable-next-line class-methods-use-this
+  protected async getQueryCount(
+    r: Query,
+    {
+      queryChain
+    }: {
+      queryChain?: (c: QueryChain<T>) => unknown;
+    }
+  ) {
+    const snapshot = await getCountFromServer(applyQueryChain(r, queryChain));
+    return snapshot.data().count;
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -135,7 +144,7 @@ export class ClientDataStoreAgent<
   }
 
   // eslint-disable-next-line class-methods-use-this
-  protected subscribeDocs(
+  protected subscribeQueryDocs(
     r: Query,
     opts: {
       queryChain?: ((c: QueryChain<T>) => unknown) | undefined;
@@ -144,27 +153,9 @@ export class ClientDataStoreAgent<
     }
   ) {
     const { queryChain, handler, onError } = opts;
-    const collectionQuery = makeQuery(r, queryChain);
+    const collectionQuery = applyQueryChain(r, queryChain);
     return onSnapshot(
       collectionQuery,
-      snapshot => handler(snapshot.docs),
-      onError
-    );
-  }
-
-  protected subscribeGroupDocs({
-    queryChain,
-    handler,
-    onError
-  }: {
-    queryChain?: ((c: QueryChain<T>) => unknown) | undefined;
-    handler: (l: DocumentSnapshotMock[]) => void;
-    onError: (e: unknown) => void;
-  }) {
-    const collectionGroupRef = resolveCollectionGroupRef(this.scheme.name);
-    const collectionGroupQuery = makeQuery(collectionGroupRef, queryChain);
-    return onSnapshot(
-      collectionGroupQuery,
       snapshot => handler(snapshot.docs),
       onError
     );
