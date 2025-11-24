@@ -10,7 +10,7 @@ import { sortBy } from "~/common/lib/array-util";
 import MockActionButton from "~/common/components/MockActionButton";
 import { useMyPagePropertyTools } from "~/app/lib/database/my-page-property-database";
 import type MyPageProperty from "~/app/scheme/MyPageProperty";
-import { calcDateInt } from "~/app/components/BankTableScene";
+import { calcDateInt } from "~/app/components/_provider/BankTableScene";
 import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
 import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
 import PlanFormPopup from "~/app/components/PlanFormPopup";

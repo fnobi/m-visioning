@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { compact } from "~/common/lib/array-util";
 import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
-import { parseNumber, parseString } from "~/common/lib/parser-helper";
+import { parseNumber } from "~/common/lib/parser-helper";
 import MockLoadingPopup from "~/common/components/MockLoadingPopup";
 import usePopupOperation from "~/common/lib/usePopupOperation";
-import useTypedQuery, { parseBooleanQuery } from "~/common/lib/useTypedQuery";
 import PickableTitle from "~/app/components/PickableTitle";
 import BankAccountFormPopup from "~/app/components/BankAccountFormPopup";
 import BankSelectPopup from "~/app/components/BankSelectPopup";
@@ -15,7 +14,7 @@ import BankSnapshotFormPopup from "~/app/components/BankSnapshotPopup";
 import ErrorScene from "~/app/components/ErrorScene";
 import BankTableScene, {
   type PopupParams
-} from "~/app/components/BankTableScene";
+} from "~/app/components/_provider/BankTableScene";
 import { useBankSnapshotList } from "~/app/lib/database/bank-snapshot-database";
 import { type AppErrorParameter } from "~/app/scheme/AppErrorParameter";
 import { useCardSnapshotList } from "~/app/lib/database/card-snapshot-database";
@@ -34,14 +33,27 @@ import { useMyBankAccountTools } from "~/app/lib/database/bank-account-database"
 import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
 import { parseMoneyBankAccount } from "~/app/scheme/MoneyBankAccount";
 
-const PERIOD_OPTIONS = [3, 12, 24];
+export const PERIOD_OPTIONS = [3, 12, 24];
 
-const parsePeriodNumberQuery = (src: unknown) => {
-  const n = parseNumber(src);
-  return PERIOD_OPTIONS.includes(n) ? n : PERIOD_OPTIONS[0];
-};
-
-const BankTableSceneContainer = () => {
+const BankTableSceneContainer = ({
+  bankId,
+  monthCode,
+  period,
+  graphMode,
+  setBankId,
+  setMonthCode,
+  setPeriod,
+  setGraph
+}: {
+  bankId: string;
+  monthCode: number;
+  period: number;
+  graphMode: boolean;
+  setBankId: (v: string) => void;
+  setMonthCode: (v: number) => void;
+  setPeriod: (v: number) => void;
+  setGraph: (v: boolean) => void;
+}) => {
   const { myId } = useAuthorizedUser();
   const {
     bankAccountList: bankList,
@@ -59,30 +71,6 @@ const BankTableSceneContainer = () => {
   const { isLoading, runAsyncHandler } = useAsyncHandler({
     onError: setOperationError
   });
-  const parseBankQuery = useCallback(
-    (src: unknown) => {
-      const options = (bankList || []).map(({ id }) => id);
-      const s = parseString(src);
-      return (options.includes(s) ? s : options[0]) || "";
-    },
-    [bankList]
-  );
-  const { queryValue: bankId, setQueryValue: setBankId } = useTypedQuery(
-    "bank",
-    parseBankQuery
-  );
-  const { queryValue: monthCode, setQueryValue: setMonthCode } = useTypedQuery(
-    "month",
-    parseNumber
-  );
-  const { queryValue: period, setQueryValue: setPeriod } = useTypedQuery(
-    "period",
-    parsePeriodNumberQuery
-  );
-  const { queryValue: graphMode, setQueryValue: setGraph } = useTypedQuery(
-    "graph",
-    parseBooleanQuery
-  );
 
   const monthCursor = useMonthCursor({
     monthCode,
