@@ -8,6 +8,8 @@ import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import MockListView from "~/common/components/MockListView";
 import { sortBy } from "~/common/lib/array-util";
 import MockActionButton from "~/common/components/MockActionButton";
+import { useMyPagePropertyTools } from "~/app/lib/database/my-page-property-database";
+import type MyPageProperty from "~/app/scheme/MyPageProperty";
 import { calcDateInt } from "~/app/components/BankTableScene";
 import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
 import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
@@ -23,6 +25,7 @@ const PlanListScene = ({
   planList,
   bankList,
   cardList,
+  myPageProperty,
   onWrite,
   onCreate,
   onDelete
@@ -30,11 +33,13 @@ const PlanListScene = ({
   planList: TypedCollectionList<MoneyPlan>;
   bankList: TypedCollectionList<MoneyBankAccount>;
   cardList: TypedCollectionList<MoneyCardAccount>;
+  myPageProperty: MyPageProperty;
   onWrite: (id: string, data: MoneyPlan) => void;
   onCreate: (data: MoneyPlan) => void;
   onDelete: (id: string) => void;
 }) => {
-  const [favList, setFavList] = useState<string[]>([]);
+  const { writeMyPageProperty } = useMyPagePropertyTools();
+
   const [editData, setEditData] = useState<{
     id: string;
     data: MoneyPlan;
@@ -92,6 +97,11 @@ const PlanListScene = ({
     [calcMoneyNodeLabel]
   );
 
+  const toggleFav = useCallback(
+    (v: string[]) => writeMyPageProperty({ favPlanList: v }),
+    [writeMyPageProperty]
+  );
+
   const list = useMemo(
     (): ComponentPropsWithoutRef<typeof MockListView<string>>["dataList"] =>
       sortBy(planList, ({ data }) => {
@@ -110,7 +120,7 @@ const PlanListScene = ({
         return calcDateInt(td);
       }).map(({ id, data }) => ({
         key: id,
-        fav: { checked: favList.includes(id) },
+        fav: { checked: myPageProperty.favPlanList.includes(id) },
         title: `${data.label} / ¥${data.price}`,
         subTitle: [calcPlanDateLabel(data), calcPlanFlowLabel(data)].join("\n"),
         mainAction: {
@@ -127,7 +137,13 @@ const PlanListScene = ({
           }
         ]
       })),
-    [calcPlanDateLabel, calcPlanFlowLabel, favList, onDelete, planList]
+    [
+      calcPlanDateLabel,
+      calcPlanFlowLabel,
+      myPageProperty.favPlanList,
+      onDelete,
+      planList
+    ]
   );
 
   return (
@@ -148,7 +164,7 @@ const PlanListScene = ({
       </p>
       <MockListView
         dataList={list}
-        fav={{ value: favList, onChange: setFavList }}
+        fav={{ value: myPageProperty.favPlanList, onChange: toggleFav }}
       />
       {editData ? (
         <PlanFormPopup

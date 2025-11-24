@@ -1,6 +1,8 @@
 import { type DataStoreScheme } from "~/common/lib/DataStoreAgent";
 import type CommonPermission from "~/common/scheme/CommonPermission";
 import { parseCommonPermission } from "~/common/scheme/CommonPermission";
+import { parseMyPageProperty } from "~/app/scheme/MyPageProperty";
+import type MyPageProperty from "~/app/scheme/MyPageProperty";
 import type BankSnapshot from "~/app/scheme/BankSnapshot";
 import type CardSnapshot from "~/app/scheme/CardSnapshot";
 import { parseCardSnapshot } from "~/app/scheme/CardSnapshot";
@@ -83,4 +85,13 @@ export const cardSnapshotDataStoreScheme: DataStoreScheme<
   parse: parseCardSnapshot,
   documentId: ({ snapshotId }) => snapshotId,
   parentCollection: userDataStoreScheme
+};
+
+export const myPagePropertyDataStoreScheme: DataStoreScheme<
+  MyPageProperty,
+  { userId: string }
+> = {
+  name: "myPageProperties",
+  parse: parseMyPageProperty,
+  documentId: ({ userId }) => userId
 };
