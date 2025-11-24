@@ -10,12 +10,12 @@ export const usePlanListLabel = ({
   bankList,
   cardList
 }: {
-  bankList: TypedCollectionList<MoneyBankAccount>;
-  cardList: TypedCollectionList<MoneyCardAccount>;
+  bankList: TypedCollectionList<MoneyBankAccount> | null;
+  cardList: TypedCollectionList<MoneyCardAccount> | null;
 }) => {
   const resolveBankLabel = useCallback(
     (bankId: string) => {
-      const ent = bankList.find(b => b.id === bankId);
+      const ent = (bankList || []).find(b => b.id === bankId);
       return ent ? ent.data.label : bankId;
     },
     [bankList]
@@ -23,7 +23,7 @@ export const usePlanListLabel = ({
 
   const resolveCardLabel = useCallback(
     (cardId: string) => {
-      const ent = cardList.find(b => b.id === cardId);
+      const ent = (cardList || []).find(b => b.id === cardId);
       return ent ? ent.data.label : cardId;
     },
     [cardList]

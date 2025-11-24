@@ -1,9 +1,9 @@
 import { useCallback } from "react";
 import { parseNumber, parseString } from "~/common/lib/parser-helper";
 import useTypedQuery, { parseBooleanQuery } from "~/common/lib/useTypedQuery";
-import BankTableSceneContainer, {
+import BankTableScene, {
   PERIOD_OPTIONS
-} from "~/app/components/_provider/BankTableSceneContainer";
+} from "~/app/components/_provider/BankTableScene";
 import MVisionFrame from "~/app/components/MVisionFrame";
 import useMyMoneyStore from "~/app/lib/database/useMyMoneyStore";
 
@@ -40,7 +40,7 @@ const PageIndex = () => {
   );
   return (
     <MVisionFrame>
-      <BankTableSceneContainer
+      <BankTableScene
         bankId={bankId}
         monthCode={monthCode}
         period={period}

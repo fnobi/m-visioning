@@ -130,8 +130,8 @@ const useSimulatorRows = () => {
       termEnd: number;
       baseSnapshot?: {
         amount: number;
-      };
-      snapshotList: TypedCollectionList<BankSnapshot | CardSnapshot>;
+      } | null;
+      snapshotList: TypedCollectionList<BankSnapshot | CardSnapshot> | null;
       // TODO: cardId/bankIdで絞り込み済みのplanListを渡すようにして、1個にまとめたい
       nodeFilter: FromMoneyNode;
       sourcePlanList: TypedCollectionList<MoneyPlanWithCardLink>;
@@ -156,8 +156,7 @@ const useSimulatorRows = () => {
 
       let amount = baseSnapshot?.amount ?? 0;
       let lastSnapshotTimestamp = 0;
-      const rows = [...snapshotList]
-        .reverse()
+      const rows = (snapshotList ? [...snapshotList].reverse() : [])
         .map(({ id, data }) => {
           let cache = amount;
           amount = data.amount;
