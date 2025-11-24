@@ -489,7 +489,7 @@ export const MockCheckboxFormInput = ({
   </label>
 );
 
-export const MockPulldownFormRow = <T extends string>({
+export const MockPulldownFormRow = <T extends string | number>({
   label,
   value,
   error,

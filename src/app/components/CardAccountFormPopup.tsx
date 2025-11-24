@@ -16,6 +16,8 @@ const formOrganizer = new FormOrganizer<MoneyCardAccount>()
   .fieldValidator("label", requiredValidator())
   .fieldValidator("bankId", requiredValidator())
   .fieldValidator("startDay", requiredValidator())
+  .fieldValidator("paymentDay", requiredValidator())
+  .fieldValidator("paymentMonthOffset", requiredValidator())
   .fieldValidator("order", requiredValidator());
 
 const CardAccountFormPopup = ({
@@ -38,6 +40,13 @@ const CardAccountFormPopup = ({
   const bankOptions = useMemo(
     () => bankList.map(({ id, data }) => ({ value: id, label: data.label })),
     [bankList]
+  );
+  const paymentMonthOffset = useMemo(
+    () => [
+      { value: 1, label: "翌月" },
+      { value: 2, label: "翌々月" }
+    ],
+    []
   );
 
   return (
@@ -78,6 +87,18 @@ const CardAccountFormPopup = ({
             }
             error={errors.startDay}
           />
+          <MockPulldownFormRow
+            label="支払月"
+            value={value.paymentMonthOffset}
+            options={paymentMonthOffset}
+            onChange={v =>
+              setValue(vv => ({
+                ...vv,
+                paymentMonthOffset: v
+              }))
+            }
+            error={errors.paymentDay}
+          />
           <MockNumberFormRow
             label="支払日"
             value={value.paymentDay}
@@ -86,18 +107,6 @@ const CardAccountFormPopup = ({
               setValue(vv => ({
                 ...vv,
                 paymentDay: v
-              }))
-            }
-            error={errors.paymentDay}
-          />
-          <MockNumberFormRow
-            label="支払月"
-            value={value.paymentMonthOffset}
-            min={0}
-            onChange={v =>
-              setValue(vv => ({
-                ...vv,
-                paymentMonthOffset: v
               }))
             }
             error={errors.paymentDay}
