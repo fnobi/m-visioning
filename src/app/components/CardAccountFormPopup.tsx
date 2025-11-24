@@ -27,7 +27,7 @@ const CardAccountFormPopup = ({
   onClose
 }: {
   defaultValue: MoneyCardAccount;
-  bankList: TypedCollectionList<MoneyBankAccount>;
+  bankList: TypedCollectionList<MoneyBankAccount> | null;
   onSubmit: (v: MoneyCardAccount) => void;
   onClose: () => void;
 }) => {
@@ -38,7 +38,11 @@ const CardAccountFormPopup = ({
   );
 
   const bankOptions = useMemo(
-    () => bankList.map(({ id, data }) => ({ value: id, label: data.label })),
+    () =>
+      (bankList || []).map(({ id, data }) => ({
+        value: id,
+        label: data.label
+      })),
     [bankList]
   );
   const paymentMonthOffset = useMemo(

@@ -20,7 +20,7 @@ import { useBankSnapshotList } from "~/app/lib/database/bank-snapshot-database";
 import { type AppErrorParameter } from "~/app/scheme/AppErrorParameter";
 import { useCardSnapshotList } from "~/app/lib/database/card-snapshot-database";
 import type BankSnapshot from "~/app/scheme/BankSnapshot";
-import useCommonMoneyStore from "~/app/lib/database/useCommonMoneyStore";
+import useMyMoneyStore from "~/app/lib/database/useMyMoneyStore";
 import useAsyncHandler from "~/app/lib/useAsyncHandler";
 import { useMyMoneyPlanTools } from "~/app/lib/database/money-plan-database";
 import type MoneyPlan from "~/app/scheme/MoneyPlan";
@@ -48,7 +48,7 @@ const BankTableSceneContainer = () => {
     cardAccountList: cardList,
     moneyPlanList: planList,
     myPageProperty
-  } = useCommonMoneyStore();
+  } = useMyMoneyStore();
   const [statusError, setStatusError] = useState<AppErrorParameter | null>(
     null
   );

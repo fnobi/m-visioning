@@ -19,15 +19,15 @@ const CardSelectPopup = ({
   onSubmit,
   onClose
 }: {
-  defaultValue: string;
-  cardList: TypedCollectionList<MoneyCardAccount>;
+  defaultValue: string | null;
+  cardList: TypedCollectionList<MoneyCardAccount> | null;
   onCreate: (v: Partial<MoneyCardAccount>) => void;
   onSubmit: (v: string) => void;
   onClose: () => void;
 }) => (
   <AppCommonPopup title="カード選択" onClose={onClose}>
     <WrapperList>
-      {cardList.map(({ id, data }) => (
+      {(cardList || []).map(({ id, data }) => (
         <p key={id}>
           <MockActionButton
             action={
@@ -47,7 +47,12 @@ const CardSelectPopup = ({
         <MockActionButton
           action={{
             type: "button",
-            onClick: () => onCreate({ order: cardList.length + 1 })
+            onClick: () => {
+              if (!cardList) {
+                return;
+              }
+              onCreate({ order: cardList.length + 1 });
+            }
           }}
         >
           新規作成

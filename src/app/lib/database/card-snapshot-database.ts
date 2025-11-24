@@ -15,7 +15,7 @@ const cardSnapshotDataStore = new ClientDataStoreAgent(
 );
 
 type CardSnapshotQueryParams = {
-  cardId?: string;
+  cardId?: string | null;
   limit?: number;
   minTimestamp?: number;
   maxTimestamp?: number;

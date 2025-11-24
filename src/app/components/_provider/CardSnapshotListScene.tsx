@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
-import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import MockLoadingPopup from "~/common/components/MockLoadingPopup";
 import MockActionButton from "~/common/components/MockActionButton";
 import usePopupOperation from "~/common/lib/usePopupOperation";
@@ -17,16 +16,14 @@ import { useCardSnapshotList } from "~/app/lib/database/card-snapshot-database";
 import { type AppErrorParameter } from "~/app/scheme/AppErrorParameter";
 import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
 import type CardSnapshot from "~/app/scheme/CardSnapshot";
-import type useMonthCursor from "~/app/lib/useMonthCursor";
+import useMonthCursor from "~/app/lib/useMonthCursor";
 import useSimulatorRows, {
   type SimulatorRow
 } from "~/app/lib/useSimulatorRows";
 import type MoneyPlan from "~/app/scheme/MoneyPlan";
-import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
-import { useMyMoneyPlanTools } from "~/app/lib/database/money-plan-database";
 import useAsyncHandler from "~/app/lib/useAsyncHandler";
-import { useMyCardAccountTools } from "~/app/lib/database/card-account-database";
 import { parseMoneyCardAccount } from "~/app/scheme/MoneyCardAccount";
+import useMyMoneyStore from "~/app/lib/database/useMyMoneyStore";
 
 type PopupParams =
   | {
@@ -58,18 +55,14 @@ type PopupParams =
 
 const CardSnapshotListScene = ({
   cardId,
-  cardList,
-  bankList,
-  planList,
-  monthCursor,
-  onChangeCard
+  monthCode,
+  onChangeCard,
+  onChangeMonth
 }: {
-  cardId: string;
-  cardList: TypedCollectionList<MoneyCardAccount>;
-  bankList: TypedCollectionList<MoneyBankAccount>;
-  planList: TypedCollectionList<MoneyPlan>;
-  monthCursor: ReturnType<typeof useMonthCursor>;
+  cardId: string | null;
+  monthCode: number;
   onChangeCard: (id: string) => void;
+  onChangeMonth: (v: number) => void;
 }) => {
   const { myId } = useAuthorizedUser();
   const [statusError, setStatusError] = useState<AppErrorParameter | null>(
@@ -82,6 +75,25 @@ const CardSnapshotListScene = ({
   const { isLoading, runAsyncHandler } = useAsyncHandler({
     onError: setOperationError
   });
+
+  const {
+    cardAccountList,
+    bankAccountList,
+    moneyPlanList,
+    createCardAccount,
+    writeCardAccount,
+    writeMoneyPlan
+  } = useMyMoneyStore();
+  const currentCard = useMemo(() => {
+    const matched = (cardAccountList || []).find(b => b.id === cardId);
+    return matched ? matched.data : null;
+  }, [cardId, cardAccountList]);
+  const monthCursor = useMonthCursor({
+    monthCode,
+    setMonthCode: onChangeMonth,
+    startDay: currentCard ? currentCard.startDay : 0
+  });
+
   const [draftTimestamp, setDraftTimestamp] = useState(0);
 
   const {
@@ -96,25 +108,15 @@ const CardSnapshotListScene = ({
     maxTimestamp: monthCursor.maxTimestamp,
     onError: setStatusError
   });
-  const { createCardAccount, writeCardAccount } = useMyCardAccountTools();
-  const { writeMoneyPlan } = useMyMoneyPlanTools();
 
   const { calcRowsFromCardTerm } = useSimulatorRows();
-
-  const currentCard = useMemo(() => {
-    if (!cardList || !cardId) {
-      return null;
-    }
-    const matched = cardList.find(b => b.id === cardId);
-    return matched ? matched.data : null;
-  }, [cardId, cardList]);
 
   useEffect(() => {
     setDraftTimestamp(Date.now());
   }, []);
 
   const rows = useMemo(() => {
-    if (!cardSnapshotList) {
+    if (!cardId || !cardSnapshotList || !moneyPlanList) {
       return null;
     }
 
@@ -123,16 +125,16 @@ const CardSnapshotListScene = ({
       snapshotList: cardSnapshotList,
       termStart: monthCursor.minTimestamp,
       termEnd: monthCursor.maxTimestamp,
-      planList
+      planList: moneyPlanList
     });
     return res.rows;
   }, [
     calcRowsFromCardTerm,
     cardId,
     cardSnapshotList,
+    moneyPlanList,
     monthCursor.maxTimestamp,
-    monthCursor.minTimestamp,
-    planList
+    monthCursor.minTimestamp
   ]);
 
   const handleCreateCardSnapshot = useCallback(
@@ -201,6 +203,7 @@ const CardSnapshotListScene = ({
 
   const createCardSnapshotDraft = useCallback(() => {
     if (
+      !cardId ||
       !cardSnapshotList ||
       !rows ||
       draftTimestamp < monthCursor.minTimestamp
@@ -268,7 +271,7 @@ const CardSnapshotListScene = ({
           defaultValue: m.data
         });
       } else if (action?.type === "plan") {
-        const m = planList.find(p => p.id === action.planId);
+        const m = (moneyPlanList || []).find(p => p.id === action.planId);
         if (!m) {
           return;
         }
@@ -279,7 +282,7 @@ const CardSnapshotListScene = ({
         });
       }
     },
-    [cardSnapshotList, planList, addPopup]
+    [cardSnapshotList, addPopup, moneyPlanList]
   );
 
   if (statusError) {
@@ -292,19 +295,21 @@ const CardSnapshotListScene = ({
 
   return (
     <>
-      <PickableTitle
-        type="card"
-        onOpen={() => addPopup({ type: "select-card" })}
-        onEdit={() =>
-          addPopup({
-            type: "edit-card-account",
-            cardId,
-            defaultValue: currentCard
-          })
-        }
-      >
-        {currentCard.label}
-      </PickableTitle>
+      {cardId ? (
+        <PickableTitle
+          type="card"
+          onOpen={() => addPopup({ type: "select-card" })}
+          onEdit={() =>
+            addPopup({
+              type: "edit-card-account",
+              cardId,
+              defaultValue: currentCard
+            })
+          }
+        >
+          {currentCard.label}
+        </PickableTitle>
+      ) : null}
       <MonthCursorNavi monthCursor={monthCursor} />
       {draftTimestamp >= monthCursor.minTimestamp ? (
         <p>
@@ -343,8 +348,8 @@ const CardSnapshotListScene = ({
       {popup?.type === "edit-plan" ? (
         <PlanFormPopup
           defaultValue={popup.defaultValue}
-          bankList={bankList}
-          cardList={cardList}
+          bankList={bankAccountList}
+          cardList={cardAccountList}
           onClose={closeCurrentPopup}
           onSubmit={handleUpdatePlan}
         />
@@ -352,7 +357,7 @@ const CardSnapshotListScene = ({
       {popup?.type === "select-card" ? (
         <CardSelectPopup
           defaultValue={cardId}
-          cardList={cardList}
+          cardList={cardAccountList}
           onCreate={v =>
             addPopup({
               type: "create-card-account",
@@ -366,7 +371,7 @@ const CardSnapshotListScene = ({
       {popup?.type === "edit-card-account" ? (
         <CardAccountFormPopup
           defaultValue={popup.defaultValue}
-          bankList={bankList}
+          bankList={bankAccountList}
           onSubmit={handleUpdateCardAccount}
           onClose={closeCurrentPopup}
         />
@@ -374,7 +379,7 @@ const CardSnapshotListScene = ({
       {popup?.type === "create-card-account" ? (
         <CardAccountFormPopup
           defaultValue={popup.defaultValue}
-          bankList={bankList}
+          bankList={bankAccountList}
           onSubmit={handleCreateCardAccount}
           onClose={closeCurrentPopup}
         />

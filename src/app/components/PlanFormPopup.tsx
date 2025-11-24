@@ -42,8 +42,8 @@ const PlanFormPopup = ({
   onClose
 }: {
   defaultValue: MoneyPlan;
-  bankList: TypedCollectionList<MoneyBankAccount>;
-  cardList: TypedCollectionList<MoneyCardAccount>;
+  bankList: TypedCollectionList<MoneyBankAccount> | null;
+  cardList: TypedCollectionList<MoneyCardAccount> | null;
   onSubmit: (v: MoneyPlan) => void;
   onClose: () => void;
 }) => {
@@ -67,11 +67,19 @@ const PlanFormPopup = ({
   }, [value.from.type, value.to.type]);
 
   const bankOptions = useMemo(
-    () => bankList.map(({ id, data }) => ({ value: id, label: data.label })),
+    () =>
+      (bankList || []).map(({ id, data }) => ({
+        value: id,
+        label: data.label
+      })),
     [bankList]
   );
   const cardOptions = useMemo(
-    () => cardList.map(({ id, data }) => ({ value: id, label: data.label })),
+    () =>
+      (cardList || []).map(({ id, data }) => ({
+        value: id,
+        label: data.label
+      })),
     [cardList]
   );
   const repeatOptions = useMemo(
