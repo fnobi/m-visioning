@@ -165,6 +165,8 @@ export abstract class DataStoreAgent<
 
   protected abstract collectionReference(args: { collectionPath: string }): Cr;
 
+  protected abstract collectionGroupReference(): Cr;
+
   protected abstract documentReference(args: {
     collectionPath: string;
     id?: string;
@@ -184,16 +186,19 @@ export abstract class DataStoreAgent<
 
   protected abstract deleteDoc(r: Dr): Promise<void>;
 
-  protected abstract getDocs(
+  protected abstract getQueryDocs(
     r: Cr,
     args: {
       queryChain?: (c: QueryChain<T>) => unknown;
     }
   ): Promise<DocumentSnapshotMock[]>;
 
-  protected abstract getGroupDocs(args: {
-    queryChain?: (c: QueryChain<T>) => unknown;
-  }): Promise<DocumentSnapshotMock[]>;
+  protected abstract getQueryCount(
+    r: Cr,
+    args: {
+      queryChain?: (c: QueryChain<T>) => unknown;
+    }
+  ): Promise<number>;
 
   protected abstract subscribeDoc(
     r: Dr,
@@ -203,7 +208,7 @@ export abstract class DataStoreAgent<
     }
   ): () => void;
 
-  protected abstract subscribeDocs(
+  protected abstract subscribeQueryDocs(
     r: Cr,
     args: {
       queryChain?: (c: QueryChain<T>) => unknown;
@@ -211,12 +216,6 @@ export abstract class DataStoreAgent<
       onError: (e: unknown) => void;
     }
   ): () => void;
-
-  protected abstract subscribeGroupDocs(args: {
-    queryChain?: (c: QueryChain<T>) => unknown;
-    handler: (l: DocumentSnapshotMock[]) => void;
-    onError: (e: unknown) => void;
-  }): () => void;
 
   public newItemId(opts: C) {
     return this.newDocId({
@@ -300,15 +299,36 @@ export abstract class DataStoreAgent<
     }
   ) {
     const { queryChain } = opts;
-    const docs = await this.getDocs(this.itemListReference(opts), {
+    const docs = await this.getQueryDocs(this.itemListReference(opts), {
       queryChain
     });
     return this.parseCollectionSnapshot(docs);
   }
 
+  public async fetchListCount(
+    opts: C & {
+      queryChain?: (c: QueryChain<T>) => unknown;
+    }
+  ) {
+    const { queryChain } = opts;
+    const count = await this.getQueryCount(this.itemListReference(opts), {
+      queryChain
+    });
+    return count;
+  }
+
   public async fetchGroupList(queryChain?: (c: QueryChain<T>) => unknown) {
-    const docs = await this.getGroupDocs({ queryChain });
+    const docs = await this.getQueryDocs(this.collectionGroupReference(), {
+      queryChain
+    });
     return this.parseCollectionGroupSnapshot(docs);
+  }
+
+  public async fetchGroupListCount(queryChain?: (c: QueryChain<T>) => unknown) {
+    const count = await this.getQueryCount(this.collectionGroupReference(), {
+      queryChain
+    });
+    return count;
   }
 
   public subscribeList(
@@ -319,7 +339,7 @@ export abstract class DataStoreAgent<
     }
   ) {
     const { queryChain, handler, onError } = opts;
-    return this.subscribeDocs(this.itemListReference(opts), {
+    return this.subscribeQueryDocs(this.itemListReference(opts), {
       queryChain,
       handler: docs => handler(this.parseCollectionSnapshot(docs)),
       onError
@@ -335,7 +355,7 @@ export abstract class DataStoreAgent<
     handler: (l: { fullPath: string; ids: string[]; data: T }[]) => void;
     onError: (e: unknown) => void;
   }) {
-    return this.subscribeGroupDocs({
+    return this.subscribeQueryDocs(this.collectionGroupReference(), {
       queryChain,
       handler: docs => handler(this.parseCollectionGroupSnapshot(docs)),
       onError
