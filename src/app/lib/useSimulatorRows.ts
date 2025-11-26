@@ -46,19 +46,30 @@ export type CardTerm = {
   snapshotList: TypedCollectionList<CardSnapshot>;
 };
 
-export const calcDayArray = (st: number, length: number) =>
-  length > 0
-    ? makeArray(Math.floor(length)).map((z, i) => {
-        const date = st + 1000 * 60 * 60 * 24 * i;
-        const d = new Date(date);
-        return {
-          date,
-          year: d.getFullYear(),
-          month: d.getMonth() + 1,
-          day: d.getDate()
-        };
-      })
-    : [];
+const calcDayArray = (startTimestamp: number, length: number) => {
+  const validLength = Math.floor(length);
+  if (validLength <= 0) {
+    return [];
+  }
+
+  const startDate = new Date(startTimestamp);
+  startDate.setHours(0);
+  startDate.setMinutes(0);
+  startDate.setSeconds(0);
+  startDate.setMilliseconds(0);
+  const st = startDate.getTime();
+
+  return makeArray(validLength).map((z, i) => {
+    const date = st + 1000 * 60 * 60 * 24 * i;
+    const d = new Date(date);
+    return {
+      date,
+      year: d.getFullYear(),
+      month: d.getMonth() + 1,
+      day: d.getDate()
+    };
+  });
+};
 
 export const calcRangeDayArray = (st: number, end: number) =>
   calcDayArray(st, (end - st) / (1000 * 60 * 60 * 24));

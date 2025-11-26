@@ -423,7 +423,7 @@ const BankTableScene = ({
 
       const detail: BankSnapshot["detail"] = bankEvents.rows
         .filter(
-          r => r.date > (diffSnapshot?.timestamp ?? 0) && r.date <= Date.now()
+          r => r.date > (diffSnapshot?.timestamp ?? 0) && r.date <= timestamp
         )
         .map(r => ({
           label: r.label,
