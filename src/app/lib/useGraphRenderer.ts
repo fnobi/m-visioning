@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import { maxBy } from "~/common/lib/array-util";
-import { parseString } from "~/common/lib/parser-helper";
 import { type SimulatorRow } from "~/app/lib/useSimulatorRows";
 import { THEME_COLOR } from "~/app/lib//emotion-mixin";
 
@@ -24,14 +23,21 @@ const useGraphRenderer = ({
     if (!canvas || !isActive) {
       return;
     }
-    const PADDING = 50;
-    canvas.width = 800;
-    canvas.height = 600;
-    const contentWidth = canvas.width - PADDING * 2;
-    const contentHeight = canvas.height - PADDING * 2;
+    const PADDING_X = 40;
+    const PADDING_Y = 55;
+    const WIDTH = 800;
+    const HEIGHT = 600;
+
+    canvas.width = canvas.offsetWidth * 2;
+    canvas.height = (HEIGHT / WIDTH) * canvas.width;
+
+    const contentWidth = WIDTH - PADDING_X * 2;
+    const contentHeight = HEIGHT - PADDING_Y * 2;
     const ctx = canvas.getContext("2d");
     if (ctx) {
-      ctx.translate(PADDING, PADDING);
+      ctx.scale(canvas.width / WIDTH, canvas.width / WIDTH);
+
+      ctx.translate(PADDING_X, PADDING_Y);
 
       ctx.fillStyle = "#eeeeee";
       ctx.fillRect(0, 0, contentWidth, contentHeight);
@@ -44,6 +50,7 @@ const useGraphRenderer = ({
         vlines.push(vdate.getTime());
         vdate.setMonth(vdate.getMonth() + 1);
       }
+      vlines.push(endDate);
       ctx.fillStyle = "#e5e5e5";
       ctx.beginPath();
       vlines.forEach((v, i) => {
@@ -89,26 +96,42 @@ const useGraphRenderer = ({
       });
       ctx.stroke();
 
-      ctx.font = "18px/18px sans-serif";
-      ctx.textAlign = "center";
+      ctx.font = "12px/12px sans-serif";
+      ctx.textAlign = "left";
       ctx.textBaseline = "bottom";
 
-      vlines.forEach(v => {
-        const progress = (v - startDate) / (endDate - startDate);
-        ctx.fillText(
-          parseString(new Date(v).getMonth() + 1),
-          contentWidth * progress,
-          -5
+      for (let i = 0; i < vlines.length; i += 1) {
+        const st = vlines[i];
+        const en = vlines[i + 1];
+        const stp = (st - startDate) / (endDate - startDate);
+        const enp = (en - startDate) / (endDate - startDate);
+        const rangePoints = points.filter(
+          p => p.x >= contentWidth * stp && p.x < contentWidth * enp
         );
-      });
 
-      const minPoint = points.reduce(
-        (prev, curr) => (curr.amount < prev.amount ? curr : prev),
-        { x: 0, y: 0, amount: Infinity }
-      );
-      ctx.textBaseline = "top";
-      ctx.fillStyle = minPoint.amount > 0 ? THEME_COLOR.DARK : "#ff0000";
-      ctx.fillText(parseString(minPoint.amount), minPoint.x, contentHeight + 5);
+        const d = new Date(st);
+        const label = [d.getFullYear(), d.getMonth() + 1].join("/");
+        ctx.save();
+        ctx.translate(contentWidth * stp, -5);
+        ctx.rotate((-1 / 4) * Math.PI);
+        ctx.fillText(label, 0, 0);
+        ctx.restore();
+
+        if (rangePoints.length) {
+          const minPoint = rangePoints.reduce(
+            (prev, curr) => (curr.amount < prev.amount ? curr : prev),
+            { x: 0, y: 0, amount: Infinity }
+          );
+          ctx.save();
+          ctx.textAlign = "right";
+          ctx.textBaseline = "top";
+          ctx.fillStyle = minPoint.amount > 0 ? THEME_COLOR.DARK : "#ff0000";
+          ctx.translate(minPoint.x, contentHeight);
+          ctx.rotate((-1 / 4) * Math.PI);
+          ctx.fillText(`¥${minPoint.amount.toLocaleString()}`, 0, 0);
+          ctx.restore();
+        }
+      }
     }
   }, [bankEvents, startDate, endDate, isActive]);
 
