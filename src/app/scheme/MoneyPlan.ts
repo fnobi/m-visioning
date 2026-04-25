@@ -61,14 +61,37 @@ export const parseMoneyPlanRepeat = (src: unknown): MoneyPlan["repeat"] => {
   }
 };
 
+const normalizePlanFlow = (
+  value: Pick<MoneyPlan, "from" | "to">
+): Pick<MoneyPlan, "from" | "to"> => {
+  if (value.from.type === "bank" && value.to.type === "bank") {
+    return { ...value };
+  }
+  if (value.from.type === "input") {
+    return {
+      from: { type: "input" },
+      to: {
+        type: "bank",
+        bankId: value.to.type === "bank" ? value.to.bankId : ""
+      }
+    };
+  }
+  return {
+    from: { ...value.from },
+    to: { type: "output" }
+  };
+};
+
 export const parseMoneyPlan = (src: unknown) =>
   parseObject<MoneyPlan>(
     src,
     ({ label, price, from, to, year, month, day, repeat }) => ({
       label: parseString(label),
       price: parseNumber(price),
-      from: parseFromMoneyNode(from),
-      to: parseToMoneyNode(to),
+      ...normalizePlanFlow({
+        from: parseFromMoneyNode(from),
+        to: parseToMoneyNode(to)
+      }),
       year: parseNumber(year),
       month: parseNumber(month),
       day: parseNumber(day),
