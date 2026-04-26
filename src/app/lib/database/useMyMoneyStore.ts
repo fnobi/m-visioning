@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { atom, useRecoilValue, useSetRecoilState } from "recoil";
+import { create } from "zustand";
 import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import { useMyPagePropertyItem } from "~/app/lib/database/my-page-property-database";
@@ -21,20 +21,19 @@ import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
 import type MoneyPlan from "~/app/scheme/MoneyPlan";
 import type MyPageProperty from "~/app/scheme/MyPageProperty";
 
-const commonMoneyStore = atom<{
+type CommonMoneyStore = {
   bankAccountList: TypedCollectionList<MoneyBankAccount> | null;
   cardAccountList: TypedCollectionList<MoneyCardAccount> | null;
   moneyPlanList: TypedCollectionList<MoneyPlan> | null;
   myPageProperty: MyPageProperty | null;
-}>({
-  key: "common-money-store",
-  default: {
-    bankAccountList: null,
-    cardAccountList: null,
-    moneyPlanList: null,
-    myPageProperty: null
-  }
-});
+};
+
+const useCommonMoneyStore = create<CommonMoneyStore>(() => ({
+  bankAccountList: null,
+  cardAccountList: null,
+  moneyPlanList: null,
+  myPageProperty: null
+}));
 
 export const useMyMoneyRoot = () => {
   const { myId } = useAuthorizedUser();
@@ -59,21 +58,21 @@ export const useMyMoneyRoot = () => {
     onError: setStatusError
   });
 
-  const setCommonDataStore = useSetRecoilState(commonMoneyStore);
+  const setCommonDataStore = useCommonMoneyStore.setState;
   useEffect(
-    () => setCommonDataStore(o => ({ ...o, moneyPlanList })),
+    () => setCommonDataStore({ moneyPlanList }),
     [moneyPlanList, setCommonDataStore]
   );
   useEffect(
-    () => setCommonDataStore(o => ({ ...o, bankAccountList })),
+    () => setCommonDataStore({ bankAccountList }),
     [bankAccountList, setCommonDataStore]
   );
   useEffect(
-    () => setCommonDataStore(o => ({ ...o, cardAccountList })),
+    () => setCommonDataStore({ cardAccountList }),
     [cardAccountList, setCommonDataStore]
   );
   useEffect(
-    () => setCommonDataStore(o => ({ ...o, myPageProperty })),
+    () => setCommonDataStore({ myPageProperty }),
     [myPageProperty, setCommonDataStore]
   );
 
@@ -81,7 +80,7 @@ export const useMyMoneyRoot = () => {
 };
 
 const useMyMoneyStore = () => {
-  const data = useRecoilValue(commonMoneyStore);
+  const data = useCommonMoneyStore();
   const myBankAccountTools = useMyBankAccountTools();
   const myCardAccountTools = useMyCardAccountTools();
   const myMoneyPlanTools = useMyMoneyPlanTools();
