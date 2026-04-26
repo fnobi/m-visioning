@@ -3,9 +3,9 @@ import { parseNumber, parseString } from "~/common/lib/parser-helper";
 import useTypedQuery, { parseBooleanQuery } from "~/common/lib/useTypedQuery";
 import BankTableScene, {
   PERIOD_OPTIONS
-} from "~/app/components/_provider/BankTableScene";
-import MVisionFrame from "~/app/components/MVisionFrame";
-import useMyMoneyStore from "~/app/lib/database/useMyMoneyStore";
+} from "~/app/ui/_provider/BankTableScene";
+import MVisionFrame from "~/app/ui/MVisionFrame";
+import useMyMoneyStore from "~/app/core/database/useMyMoneyStore";
 
 const parsePeriodNumberQuery = (src: unknown) => {
   const n = parseNumber(src);
