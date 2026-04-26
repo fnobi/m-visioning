@@ -1,4 +1,6 @@
-import { useRouter } from "next/router";
+"use client";
+
+import { usePathname, useSearchParams } from "next/navigation";
 import Script from "next/script";
 import React, { useEffect, useRef } from "react";
 
@@ -78,10 +80,12 @@ export const sendPageView = ({
 
 const usePageView = (id: string, basePath: string) => {
   const landingPathRef = useRef("");
-  const route = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   useEffect(() => {
     const { current: landingPath } = landingPathRef;
-    const pagePath = basePath + route.asPath;
+    const qs = searchParams?.toString() || "";
+    const pagePath = basePath + (pathname || "/") + (qs ? `?${qs}` : "");
     if (landingPath) {
       sendPageView({
         id,
@@ -90,7 +94,7 @@ const usePageView = (id: string, basePath: string) => {
     } else {
       landingPathRef.current = pagePath;
     }
-  }, [route.asPath, id, basePath]);
+  }, [pathname, searchParams, id, basePath]);
 };
 
 export const GTagSnippet = ({

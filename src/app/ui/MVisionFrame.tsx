@@ -1,5 +1,7 @@
+"use client";
+
 import { useState, type ReactNode } from "react";
-import { useRouter } from "next/router";
+import { usePathname } from "next/navigation";
 import { signOut } from "firebase/auth";
 import styled from "@emotion/styled";
 import { buildTransform } from "css-transform-builder";
@@ -117,7 +119,7 @@ const NaviToggleButton = styled.div(
 );
 
 const MVisionFrame = ({ children }: { children: ReactNode }) => {
-  const router = useRouter();
+  const pathname = usePathname();
   const [menuFlag, setMenuFlag] = useState(false);
   return (
     <AuthFrame>
@@ -129,7 +131,9 @@ const MVisionFrame = ({ children }: { children: ReactNode }) => {
           <MenuItem key={page.href}>
             {icon}
             <MockActionButton
-              action={page.test(router) ? null : { type: "page-link", page }}
+              action={
+                page.test(pathname || "/") ? null : { type: "page-link", page }
+              }
             >
               {label}
             </MockActionButton>

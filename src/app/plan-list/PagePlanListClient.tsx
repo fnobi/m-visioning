@@ -1,3 +1,5 @@
+"use client";
+
 import MockLoadingScene from "~/common/components/MockLoadingScene";
 import MVisionFrame from "~/app/ui/MVisionFrame";
 import PlanListScene from "~/app/ui/_provider/PlanListScene";
@@ -36,10 +38,10 @@ const PlanListSceneContainer = () => {
   );
 };
 
-const PagePlanList = () => (
+const PagePlanListClient = () => (
   <MVisionFrame>
     <PlanListSceneContainer />
   </MVisionFrame>
 );
 
-export default PagePlanList;
+export default PagePlanListClient;

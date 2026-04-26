@@ -1,26 +1,35 @@
+"use client";
+
 import { useCallback, useMemo } from "react";
-import Router, { useRouter } from "next/router";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { parseString } from "~/common/lib/parser-helper";
 
 export const parseBooleanQuery = (src: unknown) => src === "true";
 
 const useTypedQuery = <T>(key: string, parse: (v: unknown) => T) => {
-  const { query, route } = useRouter();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const pushQuery = useCallback(
     (v: string) => {
-      const u = new URLSearchParams(window.location.search);
+      const u = new URLSearchParams(searchParams?.toString() || "");
       if (v) {
         u.set(key, v);
       } else {
         u.delete(key);
       }
-      Router.push(`${route}?${u.toString()}`);
+      const qs = u.toString();
+      const path = pathname || "/";
+      router.push(qs ? `${path}?${qs}` : path);
     },
-    [key, route]
+    [key, pathname, router, searchParams]
   );
 
-  const rawValue = useMemo(() => parseString(query[key]), [key, query]);
+  const rawValue = useMemo(
+    () => parseString(searchParams?.get(key)),
+    [key, searchParams]
+  );
 
   const queryValue = useMemo((): T => parse(rawValue), [parse, rawValue]);
   const setQueryValue = useCallback(

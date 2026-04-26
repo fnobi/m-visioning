@@ -1,3 +1,5 @@
+"use client";
+
 import { useCallback } from "react";
 import { parseNumber, parseString } from "~/common/lib/parser-helper";
 import useTypedQuery from "~/common/lib/useTypedQuery";
@@ -5,7 +7,7 @@ import MVisionFrame from "~/app/ui/MVisionFrame";
 import useMyMoneyStore from "~/app/core/database/useMyMoneyStore";
 import CardSnapshotListScene from "~/app/ui/_provider/CardSnapshotListScene";
 
-const PageCardSnapshotList = () => {
+const PageCardSnapshotListClient = () => {
   const { cardAccountList } = useMyMoneyStore();
   const parseCardQuery = useCallback(
     (src: unknown) => {
@@ -36,4 +38,4 @@ const PageCardSnapshotList = () => {
   );
 };
 
-export default PageCardSnapshotList;
+export default PageCardSnapshotListClient;

@@ -1,3 +1,5 @@
+"use client";
+
 import { useCallback } from "react";
 import { parseNumber, parseString } from "~/common/lib/parser-helper";
 import useTypedQuery, { parseBooleanQuery } from "~/common/lib/useTypedQuery";
@@ -12,7 +14,7 @@ const parsePeriodNumberQuery = (src: unknown) => {
   return PERIOD_OPTIONS.includes(n) ? n : PERIOD_OPTIONS[0];
 };
 
-const PageIndex = () => {
+const PageIndexClient = () => {
   const { bankAccountList } = useMyMoneyStore();
   const parseBankQuery = useCallback(
     (src: unknown) => {
@@ -54,4 +56,4 @@ const PageIndex = () => {
   );
 };
 
-export default PageIndex;
+export default PageIndexClient;

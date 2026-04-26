@@ -1,3 +1,5 @@
+"use client";
+
 import { type ReactNode } from "react";
 import { useAuthRoot } from "~/common/lib/firebase-auth-tools";
 import ErrorScene from "~/app/ui/ErrorScene";

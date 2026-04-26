@@ -8,7 +8,7 @@
     "build": "next build && node scripts/make-dist-dir",
     "lint": "eslint --ext .ts,.tsx,.js --fix src",
     "test": "jest",
-    "find-deadcode": "ts-prune | grep -v src/pages | grep -v src/lib"
+    "find-deadcode": "ts-prune | grep -v 'src/app/.*page' | grep -v src/app/layout | grep -v src/app/not-found"
   },
   "keywords": [],
   "author": "Fujisawa Shin",

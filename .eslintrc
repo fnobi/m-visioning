@@ -116,8 +116,9 @@
         {
           "module": "@emotion/styled",
           "allowReferenceFrom": [
-            "src/(app|common)/components/*",
-            "src/app/components/**/!(_provider)/*"
+            "src/common/components/*",
+            "src/app/ui/*",
+            "src/app/ui/**/!(_provider)/*"
           ],
           "allowSameModule": false
         },
@@ -132,22 +133,23 @@
           "module": "src/assets",
           "allowReferenceFrom": [
             "src/app/!(scheme)/**/*",
-            "src/pages/**/*"
+            "src/app/*"
           ],
           "allowSameModule": false
         },
         {
-          "module": "src/app/lib/database",
+          "module": "src/app/core/database",
           "allowReferenceFrom": [
-            "src/pages/**/*",
-            "src/app/components/**/_provider/*"
+            "src/app/*",
+            "src/app/**/!(ui)/*",
+            "src/app/ui/**/_provider/*"
           ],
           "allowSameModule": true
         },
         {
           "module": "src/app/scheme/app-firestore-scheme",
           "allowReferenceFrom": [
-            "src/app/lib/database/**/*"
+            "src/app/core/database/**/*"
           ],
           "allowSameModule": false
         }
