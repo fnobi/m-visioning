@@ -4,7 +4,7 @@ import {
   onAuthStateChanged,
   type User
 } from "firebase/auth";
-import { atom, useRecoilState, useRecoilValue } from "recoil";
+import { create } from "zustand";
 import { firebaseAuth } from "~/common/lib/firebase-app";
 
 export type MeState = {
@@ -14,31 +14,28 @@ export type MeState = {
   emailVerificationProgress: boolean;
 };
 
-const meStore = atom<MeState>({
-  key: `meStore_${Math.random().toString(36)}`,
-  default: {
-    isAuthLoading: true,
-    myId: null,
-    myEmail: null,
-    emailVerificationProgress: false
-  }
-});
+const useMeStore = create<MeState>(() => ({
+  isAuthLoading: true,
+  myId: null,
+  myEmail: null,
+  emailVerificationProgress: false
+}));
 
-export const useAuthorizedUser = () => useRecoilValue(meStore);
+export const useAuthorizedUser = () => useMeStore();
 
 export const useAuthRoot = () => {
-  const [meState, setMeState] = useRecoilState(meStore);
+  const meState = useMeStore();
 
   useEffect(() => {
     const setMe = (payload: Partial<MeState>) =>
-      setMeState(s => ({
+      useMeStore.setState(s => ({
         ...s,
         ...payload,
         isAuthLoading: false
       }));
 
     const cleanMe = (payload: { reset?: boolean }) =>
-      setMeState(s => ({
+      useMeStore.setState(s => ({
         ...s,
         isAuthLoading: payload.reset || false,
         myId: null,
@@ -52,7 +49,7 @@ export const useAuthRoot = () => {
         setMe({
           myId: user.uid,
           myEmail: user.email,
-          emailVerificationProgress: isEmailUser && !user.emailVerified
+          emailVerificationProgress: Boolean(isEmailUser && !user.emailVerified)
         });
       } else {
         cleanMe({ reset: false });
@@ -60,7 +57,7 @@ export const useAuthRoot = () => {
     };
     getRedirectResult(firebaseAuth());
     return onAuthStateChanged(firebaseAuth(), handleAuthStateChange);
-  }, [setMeState]);
+  }, []);
 
   return meState;
 };
