@@ -6,6 +6,8 @@ export const SPENDING_CATEGORIES = [
   { value: "fashion", label: "衣服・美容" },
   { value: "medical", label: "医療" },
   { value: "utility", label: "光熱費" },
+  { value: "travel", label: "旅行・デート" },
+  { value: "subscription", label: "サブスク" },
   { value: "other", label: "その他" }
 ] as const;
 
@@ -20,6 +22,8 @@ const CATEGORY_COLORS: Record<string, string> = {
   fashion: "#9966FF",
   medical: "#FF9F40",
   utility: "#C9CBCF",
+  travel: "#F97316",
+  subscription: "#8B5CF6",
   other: "#AAAAAA",
   "": "#DDDDDD"
 };
