@@ -13,6 +13,7 @@ type CardSnapshot = {
     label: string;
     price: number;
     date: number;
+    category: string;
   }[];
 };
 
@@ -24,10 +25,11 @@ export const parseCardSnapshot = (src: unknown) =>
     detail: parseArray(detail, d =>
       parseObject<CardSnapshot["detail"][number]>(
         d,
-        ({ label, price, date }) => ({
+        ({ label, price, date, category }) => ({
           label: parseString(label),
           price: parseNumber(price),
-          date: parseNumber(date)
+          date: parseNumber(date),
+          category: parseString(category)
         })
       )
     )

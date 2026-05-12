@@ -3,6 +3,7 @@ import {
   MockArrayFormRow,
   MockDateTimeFormRow,
   MockFormFrame,
+  MockPulldownFormRow,
   MockStringFormRow
 } from "~/common/components/mock-form-ui";
 import FormOrganizer from "~/common/lib/FormOrganizer";
@@ -14,8 +15,17 @@ import MockActionButton from "~/common/components/MockActionButton";
 import PriceFormRow from "~/app/components/PriceFormRow";
 import type CardSnapshot from "~/app/scheme/CardSnapshot";
 import type BankSnapshot from "~/app/scheme/BankSnapshot";
+import { SPENDING_CATEGORIES } from "~/app/scheme/SpendingCategory";
 
-const formOrganizer2 = new FormOrganizer<BankSnapshot["detail"][number]>()
+const CATEGORY_OPTIONS: { value: string; label: string }[] = [
+  { value: "", label: "未分類" },
+  ...SPENDING_CATEGORIES.map(c => ({ value: c.value, label: c.label }))
+];
+
+type BankDetailItem = BankSnapshot["detail"][number];
+type CardDetailItem = CardSnapshot["detail"][number];
+
+const formOrganizer2 = new FormOrganizer<BankDetailItem>()
   .fieldValidator("label", requiredValidator())
   .fieldValidator("price", requiredValidator())
   .fieldValidator("date", requiredValidator());
@@ -29,8 +39,8 @@ const SnapshotDetailForm = ({
   onChange,
   lock
 }: {
-  value: BankSnapshot["detail"][number];
-  onChange: (v: BankSnapshot["detail"][number]) => void;
+  value: BankDetailItem;
+  onChange: (v: BankDetailItem) => void;
   lock: ComponentPropsWithoutRef<typeof PriceFormRow>["lock"];
 }) => {
   const errors = useMemo(() => formOrganizer2.getErrors(value), [value]);
@@ -54,6 +64,51 @@ const SnapshotDetailForm = ({
         value={value.price}
         onChange={v => onChange({ ...value, price: v })}
         error={errors.price}
+      />
+    </>
+  );
+};
+
+const CardSnapshotDetailForm = ({
+  value,
+  onChange,
+  lock
+}: {
+  value: CardDetailItem;
+  onChange: (v: CardDetailItem) => void;
+  lock: ComponentPropsWithoutRef<typeof PriceFormRow>["lock"];
+}) => {
+  const errors = useMemo(
+    () => formOrganizer2.getErrors(value as BankDetailItem),
+    [value]
+  );
+  return (
+    <>
+      <MockDateTimeFormRow
+        label="日時"
+        value={value.date}
+        onChange={v => onChange({ ...value, date: v })}
+        error={errors.date}
+      />
+      <MockStringFormRow
+        label="内容"
+        value={value.label}
+        onChange={v => onChange({ ...value, label: v })}
+        error={errors.label}
+      />
+      <PriceFormRow
+        label="金額"
+        lock={lock}
+        value={value.price}
+        onChange={v => onChange({ ...value, price: v })}
+        error={errors.price}
+      />
+      <MockPulldownFormRow
+        label="カテゴリ"
+        value={value.category}
+        onChange={v => onChange({ ...value, category: v })}
+        options={CATEGORY_OPTIONS}
+        error={null}
       />
     </>
   );
@@ -96,19 +151,40 @@ const SnapshotForm = ({
           onChange={v => setValue(vv => ({ ...vv, amount: v }))}
           error={errors.amount}
         />
-        <MockArrayFormRow
-          label="内訳"
-          value={value.detail}
-          onChange={v => setValue(vv => ({ ...vv, detail: v }))}
-          error={errors.detail}
-          makeNew={() => ({
-            label: "",
-            price: 0,
-            date: value.timestamp
-          })}
-          props={{ lock: null }}
-          Item={SnapshotDetailForm}
-        />
+        {type === "card" ? (
+          <MockArrayFormRow
+            label="内訳"
+            value={(value as CardSnapshot).detail}
+            onChange={v =>
+              setValue(vv => ({ ...vv, detail: v } as typeof vv))
+            }
+            error={errors.detail}
+            makeNew={() => ({
+              label: "",
+              price: 0,
+              date: value.timestamp,
+              category: ""
+            })}
+            props={{ lock: null }}
+            Item={CardSnapshotDetailForm}
+          />
+        ) : (
+          <MockArrayFormRow
+            label="内訳"
+            value={(value as BankSnapshot).detail}
+            onChange={v =>
+              setValue(vv => ({ ...vv, detail: v } as typeof vv))
+            }
+            error={errors.detail}
+            makeNew={() => ({
+              label: "",
+              price: 0,
+              date: value.timestamp
+            })}
+            props={{ lock: null }}
+            Item={SnapshotDetailForm}
+          />
+        )}
         {onDelete ? (
           <p>
             <MockActionButton action={{ type: "button", onClick: onDelete }}>

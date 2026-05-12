@@ -24,6 +24,7 @@ import type MoneyPlan from "~/app/scheme/MoneyPlan";
 import useAsyncHandler from "~/app/lib/useAsyncHandler";
 import { parseMoneyCardAccount } from "~/app/scheme/MoneyCardAccount";
 import useMyMoneyStore from "~/app/lib/database/useMyMoneyStore";
+import usePieChartRenderer from "~/app/lib/usePieChartRenderer";
 
 type PopupParams =
   | {
@@ -95,6 +96,7 @@ const CardSnapshotListScene = ({
   });
 
   const [draftTimestamp, setDraftTimestamp] = useState(0);
+  const [isPieActive, setIsPieActive] = useState(true);
 
   const {
     cardSnapshotList,
@@ -136,6 +138,28 @@ const CardSnapshotListScene = ({
     monthCursor.maxTimestamp,
     monthCursor.minTimestamp
   ]);
+
+  const categoryItems = useMemo(() => {
+    if (!cardSnapshotList) {
+      return [];
+    }
+    const totals: Record<string, number> = {};
+    cardSnapshotList.forEach(({ data }) => {
+      data.detail.forEach(({ category, price }) => {
+        const key = category || "";
+        totals[key] = (totals[key] ?? 0) + Math.abs(price);
+      });
+    });
+    return Object.entries(totals)
+      .map(([category, amount]) => ({ category, amount }))
+      .filter(i => i.amount > 0)
+      .sort((a, b) => b.amount - a.amount);
+  }, [cardSnapshotList]);
+
+  const { canvasRef } = usePieChartRenderer({
+    isActive: isPieActive && categoryItems.length > 0,
+    items: categoryItems
+  });
 
   const handleCreateCardSnapshot = useCallback(
     (v: CardSnapshot) => {
@@ -229,7 +253,8 @@ const CardSnapshotListScene = ({
       .map(r => ({
         label: r.label,
         price: r.price,
-        date: r.date
+        date: r.date,
+        category: ""
       }));
     let amount = diffSnapshot?.amount ?? 0;
     detail.forEach(r => {
@@ -329,6 +354,26 @@ const CardSnapshotListScene = ({
           lastSnapshot={null}
           onClickRow={handleRowClick}
         />
+      ) : null}
+      {categoryItems.length > 0 ? (
+        <div style={{ marginTop: 24 }}>
+          <p>
+            <MockActionButton
+              action={{
+                type: "button",
+                onClick: () => setIsPieActive(v => !v)
+              }}
+            >
+              {isPieActive ? "内訳グラフを非表示" : "内訳グラフを表示"}
+            </MockActionButton>
+          </p>
+          {isPieActive ? (
+            <canvas
+              ref={canvasRef}
+              style={{ width: "100%", display: "block" }}
+            />
+          ) : null}
+        </div>
       ) : null}
       {popup?.type === "create-card-snapshot" ? (
         <CardSnapshotFormPopup
