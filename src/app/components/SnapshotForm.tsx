@@ -25,14 +25,23 @@ const CATEGORY_OPTIONS: { value: string; label: string }[] = [
 type BankDetailItem = BankSnapshot["detail"][number];
 type CardDetailItem = CardSnapshot["detail"][number];
 
-const formOrganizer2 = new FormOrganizer<BankDetailItem>()
+const bankDetailOrganizer = new FormOrganizer<BankDetailItem>()
   .fieldValidator("label", requiredValidator())
   .fieldValidator("price", requiredValidator())
   .fieldValidator("date", requiredValidator());
 
-const formOrganizer1 = new FormOrganizer<BankSnapshot | CardSnapshot>()
+const cardDetailOrganizer = new FormOrganizer<CardDetailItem>()
+  .fieldValidator("label", requiredValidator())
+  .fieldValidator("price", requiredValidator())
+  .fieldValidator("date", requiredValidator());
+
+const bankFormOrganizer = new FormOrganizer<BankSnapshot>()
   .fieldValidator("amount", requiredValidator())
-  .fieldValidator("detail", subArrayFieldValidator(formOrganizer2));
+  .fieldValidator("detail", subArrayFieldValidator(bankDetailOrganizer));
+
+const cardFormOrganizer = new FormOrganizer<CardSnapshot>()
+  .fieldValidator("amount", requiredValidator())
+  .fieldValidator("detail", subArrayFieldValidator(cardDetailOrganizer));
 
 const SnapshotDetailForm = ({
   value,
@@ -43,7 +52,10 @@ const SnapshotDetailForm = ({
   onChange: (v: BankDetailItem) => void;
   lock: ComponentPropsWithoutRef<typeof PriceFormRow>["lock"];
 }) => {
-  const errors = useMemo(() => formOrganizer2.getErrors(value), [value]);
+  const errors = useMemo(
+    () => bankDetailOrganizer.getErrors(value),
+    [value]
+  );
   return (
     <>
       <MockDateTimeFormRow
@@ -79,7 +91,7 @@ const CardSnapshotDetailForm = ({
   lock: ComponentPropsWithoutRef<typeof PriceFormRow>["lock"];
 }) => {
   const errors = useMemo(
-    () => formOrganizer2.getErrors(value as BankDetailItem),
+    () => cardDetailOrganizer.getErrors(value),
     [value]
   );
   return (
@@ -115,27 +127,21 @@ const CardSnapshotDetailForm = ({
 };
 
 const SnapshotForm = ({
-  type,
   defaultValue,
   onDelete,
   onSubmit
 }: {
-  type: "bank" | "card";
-  defaultValue: BankSnapshot | CardSnapshot;
+  defaultValue: BankSnapshot;
   onDelete?: () => void;
-  onSubmit: (v: BankSnapshot | CardSnapshot) => void;
+  onSubmit: (v: BankSnapshot) => void;
 }) => {
   const [value, setValue] = useState(defaultValue);
   const { validValue, errors } = useMemo(
-    () => formOrganizer1.getValidValue(value),
+    () => bankFormOrganizer.getValidValue(value),
     [value]
   );
   return (
-    <div
-      style={{
-        textAlign: "left"
-      }}
-    >
+    <div style={{ textAlign: "left" }}>
       <MockFormFrame validValue={validValue} onSubmit={onSubmit}>
         <MockDateTimeFormRow
           label="日時"
@@ -146,45 +152,79 @@ const SnapshotForm = ({
         <PriceFormRow
           label="金額"
           value={value.amount}
-          // eslint-disable-next-line no-nested-ternary
-          lock={type === "bank" ? "plus" : type === "card" ? "minus" : null}
+          lock="plus"
           onChange={v => setValue(vv => ({ ...vv, amount: v }))}
           error={errors.amount}
         />
-        {type === "card" ? (
-          <MockArrayFormRow
-            label="内訳"
-            value={(value as CardSnapshot).detail}
-            onChange={v =>
-              setValue(vv => ({ ...vv, detail: v } as typeof vv))
-            }
-            error={errors.detail}
-            makeNew={() => ({
-              label: "",
-              price: 0,
-              date: value.timestamp,
-              category: ""
-            })}
-            props={{ lock: null }}
-            Item={CardSnapshotDetailForm}
-          />
-        ) : (
-          <MockArrayFormRow
-            label="内訳"
-            value={(value as BankSnapshot).detail}
-            onChange={v =>
-              setValue(vv => ({ ...vv, detail: v } as typeof vv))
-            }
-            error={errors.detail}
-            makeNew={() => ({
-              label: "",
-              price: 0,
-              date: value.timestamp
-            })}
-            props={{ lock: null }}
-            Item={SnapshotDetailForm}
-          />
-        )}
+        <MockArrayFormRow
+          label="内訳"
+          value={value.detail}
+          onChange={v => setValue(vv => ({ ...vv, detail: v }))}
+          error={errors.detail}
+          makeNew={() => ({
+            label: "",
+            price: 0,
+            date: value.timestamp
+          })}
+          props={{ lock: null }}
+          Item={SnapshotDetailForm}
+        />
+        {onDelete ? (
+          <p>
+            <MockActionButton action={{ type: "button", onClick: onDelete }}>
+              このログを削除
+            </MockActionButton>
+          </p>
+        ) : null}
+      </MockFormFrame>
+    </div>
+  );
+};
+
+export const CardSnapshotForm = ({
+  defaultValue,
+  onDelete,
+  onSubmit
+}: {
+  defaultValue: CardSnapshot;
+  onDelete?: () => void;
+  onSubmit: (v: CardSnapshot) => void;
+}) => {
+  const [value, setValue] = useState(defaultValue);
+  const { validValue, errors } = useMemo(
+    () => cardFormOrganizer.getValidValue(value),
+    [value]
+  );
+  return (
+    <div style={{ textAlign: "left" }}>
+      <MockFormFrame validValue={validValue} onSubmit={onSubmit}>
+        <MockDateTimeFormRow
+          label="日時"
+          value={value.timestamp}
+          onChange={v => setValue(vv => ({ ...vv, timestamp: v }))}
+          error={errors.timestamp}
+        />
+        <PriceFormRow
+          label="金額"
+          value={value.amount}
+          lock="minus"
+          onChange={v => setValue(vv => ({ ...vv, amount: v }))}
+          error={errors.amount}
+        />
+        <MockArrayFormRow
+          label="内訳"
+          value={value.detail}
+          onChange={v => setValue(vv => ({ ...vv, detail: v }))}
+          error={errors.detail}
+          makeNew={() => ({
+            label: "",
+            price: 0,
+            date: value.timestamp,
+            category: ""
+          })}
+          props={{ lock: null }}
+          Item={CardSnapshotDetailForm}
+        />
         {onDelete ? (
           <p>
             <MockActionButton action={{ type: "button", onClick: onDelete }}>
