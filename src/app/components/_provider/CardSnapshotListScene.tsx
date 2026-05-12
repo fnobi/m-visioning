@@ -149,10 +149,18 @@ const CardSnapshotListScene = ({
     }
     const totals: Record<string, number> = {};
     cardSnapshotList.forEach(({ data }) => {
+      let detailTotal = 0;
       data.detail.forEach(({ category, price }) => {
         const key = category || "";
-        totals[key] = (totals[key] ?? 0) + Math.abs(price);
+        const absPrice = Math.abs(price);
+        totals[key] = (totals[key] ?? 0) + absPrice;
+        detailTotal += absPrice;
       });
+      // snapshot.amount から detail 合計を引いた分が「不明」として未分類に加算
+      const unknown = Math.abs(data.amount) - detailTotal;
+      if (unknown > 0) {
+        totals[""] = (totals[""] ?? 0) + unknown;
+      }
     });
     return Object.entries(totals)
       .map(([category, amount]) => ({ category, amount }))
