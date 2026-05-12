@@ -18,7 +18,6 @@ import type BankSnapshot from "~/app/scheme/BankSnapshot";
 import { SPENDING_CATEGORIES } from "~/app/scheme/SpendingCategory";
 
 const CATEGORY_OPTIONS: { value: string; label: string }[] = [
-  { value: "", label: "未分類" },
   ...SPENDING_CATEGORIES.map(c => ({ value: c.value, label: c.label }))
 ];
 

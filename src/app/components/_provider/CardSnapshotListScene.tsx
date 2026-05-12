@@ -25,6 +25,7 @@ import useAsyncHandler from "~/app/lib/useAsyncHandler";
 import { parseMoneyCardAccount } from "~/app/scheme/MoneyCardAccount";
 import useMyMoneyStore from "~/app/lib/database/useMyMoneyStore";
 import usePieChartRenderer from "~/app/lib/usePieChartRenderer";
+import { percent } from "~/common/lib/css-util";
 
 type PopupParams =
   | {
@@ -57,13 +58,17 @@ type PopupParams =
 const CardSnapshotListScene = ({
   cardId,
   monthCode,
+  graphMode,
   onChangeCard,
-  onChangeMonth
+  onChangeMonth,
+  setGraph
 }: {
   cardId: string | null;
   monthCode: number;
+  graphMode: boolean;
   onChangeCard: (id: string) => void;
   onChangeMonth: (v: number) => void;
+  setGraph: (v: boolean) => void;
 }) => {
   const { myId } = useAuthorizedUser();
   const [statusError, setStatusError] = useState<AppErrorParameter | null>(
@@ -96,7 +101,6 @@ const CardSnapshotListScene = ({
   });
 
   const [draftTimestamp, setDraftTimestamp] = useState(0);
-  const [isPieActive, setIsPieActive] = useState(true);
 
   const {
     cardSnapshotList,
@@ -157,7 +161,7 @@ const CardSnapshotListScene = ({
   }, [cardSnapshotList]);
 
   const { canvasRef } = usePieChartRenderer({
-    isActive: isPieActive && categoryItems.length > 0,
+    isActive: graphMode && categoryItems.length > 0,
     items: categoryItems
   });
 
@@ -336,45 +340,50 @@ const CardSnapshotListScene = ({
         </PickableTitle>
       ) : null}
       <MonthCursorNavi monthCursor={monthCursor} />
-      {draftTimestamp >= monthCursor.minTimestamp ? (
-        <p>
-          <MockActionButton
-            action={{
-              type: "button",
-              onClick: createCardSnapshotDraft
-            }}
-          >
-            ログ追加
-          </MockActionButton>
-        </p>
-      ) : null}
-      {rows ? (
-        <SimulatorTableView
-          rows={rows}
-          lastSnapshot={null}
-          onClickRow={handleRowClick}
-        />
-      ) : null}
-      {categoryItems.length > 0 ? (
-        <div style={{ marginTop: 24 }}>
+      {cardSnapshotList ? (
+        <>
           <p>
-            <MockActionButton
-              action={{
-                type: "button",
-                onClick: () => setIsPieActive(v => !v)
-              }}
-            >
-              {isPieActive ? "内訳グラフを非表示" : "内訳グラフを表示"}
-            </MockActionButton>
+            <label>
+              <input
+                type="checkbox"
+                checked={graphMode}
+                onChange={e => setGraph(e.target.checked)}
+              />
+              graph
+            </label>
           </p>
-          {isPieActive ? (
+          {graphMode ? (
             <canvas
               ref={canvasRef}
-              style={{ width: "100%", display: "block" }}
+              style={{ width: percent(100), height: "auto" }}
             />
-          ) : null}
-        </div>
-      ) : null}
+          ) : (
+            <>
+              {draftTimestamp >= monthCursor.minTimestamp ? (
+                <p>
+                  <MockActionButton
+                    action={{
+                      type: "button",
+                      onClick: createCardSnapshotDraft
+                    }}
+                  >
+                    ログ追加
+                  </MockActionButton>
+                </p>
+              ) : null}
+              {rows ? (
+                <SimulatorTableView
+                  rows={rows}
+                  lastSnapshot={null}
+                  onClickRow={handleRowClick}
+                />
+              ) : null}
+            </>
+          )}
+        </>
+      ) : (
+        <div>loading...</div>
+      )}
       {popup?.type === "create-card-snapshot" ? (
         <CardSnapshotFormPopup
           defaultValue={popup.defaultValue}
