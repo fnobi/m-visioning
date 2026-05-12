@@ -1,4 +1,9 @@
-import { type ComponentPropsWithoutRef, useMemo, useState } from "react";
+import {
+  type ComponentPropsWithoutRef,
+  type ReactNode,
+  useMemo,
+  useState
+} from "react";
 import {
   MockArrayFormRow,
   MockDateTimeFormRow,
@@ -8,6 +13,7 @@ import {
 } from "~/common/components/mock-form-ui";
 import FormOrganizer from "~/common/lib/FormOrganizer";
 import {
+  type ValidationErrorType,
   requiredValidator,
   subArrayFieldValidator
 } from "~/common/lib/form-validator";
@@ -17,9 +23,10 @@ import type CardSnapshot from "~/app/scheme/CardSnapshot";
 import type BankSnapshot from "~/app/scheme/BankSnapshot";
 import { SPENDING_CATEGORIES } from "~/app/scheme/SpendingCategory";
 
-const CATEGORY_OPTIONS: { value: string; label: string }[] = [
-  ...SPENDING_CATEGORIES.map(c => ({ value: c.value, label: c.label }))
-];
+const CATEGORY_OPTIONS = SPENDING_CATEGORIES.map(c => ({
+  value: c.value,
+  label: c.label
+}));
 
 type BankDetailItem = BankSnapshot["detail"][number];
 type CardDetailItem = CardSnapshot["detail"][number];
@@ -51,10 +58,7 @@ const SnapshotDetailForm = ({
   onChange: (v: BankDetailItem) => void;
   lock: ComponentPropsWithoutRef<typeof PriceFormRow>["lock"];
 }) => {
-  const errors = useMemo(
-    () => bankDetailOrganizer.getErrors(value),
-    [value]
-  );
+  const errors = useMemo(() => bankDetailOrganizer.getErrors(value), [value]);
   return (
     <>
       <MockDateTimeFormRow
@@ -89,10 +93,7 @@ const CardSnapshotDetailForm = ({
   onChange: (v: CardDetailItem) => void;
   lock: ComponentPropsWithoutRef<typeof PriceFormRow>["lock"];
 }) => {
-  const errors = useMemo(
-    () => cardDetailOrganizer.getErrors(value),
-    [value]
-  );
+  const errors = useMemo(() => cardDetailOrganizer.getErrors(value), [value]);
   return (
     <>
       <MockDateTimeFormRow
@@ -125,19 +126,33 @@ const CardSnapshotDetailForm = ({
   );
 };
 
-const SnapshotForm = ({
+// ---- 共通基底フォーム ----
+
+type SnapshotFormChildrenContext<T> = {
+  value: T;
+  setValue: (fn: (v: T) => T) => void;
+  errors: Record<keyof T, ValidationErrorType | null>;
+};
+
+function SnapshotForm<T extends BankSnapshot | CardSnapshot>({
   defaultValue,
+  lock,
+  organizer,
   onDelete,
-  onSubmit
+  onSubmit,
+  children
 }: {
-  defaultValue: BankSnapshot;
+  defaultValue: T;
+  lock: "plus" | "minus";
+  organizer: FormOrganizer<T>;
   onDelete?: () => void;
-  onSubmit: (v: BankSnapshot) => void;
-}) => {
-  const [value, setValue] = useState(defaultValue);
+  onSubmit: (v: T) => void;
+  children?: (ctx: SnapshotFormChildrenContext<T>) => ReactNode;
+}) {
+  const [value, setValue] = useState<T>(defaultValue);
   const { validValue, errors } = useMemo(
-    () => bankFormOrganizer.getValidValue(value),
-    [value]
+    () => organizer.getValidValue(value),
+    [organizer, value]
   );
   return (
     <div style={{ textAlign: "left" }}>
@@ -150,24 +165,12 @@ const SnapshotForm = ({
         />
         <PriceFormRow
           label="金額"
+          lock={lock}
           value={value.amount}
-          lock="plus"
           onChange={v => setValue(vv => ({ ...vv, amount: v }))}
           error={errors.amount}
         />
-        <MockArrayFormRow
-          label="内訳"
-          value={value.detail}
-          onChange={v => setValue(vv => ({ ...vv, detail: v }))}
-          error={errors.detail}
-          makeNew={() => ({
-            label: "",
-            price: 0,
-            date: value.timestamp
-          })}
-          props={{ lock: null }}
-          Item={SnapshotDetailForm}
-        />
+        {children?.({ value, setValue, errors })}
         {onDelete ? (
           <p>
             <MockActionButton action={{ type: "button", onClick: onDelete }}>
@@ -178,7 +181,43 @@ const SnapshotForm = ({
       </MockFormFrame>
     </div>
   );
-};
+}
+
+export default SnapshotForm;
+
+// ---- 銀行用ラッパー ----
+
+export const BankSnapshotForm = ({
+  defaultValue,
+  onDelete,
+  onSubmit
+}: {
+  defaultValue: BankSnapshot;
+  onDelete?: () => void;
+  onSubmit: (v: BankSnapshot) => void;
+}) => (
+  <SnapshotForm
+    defaultValue={defaultValue}
+    lock="plus"
+    organizer={bankFormOrganizer}
+    onDelete={onDelete}
+    onSubmit={onSubmit}
+  >
+    {({ value, setValue, errors }) => (
+      <MockArrayFormRow
+        label="内訳"
+        value={value.detail}
+        onChange={v => setValue(vv => ({ ...vv, detail: v }))}
+        error={errors.detail}
+        makeNew={() => ({ label: "", price: 0, date: value.timestamp })}
+        props={{ lock: null }}
+        Item={SnapshotDetailForm}
+      />
+    )}
+  </SnapshotForm>
+);
+
+// ---- カード用ラッパー ----
 
 export const CardSnapshotForm = ({
   defaultValue,
@@ -188,52 +227,29 @@ export const CardSnapshotForm = ({
   defaultValue: CardSnapshot;
   onDelete?: () => void;
   onSubmit: (v: CardSnapshot) => void;
-}) => {
-  const [value, setValue] = useState(defaultValue);
-  const { validValue, errors } = useMemo(
-    () => cardFormOrganizer.getValidValue(value),
-    [value]
-  );
-  return (
-    <div style={{ textAlign: "left" }}>
-      <MockFormFrame validValue={validValue} onSubmit={onSubmit}>
-        <MockDateTimeFormRow
-          label="日時"
-          value={value.timestamp}
-          onChange={v => setValue(vv => ({ ...vv, timestamp: v }))}
-          error={errors.timestamp}
-        />
-        <PriceFormRow
-          label="金額"
-          value={value.amount}
-          lock="minus"
-          onChange={v => setValue(vv => ({ ...vv, amount: v }))}
-          error={errors.amount}
-        />
-        <MockArrayFormRow
-          label="内訳"
-          value={value.detail}
-          onChange={v => setValue(vv => ({ ...vv, detail: v }))}
-          error={errors.detail}
-          makeNew={() => ({
-            label: "",
-            price: 0,
-            date: value.timestamp,
-            category: ""
-          })}
-          props={{ lock: null }}
-          Item={CardSnapshotDetailForm}
-        />
-        {onDelete ? (
-          <p>
-            <MockActionButton action={{ type: "button", onClick: onDelete }}>
-              このログを削除
-            </MockActionButton>
-          </p>
-        ) : null}
-      </MockFormFrame>
-    </div>
-  );
-};
-
-export default SnapshotForm;
+}) => (
+  <SnapshotForm
+    defaultValue={defaultValue}
+    lock="minus"
+    organizer={cardFormOrganizer}
+    onDelete={onDelete}
+    onSubmit={onSubmit}
+  >
+    {({ value, setValue, errors }) => (
+      <MockArrayFormRow
+        label="内訳"
+        value={value.detail}
+        onChange={v => setValue(vv => ({ ...vv, detail: v }))}
+        error={errors.detail}
+        makeNew={() => ({
+          label: "",
+          price: 0,
+          date: value.timestamp,
+          category: ""
+        })}
+        props={{ lock: null }}
+        Item={CardSnapshotDetailForm}
+      />
+    )}
+  </SnapshotForm>
+);
