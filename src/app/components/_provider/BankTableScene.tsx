@@ -207,6 +207,7 @@ const BankTableScene = ({
               return {
                 cardId: id,
                 label: card.label,
+                minAmount: card.minAmount,
                 paymentDate: { year, month, day },
                 sourceMonthCode: calcMonthCodeFromDate(termStartDate),
                 termStart,
@@ -317,7 +318,7 @@ const BankTableScene = ({
         id: string;
         data: MoneyPlanWithCardLink;
       }>(t => {
-        const { cardId, paymentDate, sourceMonthCode, label } = t;
+        const { cardId, paymentDate, sourceMonthCode, label, minAmount } = t;
         const key = [sourceMonthCode, cardId].join("_");
         const { amount } = calcRowsFromCardTerm({
           ...t,
@@ -329,7 +330,7 @@ const BankTableScene = ({
           data: {
             ...paymentDate,
             repeat: null,
-            price: -amount,
+            price: Math.max(-amount, minAmount),
             label,
             from: {
               type: "bank",
