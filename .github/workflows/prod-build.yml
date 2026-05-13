@@ -34,11 +34,6 @@ jobs:
         with:
           node-version-file: ".node-version"
 
-      - uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
-          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
-
       - uses: actions/cache@v4
         with:
           path: node_modules
@@ -50,6 +45,11 @@ jobs:
 
       - name: build
         run: ${{ env.ACTIONS_BUILD_COMMAND }}
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
 
       - name: deploy
         run: pnpm exec firebase deploy --project ${{ env.NEXT_PUBLIC_FIREBASE_PROJECT_ID }} --only hosting,firestore
