@@ -116,6 +116,18 @@ const CardAccountFormPopup = ({
             error={errors.paymentDay}
           />
           <MockNumberFormRow
+            label="最低利用額予想"
+            value={value.minAmount}
+            min={0}
+            onChange={v =>
+              setValue(vv => ({
+                ...vv,
+                minAmount: v
+              }))
+            }
+            error={errors.minAmount}
+          />
+          <MockNumberFormRow
             label="順序"
             value={value.order}
             min={0}

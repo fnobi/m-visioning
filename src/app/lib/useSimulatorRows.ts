@@ -43,6 +43,7 @@ export type CardTerm = {
     day: number;
   };
   sourceMonthCode: number;
+  minAmount: number;
   snapshotList: TypedCollectionList<CardSnapshot>;
 };
 
