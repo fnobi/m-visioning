@@ -47,9 +47,13 @@ jobs:
         run: ${{ env.ACTIONS_BUILD_COMMAND }}
 
       - uses: google-github-actions/auth@v2
+        id: auth
         with:
+          token_format: 'access_token'
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
           service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
 
       - name: deploy
+        env:
+          GOOGLE_OAUTH_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
         run: pnpm exec firebase deploy --project ${{ env.NEXT_PUBLIC_FIREBASE_PROJECT_ID }} --only hosting,firestore
