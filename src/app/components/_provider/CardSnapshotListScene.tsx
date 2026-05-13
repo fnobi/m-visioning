@@ -147,21 +147,21 @@ const CardSnapshotListScene = ({
     if (!cardSnapshotList) {
       return [];
     }
+    let lastAmount = 0;
+    let categorizedAmount = 0;
     const totals: Record<string, number> = {};
     cardSnapshotList.forEach(({ data }) => {
-      let detailTotal = 0;
       data.detail.forEach(({ category, price }) => {
         const key = category || "";
-        const absPrice = Math.abs(price);
+        const absPrice = -price;
         totals[key] = (totals[key] ?? 0) + absPrice;
-        detailTotal += absPrice;
+        if (key) {
+          categorizedAmount += absPrice;
+        }
       });
-      // snapshot.amount から detail 合計を引いた分が「不明」として未分類に加算
-      const unknown = Math.abs(data.amount) - detailTotal;
-      if (unknown > 0) {
-        totals[""] = (totals[""] ?? 0) + unknown;
-      }
+      lastAmount = lastAmount || -data.amount;
     });
+    totals[""] = (totals[""] ?? 0) + lastAmount - categorizedAmount;
     return Object.entries(totals)
       .map(([category, amount]) => ({ category, amount }))
       .filter(i => i.amount > 0)

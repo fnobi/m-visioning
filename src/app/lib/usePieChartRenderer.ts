@@ -1,6 +1,10 @@
 import { useEffect, useRef } from "react";
-import { getCategoryColor, getCategoryLabel } from "~/app/scheme/SpendingCategory";
+import {
+  getCategoryColor,
+  getCategoryLabel
+} from "~/app/scheme/SpendingCategory";
 import { THEME_COLOR } from "~/app/lib//emotion-mixin";
+import { sumBy } from "~/common/lib/array-util";
 
 const usePieChartRenderer = ({
   isActive,
@@ -72,11 +76,21 @@ const usePieChartRenderer = ({
       ctx.textAlign = "left";
       ctx.textBaseline = "top";
       ctx.fillText(
-        `${getCategoryLabel(item.category)}  ¥${item.amount.toLocaleString()}  (${pct}%)`,
+        `${getCategoryLabel(
+          item.category
+        )}  ¥${item.amount.toLocaleString()}  (${pct}%)`,
         LEGEND_X + 20,
         y + 1
       );
     });
+    ctx.fillText(
+      `合計  ¥${sumBy(
+        Object.values(items),
+        ({ amount }) => amount
+      ).toLocaleString()}`,
+      LEGEND_X + 20,
+      20 + items.length * LEGEND_ROW_H
+    );
   }, [isActive, items]);
 
   return { canvasRef };
