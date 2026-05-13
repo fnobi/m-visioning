@@ -134,7 +134,7 @@ type SnapshotFormChildrenContext<T> = {
   errors: Record<keyof T, ValidationErrorType | null>;
 };
 
-function SnapshotForm<T extends BankSnapshot | CardSnapshot>({
+const SnapshotForm = <T extends BankSnapshot | CardSnapshot>({
   defaultValue,
   lock,
   organizer,
@@ -148,7 +148,7 @@ function SnapshotForm<T extends BankSnapshot | CardSnapshot>({
   onDelete?: () => void;
   onSubmit: (v: T) => void;
   children?: (ctx: SnapshotFormChildrenContext<T>) => ReactNode;
-}) {
+}) => {
   const [value, setValue] = useState<T>(defaultValue);
   const { validValue, errors } = useMemo(
     () => organizer.getValidValue(value),
