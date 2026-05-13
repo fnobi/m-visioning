@@ -1,10 +1,10 @@
 import { useEffect, useRef } from "react";
+import { sumBy } from "~/common/lib/array-util";
 import {
   getCategoryColor,
   getCategoryLabel
 } from "~/app/scheme/SpendingCategory";
 import { THEME_COLOR } from "~/app/lib//emotion-mixin";
-import { sumBy } from "~/common/lib/array-util";
 
 const usePieChartRenderer = ({
   isActive,

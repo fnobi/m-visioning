@@ -640,7 +640,9 @@ export const MockArrayFormRow = <T, R>({
           const I = Item as ComponentType<any>;
           return (
             <NestSection key={i}>
-              <FormLayoutGrid><I {...r} {...props} /></FormLayoutGrid>
+              <FormLayoutGrid>
+                <I {...r} {...props} />
+              </FormLayoutGrid>
             </NestSection>
           );
         })}
