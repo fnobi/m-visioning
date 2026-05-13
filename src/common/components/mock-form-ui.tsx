@@ -1,6 +1,7 @@
 import styled from "@emotion/styled";
 import {
   type ComponentPropsWithoutRef,
+  type ComponentType,
   type FunctionComponent,
   type InputHTMLAttributes,
   type ReactNode,
@@ -634,11 +635,15 @@ export const MockArrayFormRow = <T, R>({
   return (
     <FormCommonRowWrapper label={label} error={error}>
       <div>
-        {rows.map((r, i) => (
-          <NestSection key={i}>
-            <FormLayoutGrid>{Item({ ...r, ...props })}</FormLayoutGrid>
-          </NestSection>
-        ))}
+        {rows.map((r, i) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const I = Item as ComponentType<any>;
+          return (
+            <NestSection key={i}>
+              <FormLayoutGrid><I {...r} {...props} /></FormLayoutGrid>
+            </NestSection>
+          );
+        })}
       </div>
       <div>
         <MockActionButton action={handleMinus}>-</MockActionButton>

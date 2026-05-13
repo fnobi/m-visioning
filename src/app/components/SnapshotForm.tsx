@@ -181,7 +181,7 @@ const SnapshotForm = <T extends BankSnapshot | CardSnapshot>({
       </MockFormFrame>
     </div>
   );
-}
+};
 
 export default SnapshotForm;
 
