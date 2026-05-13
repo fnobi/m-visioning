@@ -24,6 +24,8 @@ import type MoneyPlan from "~/app/scheme/MoneyPlan";
 import useAsyncHandler from "~/app/lib/useAsyncHandler";
 import { parseMoneyCardAccount } from "~/app/scheme/MoneyCardAccount";
 import useMyMoneyStore from "~/app/lib/database/useMyMoneyStore";
+import usePieChartRenderer from "~/app/lib/usePieChartRenderer";
+import { percent } from "~/common/lib/css-util";
 
 type PopupParams =
   | {
@@ -56,13 +58,17 @@ type PopupParams =
 const CardSnapshotListScene = ({
   cardId,
   monthCode,
+  graphMode,
   onChangeCard,
-  onChangeMonth
+  onChangeMonth,
+  setGraph
 }: {
   cardId: string | null;
   monthCode: number;
+  graphMode: boolean;
   onChangeCard: (id: string) => void;
   onChangeMonth: (v: number) => void;
+  setGraph: (v: boolean) => void;
 }) => {
   const { myId } = useAuthorizedUser();
   const [statusError, setStatusError] = useState<AppErrorParameter | null>(
@@ -136,6 +142,36 @@ const CardSnapshotListScene = ({
     monthCursor.maxTimestamp,
     monthCursor.minTimestamp
   ]);
+
+  const categoryItems = useMemo(() => {
+    if (!cardSnapshotList) {
+      return [];
+    }
+    const totals: Record<string, number> = {};
+    cardSnapshotList.forEach(({ data }) => {
+      let detailTotal = 0;
+      data.detail.forEach(({ category, price }) => {
+        const key = category || "";
+        const absPrice = Math.abs(price);
+        totals[key] = (totals[key] ?? 0) + absPrice;
+        detailTotal += absPrice;
+      });
+      // snapshot.amount から detail 合計を引いた分が「不明」として未分類に加算
+      const unknown = Math.abs(data.amount) - detailTotal;
+      if (unknown > 0) {
+        totals[""] = (totals[""] ?? 0) + unknown;
+      }
+    });
+    return Object.entries(totals)
+      .map(([category, amount]) => ({ category, amount }))
+      .filter(i => i.amount > 0)
+      .sort((a, b) => b.amount - a.amount);
+  }, [cardSnapshotList]);
+
+  const { canvasRef } = usePieChartRenderer({
+    isActive: graphMode && categoryItems.length > 0,
+    items: categoryItems
+  });
 
   const handleCreateCardSnapshot = useCallback(
     (v: CardSnapshot) => {
@@ -229,7 +265,8 @@ const CardSnapshotListScene = ({
       .map(r => ({
         label: r.label,
         price: r.price,
-        date: r.date
+        date: r.date,
+        category: ""
       }));
     let amount = diffSnapshot?.amount ?? 0;
     detail.forEach(r => {
@@ -311,25 +348,50 @@ const CardSnapshotListScene = ({
         </PickableTitle>
       ) : null}
       <MonthCursorNavi monthCursor={monthCursor} />
-      {draftTimestamp >= monthCursor.minTimestamp ? (
-        <p>
-          <MockActionButton
-            action={{
-              type: "button",
-              onClick: createCardSnapshotDraft
-            }}
-          >
-            ログ追加
-          </MockActionButton>
-        </p>
-      ) : null}
-      {rows ? (
-        <SimulatorTableView
-          rows={rows}
-          lastSnapshot={null}
-          onClickRow={handleRowClick}
-        />
-      ) : null}
+      {cardSnapshotList ? (
+        <>
+          <p>
+            <label>
+              <input
+                type="checkbox"
+                checked={graphMode}
+                onChange={e => setGraph(e.target.checked)}
+              />
+              graph
+            </label>
+          </p>
+          {graphMode ? (
+            <canvas
+              ref={canvasRef}
+              style={{ width: percent(100), height: "auto" }}
+            />
+          ) : (
+            <>
+              {draftTimestamp >= monthCursor.minTimestamp ? (
+                <p>
+                  <MockActionButton
+                    action={{
+                      type: "button",
+                      onClick: createCardSnapshotDraft
+                    }}
+                  >
+                    ログ追加
+                  </MockActionButton>
+                </p>
+              ) : null}
+              {rows ? (
+                <SimulatorTableView
+                  rows={rows}
+                  lastSnapshot={null}
+                  onClickRow={handleRowClick}
+                />
+              ) : null}
+            </>
+          )}
+        </>
+      ) : (
+        <div>loading...</div>
+      )}
       {popup?.type === "create-card-snapshot" ? (
         <CardSnapshotFormPopup
           defaultValue={popup.defaultValue}

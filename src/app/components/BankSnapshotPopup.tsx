@@ -1,5 +1,5 @@
 import type BankSnapshot from "~/app/scheme/BankSnapshot";
-import SnapshotForm from "~/app/components/SnapshotForm";
+import { BankSnapshotForm } from "~/app/components/SnapshotForm";
 import AppCommonPopup from "~/app/components/AppCommonPopup";
 
 const BankSnapshotFormPopup = ({
@@ -14,8 +14,7 @@ const BankSnapshotFormPopup = ({
   onSubmit: (v: BankSnapshot) => void;
 }) => (
   <AppCommonPopup title="口座ログ" onClose={onClose}>
-    <SnapshotForm
-      type="bank"
+    <BankSnapshotForm
       defaultValue={defaultValue}
       onDelete={onDelete}
       onSubmit={v => onSubmit({ ...v, bankId: defaultValue.bankId })}

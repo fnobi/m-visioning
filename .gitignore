@@ -7,3 +7,4 @@ dist
 .firebaserc
 .env
 .firebase
+tsconfig.tsbuildinfo
