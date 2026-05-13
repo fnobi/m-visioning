@@ -44,7 +44,7 @@ jobs:
           restore-keys: ${{ runner.os }}-node-
 
       - name: install dependencies
-        run: npm ci
+        run: pnpm install
 
       - name: build
         run: ${{ env.ACTIONS_BUILD_COMMAND }}
