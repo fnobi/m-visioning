@@ -6,6 +6,9 @@ module.exports = {
   basePath: BASE_PATH,
   output: "export",
   trailingSlash: true,
+  compiler: {
+    emotion: true
+  },
   webpack: config => {
     config.module.rules.push({
       loader: "file-loader",
