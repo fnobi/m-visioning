@@ -15,16 +15,16 @@ export type SpendingCategoryValue =
   (typeof SPENDING_CATEGORIES)[number]["value"];
 
 const CATEGORY_COLORS: Record<string, string> = {
-  food: "#FF6384",
-  transport: "#36A2EB",
-  entertainment: "#FFCE56",
-  daily: "#4BC0C0",
-  fashion: "#9966FF",
-  medical: "#FF9F40",
-  utility: "#C9CBCF",
-  travel: "#F97316",
-  subscription: "#8B5CF6",
-  other: "#AAAAAA",
+  food: "#EF4444",
+  transport: "#3B82F6",
+  entertainment: "#EAB308",
+  daily: "#14B8A6",
+  fashion: "#A855F7",
+  medical: "#F97316",
+  utility: "#94A3B8",
+  travel: "#22C55E",
+  subscription: "#6366F1",
+  other: "#9CA3AF",
   "": "#DDDDDD"
 };
 
