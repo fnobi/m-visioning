@@ -26,6 +26,7 @@ import useAsyncHandler from "~/app/lib/useAsyncHandler";
 import { parseMoneyCardAccount } from "~/app/scheme/MoneyCardAccount";
 import useMyMoneyStore from "~/app/lib/database/useMyMoneyStore";
 import usePieChartRenderer from "~/app/lib/usePieChartRenderer";
+import { THEME_COLOR } from "~/app/lib/emotion-mixin";
 
 type PopupParams =
   | {
@@ -172,6 +173,20 @@ const CardSnapshotListScene = ({
     isActive: graphMode && categoryItems.length > 0,
     items: categoryItems
   });
+
+  const periodProgress = useMemo(() => {
+    if (!draftTimestamp) return null;
+    const { minTimestamp, maxTimestamp } = monthCursor;
+    if (!minTimestamp || !maxTimestamp) return null;
+    if (draftTimestamp < minTimestamp || draftTimestamp >= maxTimestamp)
+      return null;
+    return (draftTimestamp - minTimestamp) / (maxTimestamp - minTimestamp);
+  }, [draftTimestamp, monthCursor]);
+
+  const currentAmount = useMemo(() => {
+    if (!cardSnapshotList || cardSnapshotList.length === 0) return 0;
+    return -cardSnapshotList[0].data.amount;
+  }, [cardSnapshotList]);
 
   const handleCreateCardSnapshot = useCallback(
     (v: CardSnapshot) => {
@@ -361,10 +376,66 @@ const CardSnapshotListScene = ({
             </label>
           </p>
           {graphMode ? (
-            <canvas
-              ref={canvasRef}
-              style={{ width: percent(100), height: "auto" }}
-            />
+            <>
+              {periodProgress !== null ? (
+                <div style={{ margin: "8px 0" }}>
+                  <p style={{ margin: "0 0 4px" }}>
+                    期間進捗: {Math.round(periodProgress * 100)}%
+                  </p>
+                  <div
+                    style={{
+                      background: "#e0e0e0",
+                      height: 12,
+                      borderRadius: 6,
+                      overflow: "hidden"
+                    }}
+                  >
+                    <div
+                      style={{
+                        background: THEME_COLOR.WAVE_YELLOW,
+                        width: percent(periodProgress * 100),
+                        height: "100%"
+                      }}
+                    />
+                  </div>
+                </div>
+              ) : null}
+              {currentCard.minAmount > 0 ? (
+                <div style={{ margin: "8px 0" }}>
+                  <p style={{ margin: "0 0 4px" }}>
+                    利用額: ¥{currentAmount.toLocaleString()} / ¥
+                    {currentCard.minAmount.toLocaleString()} (
+                    {Math.round((currentAmount / currentCard.minAmount) * 100)}
+                    %)
+                  </p>
+                  <div
+                    style={{
+                      background: "#e0e0e0",
+                      height: 12,
+                      borderRadius: 6,
+                      overflow: "hidden"
+                    }}
+                  >
+                    <div
+                      style={{
+                        background: THEME_COLOR.PINK,
+                        width: percent(
+                          Math.min(
+                            100,
+                            (currentAmount / currentCard.minAmount) * 100
+                          )
+                        ),
+                        height: "100%"
+                      }}
+                    />
+                  </div>
+                </div>
+              ) : null}
+              <canvas
+                ref={canvasRef}
+                style={{ width: percent(100), height: "auto" }}
+              />
+            </>
           ) : (
             <>
               {draftTimestamp >= monthCursor.minTimestamp ? (
