@@ -24,7 +24,7 @@ export type SimulatorRow = {
   price: number;
   isArchive: boolean;
   source:
-    | { type: "plan"; planId: string }
+    | { type: "plan"; planId: string; category: string }
     | {
         type: "snapshot";
         snapshotId: string;
@@ -227,7 +227,8 @@ const useSimulatorRows = () => {
       calcRangeDayArray(planStart, termEnd).forEach(cdata => {
         const { date, year: cy, month: cm, day: cd } = cdata;
         sourcePlanList2.forEach(({ id, data }) => {
-          const { year, month, day, label, price, repeat, cardLink } = data;
+          const { year, month, day, label, price, repeat, cardLink, category } =
+            data;
           const validRepeat = checkIsAfter(data, cdata) ? repeat : null;
           const flag =
             (year === cy || validRepeat) &&
@@ -249,7 +250,7 @@ const useSimulatorRows = () => {
             amount,
             price,
             isArchive: false,
-            source: { type: "plan", planId: id },
+            source: { type: "plan", planId: id, category },
             cardLink
           });
         });

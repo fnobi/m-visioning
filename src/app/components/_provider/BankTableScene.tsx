@@ -332,6 +332,7 @@ const BankTableScene = ({
             repeat: null,
             price: Math.max(-amount, minAmount),
             label,
+            category: "",
             from: {
               type: "bank",
               bankId

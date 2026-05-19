@@ -14,6 +14,7 @@ import type MoneyPlan from "~/app/scheme/MoneyPlan";
 import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
 import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
 import { parseMoneyPlanRepeat } from "~/app/scheme/MoneyPlan";
+import { SPENDING_CATEGORIES } from "~/app/scheme/SpendingCategory";
 
 const formOrganizer = new FormOrganizer<MoneyPlan>()
   .fieldValidator("label", requiredValidator())
@@ -90,6 +91,11 @@ const PlanFormPopup = ({
     []
   );
 
+  const categoryOptions = useMemo(
+    () => SPENDING_CATEGORIES.map(({ value, label }) => ({ value, label })),
+    []
+  );
+
   const handleChangeFlowType = useCallback((t: PlanFlowType) => {
     switch (t) {
       case "bank-input":
@@ -161,6 +167,13 @@ const PlanFormPopup = ({
               const [y, m, d] = v;
               setValue(vv => ({ ...vv, year: y, month: m, day: d }));
             }}
+          />
+          <MockPulldownFormRow
+            label="カテゴリ"
+            value={value.category}
+            onChange={v => setValue(vv => ({ ...vv, category: v }))}
+            options={categoryOptions}
+            error={null}
           />
           <MockPulldownFormRow
             label="繰り返し"

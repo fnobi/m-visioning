@@ -19,6 +19,7 @@ type MoneyPlan = {
   month: number;
   day: number;
   repeat: "year" | "month" | null;
+  category: string;
 };
 
 const parseMoneyNode = (src: unknown) =>
@@ -85,7 +86,7 @@ const normalizePlanFlow = (
 export const parseMoneyPlan = (src: unknown) =>
   parseObject<MoneyPlan>(
     src,
-    ({ label, price, from, to, year, month, day, repeat }) => ({
+    ({ label, price, from, to, year, month, day, repeat, category }) => ({
       label: parseString(label),
       price: parseNumber(price),
       ...normalizePlanFlow({
@@ -95,7 +96,8 @@ export const parseMoneyPlan = (src: unknown) =>
       year: parseNumber(year),
       month: parseNumber(month),
       day: parseNumber(day),
-      repeat: parseMoneyPlanRepeat(repeat)
+      repeat: parseMoneyPlanRepeat(repeat),
+      category: parseString(category)
     })
   );
 

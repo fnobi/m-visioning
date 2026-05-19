@@ -277,12 +277,15 @@ const CardSnapshotListScene = ({
       .filter(
         r => r.date > (diffSnapshot?.timestamp ?? 0) && r.date <= Date.now()
       )
-      .map(r => ({
-        label: r.label,
-        price: r.price,
-        date: r.date,
-        category: ""
-      }));
+      .map(r => {
+        const { source } = r;
+        return {
+          label: r.label,
+          price: r.price,
+          date: r.date,
+          category: source?.type === "plan" ? source.category : ""
+        };
+      });
     let amount = diffSnapshot?.amount ?? 0;
     detail.forEach(r => {
       amount += r.price;
