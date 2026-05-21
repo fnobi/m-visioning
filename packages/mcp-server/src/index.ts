@@ -8,10 +8,12 @@ const server = new McpServer({
 });
 
 // ツール1: 今日の日付
-server.tool(
+server.registerTool(
   "get_current_date",
-  "今日の日付を返す",
-  {},
+  {
+    description: "今日の日付を返す",
+    inputSchema: {}
+  },
   async () => {
     const text = new Date().toLocaleDateString("ja-JP", {
       year: "numeric",
@@ -25,18 +27,20 @@ server.tool(
 
 // ツール2: 支出リストの集計
 // 将来的には実際のMoneyPlanデータで置き換えるイメージ
-server.tool(
+server.registerTool(
   "sum_expenses",
-  "支出アイテムのリストを受け取り、合計と内訳を返す",
   {
-    items: z
-      .array(
-        z.object({
-          label: z.string().describe("支出名"),
-          amount: z.number().describe("金額（円）")
-        })
-      )
-      .describe("支出アイテムのリスト")
+    description: "支出アイテムのリストを受け取り、合計と内訳を返す",
+    inputSchema: {
+      items: z
+        .array(
+          z.object({
+            label: z.string().describe("支出名"),
+            amount: z.number().describe("金額（円）")
+          })
+        )
+        .describe("支出アイテムのリスト")
+    }
   },
   async ({ items }) => {
     const total = items.reduce((sum, item) => sum + item.amount, 0);
@@ -55,12 +59,14 @@ server.tool(
 
 // ツール3: サンプルMoneyPlan一覧（ダミーデータ）
 // 将来的にはFirestoreから実データを取得する
-server.tool(
+server.registerTool(
   "list_sample_plans",
-  "サンプルのMoneyPlan一覧を返す（デモ用固定データ）",
   {
-    year: z.number().describe("年"),
-    month: z.number().min(1).max(12).describe("月（1〜12）")
+    description: "サンプルのMoneyPlan一覧を返す（デモ用固定データ）",
+    inputSchema: {
+      year: z.number().describe("年"),
+      month: z.number().min(1).max(12).describe("月（1〜12）")
+    }
   },
   async ({ year, month }) => {
     const plans = [
