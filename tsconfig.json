@@ -19,6 +19,9 @@
     "paths": {
       "~/*": [
         "src/*"
+      ],
+      "@m-visioning/core": [
+        "packages/core/src/index.ts"
       ]
     },
     "allowJs": true,
