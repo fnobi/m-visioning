@@ -2,9 +2,9 @@ import { useCallback, useEffect, useState } from "react";
 import { ClientDataStoreAgent } from "~/common/lib/ClientDataStoreAgent";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
+import type MoneyPlan from "@m-visioning/core/scheme/MoneyPlan";
 import { extractClientError } from "~/app/lib/client-error-utils";
 import { moneyPlanDataStoreScheme } from "~/app/scheme/app-data-store-scheme";
-import type MoneyPlan from "~/app/scheme/MoneyPlan";
 import { type AppErrorParameter } from "~/app/scheme/AppErrorParameter";
 import AppError from "~/app/scheme/AppError";
 

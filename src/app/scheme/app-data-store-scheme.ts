@@ -1,18 +1,18 @@
 import { type DataStoreScheme } from "~/common/lib/DataStoreAgent";
 import type CommonPermission from "~/common/scheme/CommonPermission";
 import { parseCommonPermission } from "~/common/scheme/CommonPermission";
-import { parseMyPageProperty } from "~/app/scheme/MyPageProperty";
+import type BankSnapshot from "@m-visioning/core/scheme/BankSnapshot";
+import type CardSnapshot from "@m-visioning/core/scheme/CardSnapshot";
+import { parseCardSnapshot } from "@m-visioning/core/scheme/CardSnapshot";
+import { parseBankSnapshot } from "@m-visioning/core/scheme/BankSnapshot";
+import type MoneyBankAccount from "@m-visioning/core/scheme/MoneyBankAccount";
+import { parseMoneyBankAccount } from "@m-visioning/core/scheme/MoneyBankAccount";
+import type MoneyCardAccount from "@m-visioning/core/scheme/MoneyCardAccount";
+import { parseMoneyCardAccount } from "@m-visioning/core/scheme/MoneyCardAccount";
+import { parseMoneyPlan } from "@m-visioning/core/scheme/MoneyPlan";
+import type MoneyPlan from "@m-visioning/core/scheme/MoneyPlan";
 import type MyPageProperty from "~/app/scheme/MyPageProperty";
-import type BankSnapshot from "~/app/scheme/BankSnapshot";
-import type CardSnapshot from "~/app/scheme/CardSnapshot";
-import { parseCardSnapshot } from "~/app/scheme/CardSnapshot";
-import { parseBankSnapshot } from "~/app/scheme/BankSnapshot";
-import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
-import { parseMoneyBankAccount } from "~/app/scheme/MoneyBankAccount";
-import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
-import { parseMoneyCardAccount } from "~/app/scheme/MoneyCardAccount";
-import { parseMoneyPlan } from "~/app/scheme/MoneyPlan";
-import type MoneyPlan from "~/app/scheme/MoneyPlan";
+import { parseMyPageProperty } from "~/app/scheme/MyPageProperty";
 
 export const ownerDataStoreScheme: DataStoreScheme<
   CommonPermission,

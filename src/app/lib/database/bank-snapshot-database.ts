@@ -4,11 +4,11 @@ import {
   type QueryChain,
   type TypedCollectionList
 } from "~/common/lib/DataStoreAgent";
+import type BankSnapshot from "@m-visioning/core/scheme/BankSnapshot";
 import { extractClientError } from "~/app/lib/client-error-utils";
 import { bankSnapshotDataStoreScheme } from "~/app/scheme/app-data-store-scheme";
 import { type AppErrorParameter } from "~/app/scheme/AppErrorParameter";
 import AppError from "~/app/scheme/AppError";
-import type BankSnapshot from "~/app/scheme/BankSnapshot";
 
 const bankSnapshotDataStore = new ClientDataStoreAgent(
   bankSnapshotDataStoreScheme

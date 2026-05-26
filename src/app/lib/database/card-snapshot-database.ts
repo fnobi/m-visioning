@@ -4,11 +4,11 @@ import {
   type QueryChain,
   type TypedCollectionList
 } from "~/common/lib/DataStoreAgent";
+import type CardSnapshot from "@m-visioning/core/scheme/CardSnapshot";
 import { extractClientError } from "~/app/lib/client-error-utils";
 import { cardSnapshotDataStoreScheme } from "~/app/scheme/app-data-store-scheme";
 import { type AppErrorParameter } from "~/app/scheme/AppErrorParameter";
 import AppError from "~/app/scheme/AppError";
-import type CardSnapshot from "~/app/scheme/CardSnapshot";
 
 const cardSnapshotDataStore = new ClientDataStoreAgent(
   cardSnapshotDataStoreScheme

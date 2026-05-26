@@ -3,13 +3,16 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "outDir": "dist",
-    "rootDir": "src",
     "strict": true,
     "skipLibCheck": true,
+    "noEmit": true,
     "paths": {
-      "@m-visioning/core/*": ["../core/src/*"]
+      "@m-visioning/core/*": [
+        "./src/*"
+      ]
     }
   },
-  "include": ["src"]
+  "include": [
+    "src"
+  ]
 }

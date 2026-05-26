@@ -5,8 +5,8 @@ import { em } from "~/common/lib/css-util";
 import type CommonActionParameter from "~/common/scheme/CommonActionParameter";
 import { formatDateLabel } from "~/common/lib/date-util";
 import { parseString } from "~/common/lib/parser-helper";
+import type BankSnapshot from "@m-visioning/core/scheme/BankSnapshot";
 import { PAGE_CARD_SNAPSHOT_LIST } from "~/app/lib/page-path";
-import type BankSnapshot from "~/app/scheme/BankSnapshot";
 import { type SimulatorRow } from "~/app/lib/useSimulatorRows";
 
 const TableCell = styled.p<{ isArchive: boolean; align?: "left" | "right" }>(

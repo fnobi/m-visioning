@@ -13,6 +13,10 @@ import usePopupOperation from "~/common/lib/usePopupOperation";
 import { percent } from "~/common/lib/css-util";
 import MockListView from "~/common/components/MockListView";
 import MockActionButton from "~/common/components/MockActionButton";
+import type BankSnapshot from "@m-visioning/core/scheme/BankSnapshot";
+import type MoneyPlan from "@m-visioning/core/scheme/MoneyPlan";
+import type MoneyBankAccount from "@m-visioning/core/scheme/MoneyBankAccount";
+import { parseMoneyBankAccount } from "@m-visioning/core/scheme/MoneyBankAccount";
 import SimulatorTableView from "~/app/components/SimulatorTableView";
 import PickableTitle from "~/app/components/PickableTitle";
 import BankAccountFormPopup from "~/app/components/BankAccountFormPopup";
@@ -25,11 +29,9 @@ import ErrorScene from "~/app/components/ErrorScene";
 import { useBankSnapshotList } from "~/app/lib/database/bank-snapshot-database";
 import { type AppErrorParameter } from "~/app/scheme/AppErrorParameter";
 import { useCardSnapshotList } from "~/app/lib/database/card-snapshot-database";
-import type BankSnapshot from "~/app/scheme/BankSnapshot";
 import useMyMoneyStore from "~/app/lib/database/useMyMoneyStore";
 import useAsyncHandler from "~/app/lib/useAsyncHandler";
 import { useMyMoneyPlanTools } from "~/app/lib/database/money-plan-database";
-import type MoneyPlan from "~/app/scheme/MoneyPlan";
 import useMonthCursor from "~/app/lib/useMonthCursor";
 import useSimulatorRows, {
   calcMonthCodeFromDate,
@@ -40,8 +42,6 @@ import useSimulatorRows, {
   calcDateParamInt
 } from "~/app/lib/useSimulatorRows";
 import { useMyBankAccountTools } from "~/app/lib/database/bank-account-database";
-import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
-import { parseMoneyBankAccount } from "~/app/scheme/MoneyBankAccount";
 import useGraphRenderer from "~/app/lib/useGraphRenderer";
 import { usePlanListLabel } from "~/app/lib/plan-util";
 

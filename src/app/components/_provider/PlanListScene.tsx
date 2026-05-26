@@ -8,14 +8,14 @@ import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import MockListView from "~/common/components/MockListView";
 import { sortBy } from "~/common/lib/array-util";
 import MockActionButton from "~/common/components/MockActionButton";
+import type MoneyBankAccount from "@m-visioning/core/scheme/MoneyBankAccount";
+import type MoneyCardAccount from "@m-visioning/core/scheme/MoneyCardAccount";
+import type MoneyPlan from "@m-visioning/core/scheme/MoneyPlan";
+import { parseMoneyPlan } from "@m-visioning/core/scheme/MoneyPlan";
 import { useMyPagePropertyTools } from "~/app/lib/database/my-page-property-database";
 import type MyPageProperty from "~/app/scheme/MyPageProperty";
 import { calcDateInt } from "~/app/components/_provider/BankTableScene";
-import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
-import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
 import PlanFormPopup from "~/app/components/PlanFormPopup";
-import type MoneyPlan from "~/app/scheme/MoneyPlan";
-import { parseMoneyPlan } from "~/app/scheme/MoneyPlan";
 import { usePlanListLabel } from "~/app/lib/plan-util";
 
 const PlanListScene = ({

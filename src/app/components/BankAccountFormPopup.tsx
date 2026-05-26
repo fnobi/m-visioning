@@ -6,8 +6,8 @@ import {
 } from "~/common/components/mock-form-ui";
 import FormOrganizer from "~/common/lib/FormOrganizer";
 import { requiredValidator } from "~/common/lib/form-validator";
+import type MoneyBankAccount from "@m-visioning/core/scheme/MoneyBankAccount";
 import AppCommonPopup from "~/app/components/AppCommonPopup";
-import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
 
 const formOrganizer = new FormOrganizer<MoneyBankAccount>()
   .fieldValidator("label", requiredValidator())
