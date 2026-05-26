@@ -1,18 +1,18 @@
 import { useCallback, useMemo, useState } from "react";
+import type MoneyPlan from "@m-visioning/core/scheme/MoneyPlan";
+import type MoneyBankAccount from "@m-visioning/core/scheme/MoneyBankAccount";
+import type MoneyCardAccount from "@m-visioning/core/scheme/MoneyCardAccount";
+import { parseMoneyPlanRepeat } from "@m-visioning/core/scheme/MoneyPlan";
+import { SPENDING_CATEGORIES } from "@m-visioning/core/scheme/SpendingCategory";
+import { requiredValidator } from "~/common/lib/form-validator";
+import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
+import FormOrganizer from "~/common/lib/FormOrganizer";
 import {
   MockDateFormRow,
   MockFormFrame,
   MockPulldownFormRow,
   MockStringFormRow
 } from "~/common/components/mock-form-ui";
-import FormOrganizer from "~/common/lib/FormOrganizer";
-import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
-import { requiredValidator } from "~/common/lib/form-validator";
-import type MoneyPlan from "@m-visioning/core/scheme/MoneyPlan";
-import type MoneyBankAccount from "@m-visioning/core/scheme/MoneyBankAccount";
-import type MoneyCardAccount from "@m-visioning/core/scheme/MoneyCardAccount";
-import { parseMoneyPlanRepeat } from "@m-visioning/core/scheme/MoneyPlan";
-import { SPENDING_CATEGORIES } from "@m-visioning/core/scheme/SpendingCategory";
 import AppCommonPopup from "~/app/components/AppCommonPopup";
 import PriceFormRow from "~/app/components/PriceFormRow";
 

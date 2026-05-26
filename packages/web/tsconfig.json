@@ -21,7 +21,7 @@
         "./src/*"
       ],
       "@m-visioning/core/*": [
-        "./packages/core/src/*"
+        "../core/src/*"
       ]
     },
     "allowJs": true,

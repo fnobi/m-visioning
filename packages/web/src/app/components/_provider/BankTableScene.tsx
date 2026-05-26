@@ -5,6 +5,10 @@ import {
   useMemo,
   useState
 } from "react";
+import type BankSnapshot from "@m-visioning/core/scheme/BankSnapshot";
+import type MoneyPlan from "@m-visioning/core/scheme/MoneyPlan";
+import type MoneyBankAccount from "@m-visioning/core/scheme/MoneyBankAccount";
+import { parseMoneyBankAccount } from "@m-visioning/core/scheme/MoneyBankAccount";
 import { compact } from "~/common/lib/array-util";
 import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
 import { parseNumber } from "~/common/lib/parser-helper";
@@ -13,10 +17,6 @@ import usePopupOperation from "~/common/lib/usePopupOperation";
 import { percent } from "~/common/lib/css-util";
 import MockListView from "~/common/components/MockListView";
 import MockActionButton from "~/common/components/MockActionButton";
-import type BankSnapshot from "@m-visioning/core/scheme/BankSnapshot";
-import type MoneyPlan from "@m-visioning/core/scheme/MoneyPlan";
-import type MoneyBankAccount from "@m-visioning/core/scheme/MoneyBankAccount";
-import { parseMoneyBankAccount } from "@m-visioning/core/scheme/MoneyBankAccount";
 import SimulatorTableView from "~/app/components/SimulatorTableView";
 import PickableTitle from "~/app/components/PickableTitle";
 import BankAccountFormPopup from "~/app/components/BankAccountFormPopup";

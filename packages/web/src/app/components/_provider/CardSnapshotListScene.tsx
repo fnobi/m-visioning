@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import type MoneyCardAccount from "@m-visioning/core/scheme/MoneyCardAccount";
+import type CardSnapshot from "@m-visioning/core/scheme/CardSnapshot";
+import type MoneyPlan from "@m-visioning/core/scheme/MoneyPlan";
+import { parseMoneyCardAccount } from "@m-visioning/core/scheme/MoneyCardAccount";
 import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
 import MockLoadingPopup from "~/common/components/MockLoadingPopup";
 import MockActionButton from "~/common/components/MockActionButton";
 import usePopupOperation from "~/common/lib/usePopupOperation";
 import { percent } from "~/common/lib/css-util";
-import type MoneyCardAccount from "@m-visioning/core/scheme/MoneyCardAccount";
-import type CardSnapshot from "@m-visioning/core/scheme/CardSnapshot";
-import type MoneyPlan from "@m-visioning/core/scheme/MoneyPlan";
-import { parseMoneyCardAccount } from "@m-visioning/core/scheme/MoneyCardAccount";
 import PickableTitle from "~/app/components/PickableTitle";
 import CardAccountFormPopup from "~/app/components/CardAccountFormPopup";
 import CardSelectPopup from "~/app/components/CardSelectPopup";

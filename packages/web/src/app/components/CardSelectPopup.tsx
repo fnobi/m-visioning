@@ -1,8 +1,8 @@
 import styled from "@emotion/styled";
+import type MoneyCardAccount from "@m-visioning/core/scheme/MoneyCardAccount";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import { em } from "~/common/lib/css-util";
 import MockActionButton from "~/common/components/MockActionButton";
-import type MoneyBankAccount from "@m-visioning/core/scheme/MoneyBankAccount";
 import AppCommonPopup from "~/app/components/AppCommonPopup";
 
 const WrapperList = styled.div({
@@ -12,28 +12,31 @@ const WrapperList = styled.div({
   }
 });
 
-const BankSelectPopup = ({
+const CardSelectPopup = ({
   defaultValue,
-  bankList,
+  cardList,
   onCreate,
   onSubmit,
   onClose
 }: {
-  defaultValue: string;
-  bankList: TypedCollectionList<MoneyBankAccount> | null;
-  onCreate: (v: Partial<MoneyBankAccount>) => void;
+  defaultValue: string | null;
+  cardList: TypedCollectionList<MoneyCardAccount> | null;
+  onCreate: (v: Partial<MoneyCardAccount>) => void;
   onSubmit: (v: string) => void;
   onClose: () => void;
 }) => (
-  <AppCommonPopup title="銀行選択" onClose={onClose}>
+  <AppCommonPopup title="カード選択" onClose={onClose}>
     <WrapperList>
-      {(bankList || []).map(({ id, data }) => (
+      {(cardList || []).map(({ id, data }) => (
         <p key={id}>
           <MockActionButton
             action={
               id === defaultValue
                 ? null
-                : { type: "button", onClick: () => onSubmit(id) }
+                : {
+                    type: "button",
+                    onClick: () => onSubmit(id)
+                  }
             }
           >
             {data.label}
@@ -45,10 +48,10 @@ const BankSelectPopup = ({
           action={{
             type: "button",
             onClick: () => {
-              if (!bankList) {
+              if (!cardList) {
                 return;
               }
-              onCreate({ order: bankList.length + 1 });
+              onCreate({ order: cardList.length + 1 });
             }
           }}
         >
@@ -59,4 +62,4 @@ const BankSelectPopup = ({
   </AppCommonPopup>
 );
 
-export default BankSelectPopup;
+export default CardSelectPopup;

@@ -1,34 +1,34 @@
 import { useCallback, useEffect, useState } from "react";
+import type CardSnapshot from "@m-visioning/core/scheme/CardSnapshot";
 import { ClientDataStoreAgent } from "~/common/lib/ClientDataStoreAgent";
 import {
   type QueryChain,
   type TypedCollectionList
 } from "~/common/lib/DataStoreAgent";
-import type BankSnapshot from "@m-visioning/core/scheme/BankSnapshot";
 import { extractClientError } from "~/app/lib/client-error-utils";
-import { bankSnapshotDataStoreScheme } from "~/app/scheme/app-data-store-scheme";
+import { cardSnapshotDataStoreScheme } from "~/app/scheme/app-data-store-scheme";
 import { type AppErrorParameter } from "~/app/scheme/AppErrorParameter";
 import AppError from "~/app/scheme/AppError";
 
-const bankSnapshotDataStore = new ClientDataStoreAgent(
-  bankSnapshotDataStoreScheme
+const cardSnapshotDataStore = new ClientDataStoreAgent(
+  cardSnapshotDataStoreScheme
 );
 
-type BankSnapshotQueryParams = {
-  bankId?: string;
+type CardSnapshotQueryParams = {
+  cardId?: string | null;
   limit?: number;
   minTimestamp?: number;
   maxTimestamp?: number;
 };
 
-const makeBankSnapshotQueryChain =
-  (p: BankSnapshotQueryParams) => (c: QueryChain<BankSnapshot>) => {
+const makeCardSnapshotQueryChain =
+  (p: CardSnapshotQueryParams) => (c: QueryChain<CardSnapshot>) => {
     let cc = c.orderBy("timestamp", "desc");
     if (p.limit) {
       cc = cc.limit(p.limit);
     }
-    if (p.bankId) {
-      cc = cc.equal("bankId", p.bankId);
+    if (p.cardId) {
+      cc = cc.equal("cardId", p.cardId);
     }
     if (p.minTimestamp) {
       cc = cc.where("timestamp", ">=", p.minTimestamp);
@@ -38,20 +38,19 @@ const makeBankSnapshotQueryChain =
     }
     return cc;
   };
-
 // eslint-disable-next-line import/prefer-default-export
-export const useBankSnapshotList = ({
+export const useCardSnapshotList = ({
   userId,
+  cardId,
   onError,
-  bankId,
   limit,
   minTimestamp,
   maxTimestamp
 }: {
   userId: string | null;
   onError: (e: AppErrorParameter) => void;
-} & BankSnapshotQueryParams) => {
-  const [list, setList] = useState<TypedCollectionList<BankSnapshot> | null>(
+} & CardSnapshotQueryParams) => {
+  const [list, setList] = useState<TypedCollectionList<CardSnapshot> | null>(
     null
   );
 
@@ -60,25 +59,25 @@ export const useBankSnapshotList = ({
     if (!userId) {
       return () => {};
     }
-    return bankSnapshotDataStore.subscribeList({
+    return cardSnapshotDataStore.subscribeList({
       userId,
       handler: setList,
-      queryChain: makeBankSnapshotQueryChain({
+      queryChain: makeCardSnapshotQueryChain({
         limit,
-        bankId,
+        cardId,
         minTimestamp,
         maxTimestamp
       }),
       onError: e => onError(extractClientError(e))
     });
-  }, [userId, limit, bankId, minTimestamp, maxTimestamp, onError]);
+  }, [userId, limit, onError, cardId, minTimestamp, maxTimestamp]);
 
-  const writeBankSnapshot = useCallback(
-    (snapshotId: string, data: BankSnapshot) => {
+  const writeCardSnapshot = useCallback(
+    (snapshotId: string, data: CardSnapshot) => {
       if (!userId) {
         throw new AppError({ type: "bad-parameter" });
       }
-      return bankSnapshotDataStore.mergeItem({
+      return cardSnapshotDataStore.mergeItem({
         userId,
         snapshotId,
         data
@@ -87,12 +86,12 @@ export const useBankSnapshotList = ({
     [userId]
   );
 
-  const deleteBankSnapshot = useCallback(
+  const deleteCardSnapshot = useCallback(
     (snapshotId: string) => {
       if (!userId) {
         throw new AppError({ type: "bad-parameter" });
       }
-      return bankSnapshotDataStore.deleteItem({
+      return cardSnapshotDataStore.deleteItem({
         userId,
         snapshotId
       });
@@ -100,12 +99,12 @@ export const useBankSnapshotList = ({
     [userId]
   );
 
-  const createBankSnapshot = useCallback(
-    (v: BankSnapshot) => {
+  const createCardSnapshot = useCallback(
+    (v: CardSnapshot) => {
       if (!userId) {
         throw new AppError({ type: "bad-parameter" });
       }
-      return bankSnapshotDataStore.addItem({
+      return cardSnapshotDataStore.addItem({
         userId,
         data: v
       });
@@ -114,9 +113,9 @@ export const useBankSnapshotList = ({
   );
 
   return {
-    bankSnapshotList: list,
-    writeBankSnapshot,
-    deleteBankSnapshot,
-    createBankSnapshot
+    cardSnapshotList: list,
+    writeCardSnapshot,
+    deleteCardSnapshot,
+    createCardSnapshot
   };
 };

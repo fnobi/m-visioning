@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
+import type MoneyBankAccount from "@m-visioning/core/scheme/MoneyBankAccount";
 import { ClientDataStoreAgent } from "~/common/lib/ClientDataStoreAgent";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
-import type MoneyBankAccount from "@m-visioning/core/scheme/MoneyBankAccount";
 import { extractClientError } from "~/app/lib/client-error-utils";
 import { moneyBankDataStoreScheme } from "~/app/scheme/app-data-store-scheme";
 import { type AppErrorParameter } from "~/app/scheme/AppErrorParameter";
