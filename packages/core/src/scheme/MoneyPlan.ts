@@ -2,7 +2,7 @@ import {
   parseNumber,
   parseObject,
   parseString
-} from "../parser-helper";
+} from "@m-visioning/core/parser-helper";
 
 export type BankMoneyNode = { type: "bank"; bankId: string };
 export type CardMoneyNode = { type: "card"; cardId: string };
