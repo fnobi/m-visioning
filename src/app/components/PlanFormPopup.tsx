@@ -10,10 +10,10 @@ import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import { requiredValidator } from "~/common/lib/form-validator";
 import PriceFormRow from "~/app/components/PriceFormRow";
 import AppCommonPopup from "~/app/components/AppCommonPopup";
-import type MoneyPlan from "~/app/scheme/MoneyPlan";
+import type MoneyPlan from "@m-visioning/core/scheme/MoneyPlan";
 import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
 import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
-import { parseMoneyPlanRepeat } from "~/app/scheme/MoneyPlan";
+import { parseMoneyPlanRepeat } from "@m-visioning/core/scheme/MoneyPlan";
 import { SPENDING_CATEGORIES } from "~/app/scheme/SpendingCategory";
 
 const formOrganizer = new FormOrganizer<MoneyPlan>()

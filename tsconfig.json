@@ -18,10 +18,10 @@
     "baseUrl": ".",
     "paths": {
       "~/*": [
-        "src/*"
+        "./src/*"
       ],
-      "@m-visioning/core": [
-        "packages/core/src/index.ts"
+      "@m-visioning/core/*": [
+        "./packages/core/src/*"
       ]
     },
     "allowJs": true,
