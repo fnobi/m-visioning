@@ -2,7 +2,7 @@ import styled from "@emotion/styled";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import { em } from "~/common/lib/css-util";
 import MockActionButton from "~/common/components/MockActionButton";
-import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
+import type MoneyCardAccount from "@m-visioning/core/scheme/MoneyCardAccount";
 import AppCommonPopup from "~/app/components/AppCommonPopup";
 
 const WrapperList = styled.div({

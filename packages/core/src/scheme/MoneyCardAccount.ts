@@ -2,7 +2,7 @@ import {
   parseNumber,
   parseObject,
   parseString
-} from "../parser-helper";
+} from "@m-visioning/core/parser-helper";
 
 type MoneyCardAccount = {
   label: string;

@@ -18,10 +18,10 @@ import {
   subArrayFieldValidator
 } from "~/common/lib/form-validator";
 import MockActionButton from "~/common/components/MockActionButton";
+import type CardSnapshot from "@m-visioning/core/scheme/CardSnapshot";
+import type BankSnapshot from "@m-visioning/core/scheme/BankSnapshot";
+import { SPENDING_CATEGORIES } from "@m-visioning/core/scheme/SpendingCategory";
 import PriceFormRow from "~/app/components/PriceFormRow";
-import type CardSnapshot from "~/app/scheme/CardSnapshot";
-import type BankSnapshot from "~/app/scheme/BankSnapshot";
-import { SPENDING_CATEGORIES } from "~/app/scheme/SpendingCategory";
 
 const CATEGORY_OPTIONS = SPENDING_CATEGORIES.map(c => ({
   value: c.value,

@@ -2,11 +2,11 @@ import { useCallback, useEffect, useState } from "react";
 import { ClientDataStoreAgent } from "~/common/lib/ClientDataStoreAgent";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import { useAuthorizedUser } from "~/common/lib/firebase-auth-tools";
+import type MoneyCardAccount from "@m-visioning/core/scheme/MoneyCardAccount";
 import { extractClientError } from "~/app/lib/client-error-utils";
 import { moneyCardDataStoreScheme } from "~/app/scheme/app-data-store-scheme";
 import { type AppErrorParameter } from "~/app/scheme/AppErrorParameter";
 import AppError from "~/app/scheme/AppError";
-import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
 
 const moneyCardDataStore = new ClientDataStoreAgent(moneyCardDataStoreScheme);
 

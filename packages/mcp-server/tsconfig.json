@@ -8,7 +8,7 @@
     "strict": true,
     "skipLibCheck": true,
     "paths": {
-      "@m-visioning/core": ["../core/src/index.ts"]
+      "@m-visioning/core/*": ["../core/src/*"]
     }
   },
   "include": ["src"]

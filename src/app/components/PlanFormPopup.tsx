@@ -8,13 +8,13 @@ import {
 import FormOrganizer from "~/common/lib/FormOrganizer";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import { requiredValidator } from "~/common/lib/form-validator";
-import PriceFormRow from "~/app/components/PriceFormRow";
-import AppCommonPopup from "~/app/components/AppCommonPopup";
 import type MoneyPlan from "@m-visioning/core/scheme/MoneyPlan";
-import type MoneyBankAccount from "~/app/scheme/MoneyBankAccount";
-import type MoneyCardAccount from "~/app/scheme/MoneyCardAccount";
+import type MoneyBankAccount from "@m-visioning/core/scheme/MoneyBankAccount";
+import type MoneyCardAccount from "@m-visioning/core/scheme/MoneyCardAccount";
 import { parseMoneyPlanRepeat } from "@m-visioning/core/scheme/MoneyPlan";
-import { SPENDING_CATEGORIES } from "~/app/scheme/SpendingCategory";
+import { SPENDING_CATEGORIES } from "@m-visioning/core/scheme/SpendingCategory";
+import AppCommonPopup from "~/app/components/AppCommonPopup";
+import PriceFormRow from "~/app/components/PriceFormRow";
 
 const formOrganizer = new FormOrganizer<MoneyPlan>()
   .fieldValidator("label", requiredValidator())

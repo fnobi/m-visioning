@@ -1,11 +1,11 @@
 import { useCallback } from "react";
 import { compact, makeArray, sortBy } from "~/common/lib/array-util";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
-import type MoneyPlan from "~/app/scheme/MoneyPlan";
-import type BankSnapshot from "~/app/scheme/BankSnapshot";
-import { type ToMoneyNode, type FromMoneyNode } from "~/app/scheme/MoneyPlan";
-import type CardSnapshot from "~/app/scheme/CardSnapshot";
-import { parseBankSnapshot } from "~/app/scheme/BankSnapshot";
+import type MoneyPlan from "@m-visioning/core/scheme/MoneyPlan";
+import type BankSnapshot from "@m-visioning/core/scheme/BankSnapshot";
+import { type ToMoneyNode, type FromMoneyNode } from "@m-visioning/core/scheme/MoneyPlan";
+import type CardSnapshot from "@m-visioning/core/scheme/CardSnapshot";
+import { parseBankSnapshot } from "@m-visioning/core/scheme/BankSnapshot";
 
 type CardLink = {
   cardLink?: {

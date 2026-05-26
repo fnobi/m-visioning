@@ -1,5 +1,5 @@
+import type CardSnapshot from "@m-visioning/core/scheme/CardSnapshot";
 import AppCommonPopup from "~/app/components/AppCommonPopup";
-import type CardSnapshot from "~/app/scheme/CardSnapshot";
 import { CardSnapshotForm } from "~/app/components/SnapshotForm";
 
 const CardSnapshotFormPopup = ({
