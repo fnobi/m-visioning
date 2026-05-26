@@ -1,9 +1,9 @@
 import { useEffect, useRef } from "react";
-import { sumBy } from "~/common/lib/array-util";
 import {
   getCategoryColor,
   getCategoryLabel
 } from "@m-visioning/core/scheme/SpendingCategory";
+import { sumBy } from "~/common/lib/array-util";
 import { THEME_COLOR } from "~/app/lib//emotion-mixin";
 
 const usePieChartRenderer = ({

@@ -1,9 +1,9 @@
 import { useCallback } from "react";
-import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import type MoneyBankAccount from "@m-visioning/core/scheme/MoneyBankAccount";
 import type MoneyCardAccount from "@m-visioning/core/scheme/MoneyCardAccount";
 import { type FromMoneyNode, type ToMoneyNode } from "@m-visioning/core/scheme/MoneyPlan";
 import type MoneyPlan from "@m-visioning/core/scheme/MoneyPlan";
+import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 
 // eslint-disable-next-line import/prefer-default-export
 export const usePlanListLabel = ({

@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import type MoneyBankAccount from "@m-visioning/core/scheme/MoneyBankAccount";
+import type MoneyCardAccount from "@m-visioning/core/scheme/MoneyCardAccount";
 import {
   MockFormFrame,
   MockNumberFormRow,
@@ -8,8 +10,6 @@ import {
 import FormOrganizer from "~/common/lib/FormOrganizer";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 import { requiredValidator } from "~/common/lib/form-validator";
-import type MoneyBankAccount from "@m-visioning/core/scheme/MoneyBankAccount";
-import type MoneyCardAccount from "@m-visioning/core/scheme/MoneyCardAccount";
 import AppCommonPopup from "~/app/components/AppCommonPopup";
 
 const formOrganizer = new FormOrganizer<MoneyCardAccount>()

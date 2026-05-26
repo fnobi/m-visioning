@@ -1,11 +1,11 @@
 import styled from "@emotion/styled";
 import { Fragment, useCallback } from "react";
+import type BankSnapshot from "@m-visioning/core/scheme/BankSnapshot";
 import MockActionButton from "~/common/components/MockActionButton";
 import { em } from "~/common/lib/css-util";
 import type CommonActionParameter from "~/common/scheme/CommonActionParameter";
 import { formatDateLabel } from "~/common/lib/date-util";
 import { parseString } from "~/common/lib/parser-helper";
-import type BankSnapshot from "@m-visioning/core/scheme/BankSnapshot";
 import { PAGE_CARD_SNAPSHOT_LIST } from "~/app/lib/page-path";
 import { type SimulatorRow } from "~/app/lib/useSimulatorRows";
 

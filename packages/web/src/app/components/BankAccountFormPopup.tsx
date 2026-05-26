@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import type MoneyBankAccount from "@m-visioning/core/scheme/MoneyBankAccount";
 import {
   MockFormFrame,
   MockNumberFormRow,
@@ -6,7 +7,6 @@ import {
 } from "~/common/components/mock-form-ui";
 import FormOrganizer from "~/common/lib/FormOrganizer";
 import { requiredValidator } from "~/common/lib/form-validator";
-import type MoneyBankAccount from "@m-visioning/core/scheme/MoneyBankAccount";
 import AppCommonPopup from "~/app/components/AppCommonPopup";
 
 const formOrganizer = new FormOrganizer<MoneyBankAccount>()
