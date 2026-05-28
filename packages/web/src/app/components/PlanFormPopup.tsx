@@ -86,7 +86,8 @@ const PlanFormPopup = ({
   const repeatOptions = useMemo(
     () => [
       { value: "year", label: "年" },
-      { value: "month", label: "月" }
+      { value: "month", label: "月" },
+      { value: "week", label: "週" }
     ],
     []
   );

@@ -65,6 +65,10 @@ const PlanListScene = ({
           while (td < cd) {
             td.setMonth(td.getMonth() + 1);
           }
+        } else if (repeat === "week") {
+          while (td < cd) {
+            td.setDate(td.getDate() + 7);
+          }
         }
         return calcDateInt(td);
       }).map(({ id, data }) => ({
