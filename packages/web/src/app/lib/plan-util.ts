@@ -5,6 +5,8 @@ import { type FromMoneyNode, type ToMoneyNode } from "@m-visioning/core/scheme/M
 import type MoneyPlan from "@m-visioning/core/scheme/MoneyPlan";
 import { type TypedCollectionList } from "~/common/lib/DataStoreAgent";
 
+const WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"];
+
 // eslint-disable-next-line import/prefer-default-export
 export const usePlanListLabel = ({
   bankList,
@@ -35,6 +37,12 @@ export const usePlanListLabel = ({
     }
     if (data.repeat === "month") {
       return `毎月${data.day}日`;
+    }
+    if (data.repeat === "week") {
+      const weekday = WEEKDAY_LABELS[
+        new Date(data.year, data.month - 1, data.day).getDay()
+      ];
+      return `毎週${weekday}曜日`;
     }
     return `${data.year}年${data.month}月${data.day}日`;
   }, []);

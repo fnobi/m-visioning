@@ -231,9 +231,12 @@ const useSimulatorRows = () => {
             data;
           const validRepeat = checkIsAfter(data, cdata) ? repeat : null;
           const flag =
-            (year === cy || validRepeat) &&
-            (month === cm || validRepeat === "month") &&
-            day === cd;
+            validRepeat === "week"
+              ? new Date(date).getDay() ===
+                new Date(year, month - 1, day).getDay()
+              : (year === cy || validRepeat) &&
+                (month === cm || validRepeat === "month") &&
+                day === cd;
           if (!flag) {
             return;
           }

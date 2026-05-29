@@ -18,7 +18,7 @@ type MoneyPlan = {
   year: number;
   month: number;
   day: number;
-  repeat: "year" | "month" | null;
+  repeat: "year" | "month" | "week" | null;
   category: string;
 };
 
@@ -56,6 +56,7 @@ export const parseMoneyPlanRepeat = (src: unknown): MoneyPlan["repeat"] => {
   switch (src) {
     case "year":
     case "month":
+    case "week":
       return src;
     default:
       return null;
