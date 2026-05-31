@@ -155,7 +155,13 @@ const CardSnapshotListScene = ({
       sourcePlanList: moneyPlanList
     });
     return res.rows;
-  }, [calcRows, cardId, moneyPlanList, monthCursor.minTimestamp, monthCursor.maxTimestamp]);
+  }, [
+    calcRows,
+    cardId,
+    moneyPlanList,
+    monthCursor.minTimestamp,
+    monthCursor.maxTimestamp
+  ]);
 
   const categoryItems = useMemo(() => {
     if (!cardSnapshotList) {
@@ -182,7 +188,7 @@ const CardSnapshotListScene = ({
       .sort((a, b) => b.amount - a.amount);
   }, [cardSnapshotList]);
 
-  const { canvasRef } = usePieChartRenderer({
+  const { canvasRef: pieChartCanvasRef } = usePieChartRenderer({
     isActive: graphMode && categoryItems.length > 0,
     items: categoryItems
   });
@@ -455,12 +461,16 @@ const CardSnapshotListScene = ({
                   </div>
                 </div>
               ) : null}
-              <canvas
-                ref={canvasRef}
-                style={{ width: percent(100), height: "auto" }}
-              />
+              {categoryItems.length > 0 ? (
+                <canvas
+                  key="pie-chart"
+                  ref={pieChartCanvasRef}
+                  style={{ width: percent(100), height: "auto" }}
+                />
+              ) : null}
               {rows && planOnlyRows ? (
                 <canvas
+                  key="line-chart"
                   ref={lineChartCanvasRef}
                   style={{ width: percent(100), height: "auto", marginTop: 16 }}
                 />
