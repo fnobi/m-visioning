@@ -26,7 +26,7 @@ import useSimulatorRows, {
 import useAsyncHandler from "~/app/lib/useAsyncHandler";
 import useMyMoneyStore from "~/app/lib/database/useMyMoneyStore";
 import usePieChartRenderer from "~/app/lib/usePieChartRenderer";
-import { THEME_COLOR } from "~/app/lib/emotion-mixin";
+import useCardLineChartRenderer from "~/app/lib/useCardLineChartRenderer";
 
 type PopupParams =
   | {
@@ -116,7 +116,7 @@ const CardSnapshotListScene = ({
     onError: setStatusError
   });
 
-  const { calcRowsFromCardTerm } = useSimulatorRows();
+  const { calcRows, calcRowsFromCardTerm } = useSimulatorRows();
 
   useEffect(() => {
     setDraftTimestamp(Date.now());
@@ -144,6 +144,24 @@ const CardSnapshotListScene = ({
     monthCursor.minTimestamp
   ]);
 
+  const planOnlyRows = useMemo(() => {
+    if (!cardId || !moneyPlanList) return null;
+    const res = calcRows({
+      snapshotList: null,
+      termStart: monthCursor.minTimestamp,
+      termEnd: monthCursor.maxTimestamp,
+      nodeFilter: { type: "card", cardId },
+      sourcePlanList: moneyPlanList
+    });
+    return res.rows;
+  }, [
+    calcRows,
+    cardId,
+    moneyPlanList,
+    monthCursor.minTimestamp,
+    monthCursor.maxTimestamp
+  ]);
+
   const categoryItems = useMemo(() => {
     if (!cardSnapshotList) {
       return [];
@@ -169,24 +187,18 @@ const CardSnapshotListScene = ({
       .sort((a, b) => b.amount - a.amount);
   }, [cardSnapshotList]);
 
-  const { canvasRef } = usePieChartRenderer({
+  const { canvasRef: pieChartCanvasRef } = usePieChartRenderer({
     isActive: graphMode && categoryItems.length > 0,
     items: categoryItems
   });
 
-  const periodProgress = useMemo(() => {
-    if (!draftTimestamp) return null;
-    const { minTimestamp, maxTimestamp } = monthCursor;
-    if (!minTimestamp || !maxTimestamp) return null;
-    if (draftTimestamp < minTimestamp || draftTimestamp >= maxTimestamp)
-      return null;
-    return (draftTimestamp - minTimestamp) / (maxTimestamp - minTimestamp);
-  }, [draftTimestamp, monthCursor]);
-
-  const currentAmount = useMemo(() => {
-    if (!cardSnapshotList || cardSnapshotList.length === 0) return 0;
-    return -cardSnapshotList[0].data.amount;
-  }, [cardSnapshotList]);
+  const { canvasRef: lineChartCanvasRef } = useCardLineChartRenderer({
+    isActive: graphMode && !!rows && !!planOnlyRows,
+    startDate: monthCursor.minTimestamp,
+    endDate: monthCursor.maxTimestamp,
+    actualRows: rows ?? [],
+    planRows: planOnlyRows ?? []
+  });
 
   const handleCreateCardSnapshot = useCallback(
     (v: CardSnapshot) => {
@@ -380,64 +392,20 @@ const CardSnapshotListScene = ({
           </p>
           {graphMode ? (
             <>
-              {periodProgress !== null ? (
-                <div style={{ margin: "8px 0" }}>
-                  <p style={{ margin: "0 0 4px" }}>
-                    期間進捗: {Math.round(periodProgress * 100)}%
-                  </p>
-                  <div
-                    style={{
-                      background: "#e0e0e0",
-                      height: 12,
-                      borderRadius: 6,
-                      overflow: "hidden"
-                    }}
-                  >
-                    <div
-                      style={{
-                        background: THEME_COLOR.WAVE_YELLOW,
-                        width: percent(periodProgress * 100),
-                        height: "100%"
-                      }}
-                    />
-                  </div>
-                </div>
+              {rows && planOnlyRows ? (
+                <canvas
+                  key="line-chart"
+                  ref={lineChartCanvasRef}
+                  style={{ width: percent(100), height: "auto", marginTop: 16 }}
+                />
               ) : null}
-              {currentCard.minAmount > 0 ? (
-                <div style={{ margin: "8px 0" }}>
-                  <p style={{ margin: "0 0 4px" }}>
-                    利用額: ¥{currentAmount.toLocaleString()} / ¥
-                    {currentCard.minAmount.toLocaleString()} (
-                    {Math.round((currentAmount / currentCard.minAmount) * 100)}
-                    %)
-                  </p>
-                  <div
-                    style={{
-                      background: "#e0e0e0",
-                      height: 12,
-                      borderRadius: 6,
-                      overflow: "hidden"
-                    }}
-                  >
-                    <div
-                      style={{
-                        background: THEME_COLOR.PINK,
-                        width: percent(
-                          Math.min(
-                            100,
-                            (currentAmount / currentCard.minAmount) * 100
-                          )
-                        ),
-                        height: "100%"
-                      }}
-                    />
-                  </div>
-                </div>
+              {categoryItems.length > 0 ? (
+                <canvas
+                  key="pie-chart"
+                  ref={pieChartCanvasRef}
+                  style={{ width: percent(100), height: "auto" }}
+                />
               ) : null}
-              <canvas
-                ref={canvasRef}
-                style={{ width: percent(100), height: "auto" }}
-              />
             </>
           ) : (
             <>
