@@ -88,6 +88,7 @@ const useCardLineChartRenderer = ({
     ctx.scale(canvas.width / WIDTH, canvas.width / WIDTH);
     ctx.translate(PADDING_LEFT, PADDING_Y);
 
+    const hasActualData = actualRows.some(r => r.isArchive);
     const actualPoints = toPoints(actualRows, startDate);
     const planPoints = toPoints(planRows, startDate);
 
@@ -149,16 +150,18 @@ const useCardLineChartRenderer = ({
       contentHeight,
       ceilAmount
     );
-    drawSeries(
-      ctx,
-      actualPoints,
-      THEME_COLOR.DARK,
-      startDate,
-      endDate,
-      contentWidth,
-      contentHeight,
-      ceilAmount
-    );
+    if (hasActualData) {
+      drawSeries(
+        ctx,
+        actualPoints,
+        THEME_COLOR.DARK,
+        startDate,
+        endDate,
+        contentWidth,
+        contentHeight,
+        ceilAmount
+      );
+    }
 
     ctx.font = "12px/12px sans-serif";
     ctx.fillStyle = THEME_COLOR.DARK;
@@ -191,14 +194,21 @@ const useCardLineChartRenderer = ({
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
 
-    ctx.fillStyle = THEME_COLOR.DARK;
-    ctx.fillRect(LEGEND_X, LEGEND_Y, 12, 12);
-    ctx.fillText("実績+予測", LEGEND_X + 16, LEGEND_Y + 6);
+    if (hasActualData) {
+      ctx.fillStyle = THEME_COLOR.DARK;
+      ctx.fillRect(LEGEND_X, LEGEND_Y, 12, 12);
+      ctx.fillText("実績+予測", LEGEND_X + 16, LEGEND_Y + 6);
 
-    ctx.fillStyle = THEME_COLOR.WAVE_YELLOW;
-    ctx.fillRect(LEGEND_X, LEGEND_Y + LEGEND_ROW_H, 12, 12);
-    ctx.fillStyle = THEME_COLOR.DARK;
-    ctx.fillText("プランのみ", LEGEND_X + 16, LEGEND_Y + LEGEND_ROW_H + 6);
+      ctx.fillStyle = THEME_COLOR.WAVE_YELLOW;
+      ctx.fillRect(LEGEND_X, LEGEND_Y + LEGEND_ROW_H, 12, 12);
+      ctx.fillStyle = THEME_COLOR.DARK;
+      ctx.fillText("プランのみ", LEGEND_X + 16, LEGEND_Y + LEGEND_ROW_H + 6);
+    } else {
+      ctx.fillStyle = THEME_COLOR.WAVE_YELLOW;
+      ctx.fillRect(LEGEND_X, LEGEND_Y, 12, 12);
+      ctx.fillStyle = THEME_COLOR.DARK;
+      ctx.fillText("プランのみ", LEGEND_X + 16, LEGEND_Y + 6);
+    }
   }, [isActive, startDate, endDate, actualRows, planRows]);
 
   return { canvasRef };
