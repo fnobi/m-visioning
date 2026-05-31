@@ -3,7 +3,7 @@ import {
   parseNumber,
   parseObject,
   parseString
-} from "@m-visioning/core/parser-helper";
+} from "@m-visioning/core/util/parser-helper";
 
 type BankSnapshot = {
   bankId: string;

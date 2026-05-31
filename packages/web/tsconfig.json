@@ -44,6 +44,16 @@
     "next-env.d.ts",
     "src/**/*",
     "typings/**/*.d.ts",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "../core/src/scheme/CommonPermission.ts",
+    "../core/src/util/math-util.ts",
+    "../core/src/util/form-validator.ts",
+    "../core/src/util/FormOrganizer.ts",
+    "../core/src/util/easing.ts",
+    "../core/src/util/array-util.ts",
+    "../core/src/util/string-util.ts",
+    "../core/src/util/promise-util.ts",
+    "../core/src/scheme/MyPageProperty.ts",
+    "../core/src/util/DataStoreAgent.ts"
   ]
 }

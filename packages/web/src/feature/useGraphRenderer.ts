@@ -1,0 +1,162 @@
+import { useEffect, useRef } from "react";
+import { maxBy } from "@m-visioning/core/util/array-util";
+import { type SimulatorRow } from "~/feature/useSimulatorRows";
+import { THEME_COLOR } from "~/feature//emotion-mixin";
+
+const useGraphRenderer = ({
+  isActive,
+  startDate,
+  endDate,
+  bankEvents
+}: {
+  isActive: boolean;
+  startDate: number;
+  endDate: number;
+  bankEvents: {
+    rows: SimulatorRow[];
+  };
+}) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const { current: canvas } = canvasRef;
+    if (!canvas || !isActive) {
+      return;
+    }
+    const PADDING_LEFT = 75;
+    const PADDING_RIGHT = 40;
+    const PADDING_Y = 55;
+    const WIDTH = 800;
+    const HEIGHT = 600;
+
+    canvas.width = canvas.offsetWidth * 2;
+    canvas.height = (HEIGHT / WIDTH) * canvas.width;
+
+    const contentWidth = WIDTH - (PADDING_LEFT + PADDING_RIGHT);
+    const contentHeight = HEIGHT - PADDING_Y * 2;
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.scale(canvas.width / WIDTH, canvas.width / WIDTH);
+
+      ctx.translate(PADDING_LEFT, PADDING_Y);
+
+      ctx.fillStyle = "#f8f8f8";
+      ctx.fillRect(0, 0, contentWidth, contentHeight);
+
+      const vlines: number[] = [];
+      const vdate = new Date(startDate);
+      const edate = new Date(endDate);
+      while (vdate < edate) {
+        vdate.setDate(1);
+        vlines.push(vdate.getTime());
+        vdate.setMonth(vdate.getMonth() + 1);
+      }
+      vlines.push(endDate);
+
+      const maxAmount = maxBy(bankEvents.rows, r => r.amount);
+
+      let hUnit = 10;
+      while (maxAmount / (hUnit * 10) > 1) {
+        hUnit *= 10;
+      }
+      const ceilAmount = Math.ceil(maxAmount / hUnit) * hUnit;
+      const hLines: number[] = [];
+      for (let r = hUnit; r < ceilAmount; r += hUnit) {
+        hLines.push(r);
+      }
+
+      const points = bankEvents.rows.map(({ date, amount }) => {
+        const progress = (date - startDate) / (endDate - startDate);
+        const x = contentWidth * progress;
+        const y = contentHeight * (1 - Math.max(0, amount / ceilAmount));
+        return { x, y, amount };
+      });
+
+      ctx.save();
+      ctx.strokeStyle = "#dddddd";
+      ctx.beginPath();
+      hLines.forEach(r => {
+        const y = contentHeight * (r / ceilAmount);
+        ctx.moveTo(0, y);
+        ctx.lineTo(contentWidth, y);
+      });
+      vlines.forEach(v => {
+        const progress = (v - startDate) / (endDate - startDate);
+        const x = contentWidth * progress;
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, contentHeight);
+      });
+      ctx.stroke();
+      ctx.restore();
+
+      ctx.fillStyle = THEME_COLOR.DARK;
+      ctx.beginPath();
+      points.forEach(({ x, y }) => {
+        if (y >= contentHeight) {
+          return;
+        }
+        ctx.moveTo(x, y);
+        ctx.arc(x, y, 2, 0, Math.PI * 2);
+      });
+      ctx.fill();
+
+      ctx.beginPath();
+      points.forEach(({ x, y }, i) => {
+        if (i) {
+          ctx.lineTo(x, y);
+        } else {
+          ctx.moveTo(x, y);
+        }
+      });
+      ctx.stroke();
+
+      ctx.font = "12px/12px sans-serif";
+
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      hLines.forEach(r => {
+        const y = contentHeight * (1 - r / ceilAmount);
+        ctx.fillText(`¥${r.toLocaleString()}`, -5, y);
+      });
+
+      ctx.textAlign = "left";
+      ctx.textBaseline = "bottom";
+      for (let i = 0; i < vlines.length; i += 1) {
+        const st = vlines[i];
+        const en = vlines[i + 1];
+        const stp = (st - startDate) / (endDate - startDate);
+        const enp = (en - startDate) / (endDate - startDate);
+        const rangePoints = points.filter(
+          p => p.x >= contentWidth * stp && p.x < contentWidth * enp
+        );
+
+        const d = new Date(st);
+        const label = [d.getFullYear(), d.getMonth() + 1].join("/");
+        ctx.save();
+        ctx.translate(contentWidth * stp, -5);
+        ctx.rotate((-1 / 4) * Math.PI);
+        ctx.fillText(label, 0, 0);
+        ctx.restore();
+
+        if (rangePoints.length) {
+          const minPoint = rangePoints.reduce(
+            (prev, curr) => (curr.amount < prev.amount ? curr : prev),
+            { x: 0, y: 0, amount: Infinity }
+          );
+          ctx.save();
+          ctx.textAlign = "right";
+          ctx.textBaseline = "top";
+          ctx.fillStyle = minPoint.amount > 0 ? THEME_COLOR.DARK : "#ff0000";
+          ctx.translate(minPoint.x, contentHeight);
+          ctx.rotate((-1 / 4) * Math.PI);
+          ctx.fillText(`¥${minPoint.amount.toLocaleString()}`, 0, 0);
+          ctx.restore();
+        }
+      }
+    }
+  }, [bankEvents, startDate, endDate, isActive]);
+
+  return { canvasRef };
+};
+
+export default useGraphRenderer;

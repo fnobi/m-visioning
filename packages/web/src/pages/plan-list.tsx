@@ -1,7 +1,7 @@
-import MockLoadingScene from "~/common/components/MockLoadingScene";
-import MVisionFrame from "~/app/components/MVisionFrame";
-import PlanListScene from "~/app/components/_provider/PlanListScene";
-import useMyMoneyStore from "~/app/lib/database/useMyMoneyStore";
+import MockLoadingScene from "~/components/MockLoadingScene";
+import MVisionFrame from "~/components/MVisionFrame";
+import PlanListScene from "~/components/_provider/PlanListScene";
+import useMyMoneyStore from "~/feature/useMyMoneyStore";
 
 const PlanListSceneContainer = () => {
   const {
