@@ -2,8 +2,8 @@ import { useMemo, useState } from "react";
 import FormOrganizer from "@m-visioning/core/util/FormOrganizer";
 import { type TypedCollectionList } from "@m-visioning/core/util/DataStoreAgent";
 import { requiredValidator } from "@m-visioning/core/util/form-validator";
-import type MoneyCardAccount from "@m-visioning/core/scheme/MoneyCardAccount";
-import type MoneyBankAccount from "@m-visioning/core/scheme/MoneyBankAccount";
+import type MoneyCardAccount from "@m-visioning/core/schema/MoneyCardAccount";
+import type MoneyBankAccount from "@m-visioning/core/schema/MoneyBankAccount";
 import {
   MockFormFrame,
   MockNumberFormRow,

@@ -4,7 +4,7 @@ import { em } from "~/common/css-util";
 import type CommonActionParameter from "~/common/CommonActionParameter";
 import { formatDateLabel } from "~/common/date-util";
 import { parseString } from "@m-visioning/core/util/parser-helper";
-import type BankSnapshot from "@m-visioning/core/scheme/BankSnapshot";
+import type BankSnapshot from "@m-visioning/core/schema/BankSnapshot";
 import { type SimulatorRow } from "~/feature/useSimulatorRows";
 import { PAGE_CARD_SNAPSHOT_LIST } from "~/feature/page-path";
 import MockActionButton from "~/components/MockActionButton";

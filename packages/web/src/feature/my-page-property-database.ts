@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuthorizedUser } from "~/common/firebase-auth-tools";
 import { ClientDataStoreAgent } from "~/common/ClientDataStoreAgent";
-import {
-  parseMyPageProperty
-} from "@m-visioning/core/scheme/MyPageProperty";
-import type MyPageProperty from "@m-visioning/core/scheme/MyPageProperty";
+import { parseMyPageProperty } from "@m-visioning/core/schema/MyPageProperty";
+import type MyPageProperty from "@m-visioning/core/schema/MyPageProperty";
 import { extractClientError } from "~/feature/client-error-utils";
 import { myPagePropertyDataStoreScheme } from "~/feature/app-data-store-scheme";
 import { type AppErrorParameter } from "~/feature/AppErrorParameter";

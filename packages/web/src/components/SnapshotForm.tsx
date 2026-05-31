@@ -10,9 +10,9 @@ import {
   requiredValidator,
   subArrayFieldValidator
 } from "@m-visioning/core/util/form-validator";
-import type CardSnapshot from "@m-visioning/core/scheme/CardSnapshot";
-import type BankSnapshot from "@m-visioning/core/scheme/BankSnapshot";
-import { SPENDING_CATEGORIES } from "@m-visioning/core/scheme/SpendingCategory";
+import type CardSnapshot from "@m-visioning/core/schema/CardSnapshot";
+import type BankSnapshot from "@m-visioning/core/schema/BankSnapshot";
+import { SPENDING_CATEGORIES } from "@m-visioning/core/schema/SpendingCategory";
 import {
   MockArrayFormRow,
   MockDateTimeFormRow,

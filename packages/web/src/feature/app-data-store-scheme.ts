@@ -1,18 +1,18 @@
 import { type DataStoreScheme } from "@m-visioning/core/util/DataStoreAgent";
-import type BankSnapshot from "@m-visioning/core/scheme/BankSnapshot";
-import type CardSnapshot from "@m-visioning/core/scheme/CardSnapshot";
-import { parseCardSnapshot } from "@m-visioning/core/scheme/CardSnapshot";
-import { parseBankSnapshot } from "@m-visioning/core/scheme/BankSnapshot";
-import type MoneyBankAccount from "@m-visioning/core/scheme/MoneyBankAccount";
-import { parseMoneyBankAccount } from "@m-visioning/core/scheme/MoneyBankAccount";
-import type MoneyCardAccount from "@m-visioning/core/scheme/MoneyCardAccount";
-import { parseMoneyCardAccount } from "@m-visioning/core/scheme/MoneyCardAccount";
-import { parseMoneyPlan } from "@m-visioning/core/scheme/MoneyPlan";
-import type MoneyPlan from "@m-visioning/core/scheme/MoneyPlan";
-import { parseCommonPermission } from "@m-visioning/core/scheme/CommonPermission";
-import type CommonPermission from "@m-visioning/core/scheme/CommonPermission";
-import type MyPageProperty from "@m-visioning/core/scheme/MyPageProperty";
-import { parseMyPageProperty } from "@m-visioning/core/scheme/MyPageProperty";
+import type BankSnapshot from "@m-visioning/core/schema/BankSnapshot";
+import type CardSnapshot from "@m-visioning/core/schema/CardSnapshot";
+import { parseCardSnapshot } from "@m-visioning/core/schema/CardSnapshot";
+import { parseBankSnapshot } from "@m-visioning/core/schema/BankSnapshot";
+import type MoneyBankAccount from "@m-visioning/core/schema/MoneyBankAccount";
+import { parseMoneyBankAccount } from "@m-visioning/core/schema/MoneyBankAccount";
+import type MoneyCardAccount from "@m-visioning/core/schema/MoneyCardAccount";
+import { parseMoneyCardAccount } from "@m-visioning/core/schema/MoneyCardAccount";
+import { parseMoneyPlan } from "@m-visioning/core/schema/MoneyPlan";
+import type MoneyPlan from "@m-visioning/core/schema/MoneyPlan";
+import { parseCommonPermission } from "@m-visioning/core/schema/CommonPermission";
+import type CommonPermission from "@m-visioning/core/schema/CommonPermission";
+import type MyPageProperty from "@m-visioning/core/schema/MyPageProperty";
+import { parseMyPageProperty } from "@m-visioning/core/schema/MyPageProperty";
 
 export const ownerDataStoreScheme: DataStoreScheme<
   CommonPermission,

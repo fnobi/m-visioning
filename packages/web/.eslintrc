@@ -78,7 +78,7 @@
             "position": "after"
           },
           {
-            "pattern": "@m-visioning/core/scheme/**",
+            "pattern": "@m-visioning/core/schema/**",
             "group": "internal",
             "position": "after"
           },

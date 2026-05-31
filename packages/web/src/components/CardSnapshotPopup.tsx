@@ -1,4 +1,4 @@
-import type CardSnapshot from "@m-visioning/core/scheme/CardSnapshot";
+import type CardSnapshot from "@m-visioning/core/schema/CardSnapshot";
 import AppCommonPopup from "~/components/AppCommonPopup";
 import { CardSnapshotForm } from "~/components/SnapshotForm";
 

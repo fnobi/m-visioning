@@ -2,10 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuthorizedUser } from "~/common/firebase-auth-tools";
 import usePopupOperation from "~/common/usePopupOperation";
 import { percent } from "~/common/css-util";
-import type MoneyCardAccount from "@m-visioning/core/scheme/MoneyCardAccount";
-import type CardSnapshot from "@m-visioning/core/scheme/CardSnapshot";
-import type MoneyPlan from "@m-visioning/core/scheme/MoneyPlan";
-import { parseMoneyCardAccount } from "@m-visioning/core/scheme/MoneyCardAccount";
+import type MoneyCardAccount from "@m-visioning/core/schema/MoneyCardAccount";
+import type CardSnapshot from "@m-visioning/core/schema/CardSnapshot";
+import type MoneyPlan from "@m-visioning/core/schema/MoneyPlan";
+import { parseMoneyCardAccount } from "@m-visioning/core/schema/MoneyCardAccount";
 import { useCardSnapshotList } from "~/feature/card-snapshot-database";
 import { type AppErrorParameter } from "~/feature/AppErrorParameter";
 import useMonthCursor from "~/feature/useMonthCursor";
@@ -145,7 +145,9 @@ const CardSnapshotListScene = ({
   ]);
 
   const planOnlyRows = useMemo(() => {
-    if (!cardId || !moneyPlanList) {return null;}
+    if (!cardId || !moneyPlanList) {
+      return null;
+    }
     const res = calcRows({
       snapshotList: null,
       termStart: monthCursor.minTimestamp,

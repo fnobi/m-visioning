@@ -1,12 +1,12 @@
 import { useCallback } from "react";
 import { type TypedCollectionList } from "@m-visioning/core/util/DataStoreAgent";
-import type MoneyBankAccount from "@m-visioning/core/scheme/MoneyBankAccount";
-import type MoneyCardAccount from "@m-visioning/core/scheme/MoneyCardAccount";
+import type MoneyBankAccount from "@m-visioning/core/schema/MoneyBankAccount";
+import type MoneyCardAccount from "@m-visioning/core/schema/MoneyCardAccount";
 import {
   type FromMoneyNode,
   type ToMoneyNode
-} from "@m-visioning/core/scheme/MoneyPlan";
-import type MoneyPlan from "@m-visioning/core/scheme/MoneyPlan";
+} from "@m-visioning/core/schema/MoneyPlan";
+import type MoneyPlan from "@m-visioning/core/schema/MoneyPlan";
 
 const WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"];
 

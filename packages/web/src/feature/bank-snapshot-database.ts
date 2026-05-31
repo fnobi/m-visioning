@@ -4,7 +4,7 @@ import {
   type QueryChain,
   type TypedCollectionList
 } from "@m-visioning/core/util/DataStoreAgent";
-import type BankSnapshot from "@m-visioning/core/scheme/BankSnapshot";
+import type BankSnapshot from "@m-visioning/core/schema/BankSnapshot";
 import { extractClientError } from "~/feature/client-error-utils";
 import { bankSnapshotDataStoreScheme } from "~/feature/app-data-store-scheme";
 import { type AppErrorParameter } from "~/feature/AppErrorParameter";

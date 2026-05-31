@@ -1,4 +1,4 @@
-import type BankSnapshot from "@m-visioning/core/scheme/BankSnapshot";
+import type BankSnapshot from "@m-visioning/core/schema/BankSnapshot";
 import { BankSnapshotForm } from "~/components/SnapshotForm";
 import AppCommonPopup from "~/components/AppCommonPopup";
 

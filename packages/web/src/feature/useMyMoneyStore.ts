@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 import { create } from "zustand";
 import { useAuthorizedUser } from "~/common/firebase-auth-tools";
 import { type TypedCollectionList } from "@m-visioning/core/util/DataStoreAgent";
-import type MoneyBankAccount from "@m-visioning/core/scheme/MoneyBankAccount";
-import type MoneyCardAccount from "@m-visioning/core/scheme/MoneyCardAccount";
-import type MoneyPlan from "@m-visioning/core/scheme/MoneyPlan";
-import type MyPageProperty from "@m-visioning/core/scheme/MyPageProperty";
+import type MoneyBankAccount from "@m-visioning/core/schema/MoneyBankAccount";
+import type MoneyCardAccount from "@m-visioning/core/schema/MoneyCardAccount";
+import type MoneyPlan from "@m-visioning/core/schema/MoneyPlan";
+import type MyPageProperty from "@m-visioning/core/schema/MyPageProperty";
 import { type AppErrorParameter } from "~/feature/AppErrorParameter";
 import {
   useCardAccountList,

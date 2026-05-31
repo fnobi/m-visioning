@@ -3,7 +3,7 @@ import { sumBy } from "@m-visioning/core/util/array-util";
 import {
   getCategoryColor,
   getCategoryLabel
-} from "@m-visioning/core/scheme/SpendingCategory";
+} from "@m-visioning/core/schema/SpendingCategory";
 import { THEME_COLOR } from "~/feature//emotion-mixin";
 
 const usePieChartRenderer = ({

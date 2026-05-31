@@ -6,11 +6,11 @@ import {
 } from "react";
 import { type TypedCollectionList } from "@m-visioning/core/util/DataStoreAgent";
 import { sortBy } from "@m-visioning/core/util/array-util";
-import type MoneyBankAccount from "@m-visioning/core/scheme/MoneyBankAccount";
-import type MoneyCardAccount from "@m-visioning/core/scheme/MoneyCardAccount";
-import type MoneyPlan from "@m-visioning/core/scheme/MoneyPlan";
-import { parseMoneyPlan } from "@m-visioning/core/scheme/MoneyPlan";
-import type MyPageProperty from "@m-visioning/core/scheme/MyPageProperty";
+import type MoneyBankAccount from "@m-visioning/core/schema/MoneyBankAccount";
+import type MoneyCardAccount from "@m-visioning/core/schema/MoneyCardAccount";
+import type MoneyPlan from "@m-visioning/core/schema/MoneyPlan";
+import { parseMoneyPlan } from "@m-visioning/core/schema/MoneyPlan";
+import type MyPageProperty from "@m-visioning/core/schema/MyPageProperty";
 import { usePlanListLabel } from "~/feature/plan-util";
 import { useMyPagePropertyTools } from "~/feature/my-page-property-database";
 import MockListView from "~/components/MockListView";
