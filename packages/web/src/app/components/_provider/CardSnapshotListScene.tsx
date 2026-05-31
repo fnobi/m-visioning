@@ -26,6 +26,7 @@ import useSimulatorRows, {
 import useAsyncHandler from "~/app/lib/useAsyncHandler";
 import useMyMoneyStore from "~/app/lib/database/useMyMoneyStore";
 import usePieChartRenderer from "~/app/lib/usePieChartRenderer";
+import useCardLineChartRenderer from "~/app/lib/useCardLineChartRenderer";
 import { THEME_COLOR } from "~/app/lib/emotion-mixin";
 
 type PopupParams =
@@ -116,7 +117,7 @@ const CardSnapshotListScene = ({
     onError: setStatusError
   });
 
-  const { calcRowsFromCardTerm } = useSimulatorRows();
+  const { calcRows, calcRowsFromCardTerm } = useSimulatorRows();
 
   useEffect(() => {
     setDraftTimestamp(Date.now());
@@ -143,6 +144,18 @@ const CardSnapshotListScene = ({
     monthCursor.maxTimestamp,
     monthCursor.minTimestamp
   ]);
+
+  const planOnlyRows = useMemo(() => {
+    if (!cardId || !moneyPlanList) return null;
+    const res = calcRows({
+      snapshotList: null,
+      termStart: monthCursor.minTimestamp,
+      termEnd: monthCursor.maxTimestamp,
+      nodeFilter: { type: "card", cardId },
+      sourcePlanList: moneyPlanList
+    });
+    return res.rows;
+  }, [calcRows, cardId, moneyPlanList, monthCursor.minTimestamp, monthCursor.maxTimestamp]);
 
   const categoryItems = useMemo(() => {
     if (!cardSnapshotList) {
@@ -172,6 +185,14 @@ const CardSnapshotListScene = ({
   const { canvasRef } = usePieChartRenderer({
     isActive: graphMode && categoryItems.length > 0,
     items: categoryItems
+  });
+
+  const { canvasRef: lineChartCanvasRef } = useCardLineChartRenderer({
+    isActive: graphMode && !!rows && !!planOnlyRows,
+    startDate: monthCursor.minTimestamp,
+    endDate: monthCursor.maxTimestamp,
+    actualRows: rows ?? [],
+    planRows: planOnlyRows ?? []
   });
 
   const periodProgress = useMemo(() => {
@@ -438,6 +459,12 @@ const CardSnapshotListScene = ({
                 ref={canvasRef}
                 style={{ width: percent(100), height: "auto" }}
               />
+              {rows && planOnlyRows ? (
+                <canvas
+                  ref={lineChartCanvasRef}
+                  style={{ width: percent(100), height: "auto", marginTop: 16 }}
+                />
+              ) : null}
             </>
           ) : (
             <>
