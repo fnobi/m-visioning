@@ -68,17 +68,27 @@
         "pathGroupsExcludedImportTypes": [],
         "pathGroups": [
           {
-            "pattern": "~/lib/**",
+            "pattern": "~/common/**",
             "group": "internal",
             "position": "after"
           },
           {
-            "pattern": "~/scheme/**",
+            "pattern": "@m-visioning/core/util/**",
             "group": "internal",
             "position": "after"
           },
           {
-            "pattern": "~/app/**",
+            "pattern": "@m-visioning/core/scheme/**",
+            "group": "internal",
+            "position": "after"
+          },
+          {
+            "pattern": "~/feature/**",
+            "group": "internal",
+            "position": "after"
+          },
+          {
+            "pattern": "~/components/**",
             "group": "internal",
             "position": "after"
           },
@@ -104,7 +114,7 @@
       {
         "zones": [
           {
-            "from": "src/app/**/*",
+            "from": "src/feature/**/*",
             "target": "src/common/**/*"
           }
         ]
@@ -116,22 +126,16 @@
         {
           "module": "@emotion/styled",
           "allowReferenceFrom": [
-            "src/(app|common)/components/*",
-            "src/app/components/**/!(_provider)/*"
-          ],
-          "allowSameModule": false
-        },
-        {
-          "module": "react",
-          "allowReferenceFrom": [
-            "src/**/!(scheme)/**/*"
+            "src/components/*",
+            "src/components/**/!(_provider)/*"
           ],
           "allowSameModule": false
         },
         {
           "module": "src/assets",
           "allowReferenceFrom": [
-            "src/app/!(scheme)/**/*",
+            "src/components/**/*",
+            "src/feature/**/*",
             "src/pages/**/*"
           ],
           "allowSameModule": false
@@ -140,16 +144,9 @@
           "module": "src/app/lib/database",
           "allowReferenceFrom": [
             "src/pages/**/*",
-            "src/app/components/**/_provider/*"
+            "src/components/**/_provider/*"
           ],
           "allowSameModule": true
-        },
-        {
-          "module": "src/app/scheme/app-firestore-scheme",
-          "allowReferenceFrom": [
-            "src/app/lib/database/**/*"
-          ],
-          "allowSameModule": false
         }
       ]
     ],
