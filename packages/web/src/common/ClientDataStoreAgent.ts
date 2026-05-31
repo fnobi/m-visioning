@@ -18,6 +18,7 @@ import {
   runTransaction,
   getCountFromServer
 } from "firebase/firestore";
+import { firebaseFirestore } from "~/common/firebase-app";
 import {
   DataStoreAgent,
   QueryChain,
@@ -26,7 +27,6 @@ import {
   type TransactionGetStepParams,
   type TransactionSetStepParams
 } from "@m-visioning/core/util/DataStoreAgent";
-import { firebaseFirestore } from "~/common/firebase-app";
 
 const applyQueryChain = <T>(
   q: Query<DocumentData, DocumentData>,

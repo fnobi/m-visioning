@@ -1,7 +1,5 @@
 import styled from "@emotion/styled";
 import { type ComponentPropsWithoutRef, type ReactNode } from "react";
-import { toggleArrayItem } from "@m-visioning/core/util/array-util";
-import MockActionButton from "~/components/MockActionButton";
 import {
   alphaColor,
   buttonReset,
@@ -11,6 +9,8 @@ import {
   px
 } from "~/common/css-util";
 import type CommonActionParameter from "~/common/CommonActionParameter";
+import { toggleArrayItem } from "@m-visioning/core/util/array-util";
+import MockActionButton from "~/components/MockActionButton";
 
 type TagParameter = {
   label: string;

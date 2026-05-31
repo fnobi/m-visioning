@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import type MoneyPlan from "@m-visioning/core/scheme/MoneyPlan";
+import { useAuthorizedUser } from "~/common/firebase-auth-tools";
 import { ClientDataStoreAgent } from "~/common/ClientDataStoreAgent";
 import { type TypedCollectionList } from "@m-visioning/core/util/DataStoreAgent";
-import { useAuthorizedUser } from "~/common/firebase-auth-tools";
+import type MoneyPlan from "@m-visioning/core/scheme/MoneyPlan";
 import { extractClientError } from "~/feature/client-error-utils";
 import { moneyPlanDataStoreScheme } from "~/feature/app-data-store-scheme";
 import { type AppErrorParameter } from "~/feature/AppErrorParameter";

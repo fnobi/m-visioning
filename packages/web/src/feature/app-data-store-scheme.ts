@@ -1,3 +1,4 @@
+import { type DataStoreScheme } from "@m-visioning/core/util/DataStoreAgent";
 import type BankSnapshot from "@m-visioning/core/scheme/BankSnapshot";
 import type CardSnapshot from "@m-visioning/core/scheme/CardSnapshot";
 import { parseCardSnapshot } from "@m-visioning/core/scheme/CardSnapshot";
@@ -10,7 +11,6 @@ import { parseMoneyPlan } from "@m-visioning/core/scheme/MoneyPlan";
 import type MoneyPlan from "@m-visioning/core/scheme/MoneyPlan";
 import { parseCommonPermission } from "@m-visioning/core/scheme/CommonPermission";
 import type CommonPermission from "@m-visioning/core/scheme/CommonPermission";
-import { type DataStoreScheme } from "@m-visioning/core/util/DataStoreAgent";
 import type MyPageProperty from "@m-visioning/core/scheme/MyPageProperty";
 import { parseMyPageProperty } from "@m-visioning/core/scheme/MyPageProperty";
 

@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import type CardSnapshot from "@m-visioning/core/scheme/CardSnapshot";
 import { ClientDataStoreAgent } from "~/common/ClientDataStoreAgent";
 import {
   type QueryChain,
   type TypedCollectionList
 } from "@m-visioning/core/util/DataStoreAgent";
+import type CardSnapshot from "@m-visioning/core/scheme/CardSnapshot";
 import { extractClientError } from "~/feature/client-error-utils";
 import { cardSnapshotDataStoreScheme } from "~/feature/app-data-store-scheme";
 import { type AppErrorParameter } from "~/feature/AppErrorParameter";

@@ -1,11 +1,11 @@
 import { useCallback } from "react";
-import { parseNumber, parseString } from "@m-visioning/core/util/parser-helper";
 import useTypedQuery, { parseBooleanQuery } from "~/common/useTypedQuery";
+import { parseNumber, parseString } from "@m-visioning/core/util/parser-helper";
+import useMyMoneyStore from "~/feature/useMyMoneyStore";
 import BankTableScene, {
   PERIOD_OPTIONS
 } from "~/components/_provider/BankTableScene";
 import MVisionFrame from "~/components/MVisionFrame";
-import useMyMoneyStore from "~/feature/useMyMoneyStore";
 
 const parsePeriodNumberQuery = (src: unknown) => {
   const n = parseNumber(src);

@@ -1,13 +1,13 @@
 import styled from "@emotion/styled";
 import { Fragment, useCallback } from "react";
-import type BankSnapshot from "@m-visioning/core/scheme/BankSnapshot";
-import MockActionButton from "~/components/MockActionButton";
 import { em } from "~/common/css-util";
 import type CommonActionParameter from "~/common/CommonActionParameter";
 import { formatDateLabel } from "~/common/date-util";
 import { parseString } from "@m-visioning/core/util/parser-helper";
-import { PAGE_CARD_SNAPSHOT_LIST } from "~/feature/page-path";
+import type BankSnapshot from "@m-visioning/core/scheme/BankSnapshot";
 import { type SimulatorRow } from "~/feature/useSimulatorRows";
+import { PAGE_CARD_SNAPSHOT_LIST } from "~/feature/page-path";
+import MockActionButton from "~/components/MockActionButton";
 
 const TableCell = styled.p<{ isArchive: boolean; align?: "left" | "right" }>(
   ({ isArchive, align = "left" }) => ({

@@ -1,7 +1,7 @@
 import { type ReactNode } from "react";
-import MockPopup from "~/components/MockPopup";
 import { px, vh } from "~/common/css-util";
 import { zIndexFromKey } from "~/feature/emotion-mixin";
+import MockPopup from "~/components/MockPopup";
 
 const AppCommonPopup = ({
   title,

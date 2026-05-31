@@ -1,22 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useAuthorizedUser } from "~/common/firebase-auth-tools";
+import usePopupOperation from "~/common/usePopupOperation";
+import { percent } from "~/common/css-util";
 import type MoneyCardAccount from "@m-visioning/core/scheme/MoneyCardAccount";
 import type CardSnapshot from "@m-visioning/core/scheme/CardSnapshot";
 import type MoneyPlan from "@m-visioning/core/scheme/MoneyPlan";
 import { parseMoneyCardAccount } from "@m-visioning/core/scheme/MoneyCardAccount";
-import { useAuthorizedUser } from "~/common/firebase-auth-tools";
-import MockLoadingPopup from "~/components/MockLoadingPopup";
-import MockActionButton from "~/components/MockActionButton";
-import usePopupOperation from "~/common/usePopupOperation";
-import { percent } from "~/common/css-util";
-import PickableTitle from "~/components/PickableTitle";
-import CardAccountFormPopup from "~/components/CardAccountFormPopup";
-import CardSelectPopup from "~/components/CardSelectPopup";
-import ErrorPopup from "~/components/ErrorPopup";
-import PlanFormPopup from "~/components/PlanFormPopup";
-import SimulatorTableView from "~/components/SimulatorTableView";
-import MonthCursorNavi from "~/components/MonthCursorNavi";
-import CardSnapshotFormPopup from "~/components/CardSnapshotPopup";
-import ErrorScene from "~/components/ErrorScene";
 import { useCardSnapshotList } from "~/feature/card-snapshot-database";
 import { type AppErrorParameter } from "~/feature/AppErrorParameter";
 import useMonthCursor from "~/feature/useMonthCursor";
@@ -27,6 +16,17 @@ import useAsyncHandler from "~/feature/useAsyncHandler";
 import useMyMoneyStore from "~/feature/useMyMoneyStore";
 import usePieChartRenderer from "~/feature/usePieChartRenderer";
 import useCardLineChartRenderer from "~/feature/useCardLineChartRenderer";
+import MockLoadingPopup from "~/components/MockLoadingPopup";
+import MockActionButton from "~/components/MockActionButton";
+import PickableTitle from "~/components/PickableTitle";
+import CardAccountFormPopup from "~/components/CardAccountFormPopup";
+import CardSelectPopup from "~/components/CardSelectPopup";
+import ErrorPopup from "~/components/ErrorPopup";
+import PlanFormPopup from "~/components/PlanFormPopup";
+import SimulatorTableView from "~/components/SimulatorTableView";
+import MonthCursorNavi from "~/components/MonthCursorNavi";
+import CardSnapshotFormPopup from "~/components/CardSnapshotPopup";
+import ErrorScene from "~/components/ErrorScene";
 
 type PopupParams =
   | {
@@ -145,7 +145,7 @@ const CardSnapshotListScene = ({
   ]);
 
   const planOnlyRows = useMemo(() => {
-    if (!cardId || !moneyPlanList) return null;
+    if (!cardId || !moneyPlanList) {return null;}
     const res = calcRows({
       snapshotList: null,
       termStart: monthCursor.minTimestamp,

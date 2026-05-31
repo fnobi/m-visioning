@@ -9,8 +9,6 @@ import {
   FaChevronRight,
   FaChevronLeft
 } from "react-icons/fa6";
-import MockStaticLayout from "~/components/MockStaticLayout";
-import MockActionButton from "~/components/MockActionButton";
 import type PageEntry from "~/common/PageEntry";
 import { firebaseAuth } from "~/common/firebase-app";
 import {
@@ -20,14 +18,16 @@ import {
   PRIMITIVE_COLOR,
   px
 } from "~/common/css-util";
-import { BankIcon, CardIcon } from "~/components/CommonIconSvg";
-import { pcStyle, spStyle, THEME_COLOR } from "~/feature/emotion-mixin";
-import AuthFrame from "~/components/AuthFrame";
 import {
   PAGE_CARD_SNAPSHOT_LIST,
   PAGE_PLAN_LIST,
   PAGE_TOP
 } from "~/feature/page-path";
+import { pcStyle, spStyle, THEME_COLOR } from "~/feature/emotion-mixin";
+import MockStaticLayout from "~/components/MockStaticLayout";
+import MockActionButton from "~/components/MockActionButton";
+import { BankIcon, CardIcon } from "~/components/CommonIconSvg";
+import AuthFrame from "~/components/AuthFrame";
 
 type TabEntry = { label: string; icon: ReactNode; page: PageEntry };
 

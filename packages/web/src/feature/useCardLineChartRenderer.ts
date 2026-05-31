@@ -44,8 +44,8 @@ const drawSeries = (
 
   ctx.beginPath();
   mapped.forEach(({ x, y }, i) => {
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
+    if (i === 0) {ctx.moveTo(x, y);}
+    else {ctx.lineTo(x, y);}
   });
   ctx.stroke();
   ctx.restore();
@@ -68,7 +68,7 @@ const useCardLineChartRenderer = ({
 
   useEffect(() => {
     const { current: canvas } = canvasRef;
-    if (!canvas || !isActive) return;
+    if (!canvas || !isActive) {return;}
 
     const PADDING_LEFT = 75;
     const PADDING_RIGHT = 40;
@@ -83,7 +83,7 @@ const useCardLineChartRenderer = ({
     const contentHeight = HEIGHT - PADDING_Y * 2;
 
     const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    if (!ctx) {return;}
 
     ctx.scale(canvas.width / WIDTH, canvas.width / WIDTH);
     ctx.translate(PADDING_LEFT, PADDING_Y);
@@ -99,16 +99,16 @@ const useCardLineChartRenderer = ({
     );
 
     let hUnit = 10;
-    while (maxAmount / (hUnit * 10) > 1) hUnit *= 10;
+    while (maxAmount / (hUnit * 10) > 1) {hUnit *= 10;}
     const ceilAmount = Math.ceil(maxAmount / hUnit) * hUnit;
 
     ctx.fillStyle = "#f8f8f8";
     ctx.fillRect(0, 0, contentWidth, contentHeight);
 
-    if (ceilAmount === 0) return;
+    if (ceilAmount === 0) {return;}
 
     const hLines: number[] = [];
-    for (let r = hUnit; r < ceilAmount; r += hUnit) hLines.push(r);
+    for (let r = hUnit; r < ceilAmount; r += hUnit) {hLines.push(r);}
 
     const MS_PER_WEEK = 1000 * 60 * 60 * 24 * 7;
     const vlines: number[] = [];

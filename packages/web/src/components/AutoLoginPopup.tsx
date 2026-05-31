@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { signInAnonymously } from "firebase/auth";
-import MockLoadingPopup from "~/components/MockLoadingPopup";
 import { firebaseAuth } from "~/common/firebase-app";
+import MockLoadingPopup from "~/components/MockLoadingPopup";
 
 const AutoLoginPopup = () => {
   useEffect(() => {

@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
-import MockPopup from "~/components/MockPopup";
 import { type AppErrorParameter } from "~/feature/AppErrorParameter";
+import MockPopup from "~/components/MockPopup";
 
 const TitleLine = styled.h2({
   fontWeight: "bold"

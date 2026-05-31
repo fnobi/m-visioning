@@ -1,12 +1,12 @@
 import { useCallback, useState } from "react";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import MockActionButton from "~/components/MockActionButton";
 import { firebaseAuth } from "~/common/firebase-app";
+import useAsyncHandler from "~/feature/useAsyncHandler";
+import { type AppErrorParameter } from "~/feature/AppErrorParameter";
+import MockActionButton from "~/components/MockActionButton";
 import MockStaticLayout from "~/components/MockStaticLayout";
 import MockLoadingPopup from "~/components/MockLoadingPopup";
-import useAsyncHandler from "~/feature/useAsyncHandler";
 import ErrorPopup from "~/components/ErrorPopup";
-import { type AppErrorParameter } from "~/feature/AppErrorParameter";
 
 const LoginScene = () => {
   const [operationError, setOperationError] =

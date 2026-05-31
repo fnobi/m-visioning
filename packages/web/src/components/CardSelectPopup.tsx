@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
-import type MoneyCardAccount from "@m-visioning/core/scheme/MoneyCardAccount";
-import { type TypedCollectionList } from "@m-visioning/core/util/DataStoreAgent";
 import { em } from "~/common/css-util";
+import { type TypedCollectionList } from "@m-visioning/core/util/DataStoreAgent";
+import type MoneyCardAccount from "@m-visioning/core/scheme/MoneyCardAccount";
 import MockActionButton from "~/components/MockActionButton";
 import AppCommonPopup from "~/components/AppCommonPopup";
 

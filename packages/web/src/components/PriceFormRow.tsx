@@ -1,10 +1,10 @@
 import styled from "@emotion/styled";
 import { useMemo } from "react";
-import { FormCommonRowWrapper } from "~/components/mock-form-ui";
 import { em, percent, px } from "~/common/css-util";
 import { type ValidationErrorType } from "@m-visioning/core/util/form-validator";
 import { parseNumber } from "@m-visioning/core/util/parser-helper";
 import { THEME_COLOR } from "~/feature/emotion-mixin";
+import { FormCommonRowWrapper } from "~/components/mock-form-ui";
 
 const InputRow = styled.div<{ minus: boolean }>(({ minus }) => ({
   display: "flex",

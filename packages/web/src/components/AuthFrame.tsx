@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
-import MockLoadingScene from "~/components/MockLoadingScene";
 import { useAuthorizedUser } from "~/common/firebase-auth-tools";
+import MockLoadingScene from "~/components/MockLoadingScene";
 import LoginScene from "~/components/LoginScene";
 
 const AuthFrame = ({ children }: { children: ReactNode }) => {

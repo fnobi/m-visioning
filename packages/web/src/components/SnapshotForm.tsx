@@ -4,6 +4,12 @@ import {
   useMemo,
   useState
 } from "react";
+import FormOrganizer from "@m-visioning/core/util/FormOrganizer";
+import {
+  type ValidationErrorType,
+  requiredValidator,
+  subArrayFieldValidator
+} from "@m-visioning/core/util/form-validator";
 import type CardSnapshot from "@m-visioning/core/scheme/CardSnapshot";
 import type BankSnapshot from "@m-visioning/core/scheme/BankSnapshot";
 import { SPENDING_CATEGORIES } from "@m-visioning/core/scheme/SpendingCategory";
@@ -14,12 +20,6 @@ import {
   MockPulldownFormRow,
   MockStringFormRow
 } from "~/components/mock-form-ui";
-import FormOrganizer from "@m-visioning/core/util/FormOrganizer";
-import {
-  type ValidationErrorType,
-  requiredValidator,
-  subArrayFieldValidator
-} from "@m-visioning/core/util/form-validator";
 import MockActionButton from "~/components/MockActionButton";
 import PriceFormRow from "~/components/PriceFormRow";
 
