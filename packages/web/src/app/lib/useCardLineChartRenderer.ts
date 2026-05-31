@@ -109,13 +109,16 @@ const useCardLineChartRenderer = ({
     const hLines: number[] = [];
     for (let r = hUnit; r < ceilAmount; r += hUnit) hLines.push(r);
 
+    const MS_PER_WEEK = 1000 * 60 * 60 * 24 * 7;
     const vlines: number[] = [];
-    const vdate = new Date(startDate);
-    const edate = new Date(endDate);
-    while (vdate < edate) {
-      vdate.setDate(1);
-      vlines.push(vdate.getTime());
-      vdate.setMonth(vdate.getMonth() + 1);
+    const startDay = new Date(startDate);
+    startDay.setHours(0, 0, 0, 0);
+    // 次の月曜日（startDateが月曜なら当日）
+    const daysUntilMonday = (1 - startDay.getDay() + 7) % 7;
+    let weekStart = startDay.getTime() + daysUntilMonday * (MS_PER_WEEK / 7);
+    while (weekStart < endDate) {
+      vlines.push(weekStart);
+      weekStart += MS_PER_WEEK;
     }
     vlines.push(endDate);
 
@@ -172,7 +175,7 @@ const useCardLineChartRenderer = ({
     vlines.forEach(v => {
       const x = contentWidth * ((v - startDate) / (endDate - startDate));
       const d = new Date(v);
-      const label = `${d.getFullYear()}/${d.getMonth() + 1}`;
+      const label = `${d.getMonth() + 1}/${d.getDate()}`;
       ctx.save();
       ctx.translate(x, -5);
       ctx.rotate((-1 / 4) * Math.PI);
