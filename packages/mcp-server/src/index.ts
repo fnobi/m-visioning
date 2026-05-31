@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
+import type MoneyPlan from "@m-visioning/core/schema/MoneyPlan";
 
 const server = new McpServer({
   name: "m-visioning-mcp",
@@ -69,11 +70,11 @@ server.registerTool(
     }
   },
   async ({ year, month }) => {
-    const plans = [
-      { label: "家賃", price: -80000, day: 1, repeat: "month", category: "住居" },
-      { label: "電気代", price: -8000, day: 15, repeat: "month", category: "光熱費" },
-      { label: "給与", price: 300000, day: 25, repeat: "month", category: "収入" },
-      { label: "スーパー", price: -30000, day: 10, repeat: null, category: "食費" }
+    const plans: MoneyPlan[] = [
+      { label: "家賃", price: -80000, from: { type: "bank", bankId: "main" }, to: { type: "output" }, year, month, day: 1, repeat: "month", category: "住居" },
+      { label: "電気代", price: -8000, from: { type: "bank", bankId: "main" }, to: { type: "output" }, year, month, day: 15, repeat: "month", category: "光熱費" },
+      { label: "給与", price: 300000, from: { type: "input" }, to: { type: "bank", bankId: "main" }, year, month, day: 25, repeat: "month", category: "収入" },
+      { label: "スーパー", price: -30000, from: { type: "bank", bankId: "main" }, to: { type: "output" }, year, month, day: 10, repeat: null, category: "食費" }
     ];
 
     const rows = plans.map(p => {
