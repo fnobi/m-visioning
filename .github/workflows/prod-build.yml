@@ -8,7 +8,6 @@ on:
 env:
   ACTIONS_BUILD_COMMAND: pnpm run build
   ACTIONS_BUILD_DIST: dist
-  ACTIONS_LOCK_FILE: pnpm-lock.yaml
 
   NEXT_PUBLIC_SITE_ORIGIN: "https://m-visioning.web.app"
   NEXT_PUBLIC_FIREBASE_API_KEY: "AIzaSyDcXGainNXgKNCFztf9lDf-Ga8HtU7TtM4"
@@ -33,12 +32,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: ".node-version"
-
-      - uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles(format('**/{0}',env.ACTIONS_LOCK_FILE)) }}
-          restore-keys: ${{ runner.os }}-node-
+          cache: pnpm
 
       - name: install dependencies
         run: pnpm install
