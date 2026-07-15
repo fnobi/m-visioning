@@ -11,12 +11,17 @@ import type MoneyCardAccount from "@m-visioning/core/schema/MoneyCardAccount";
 import type MoneyPlan from "@m-visioning/core/schema/MoneyPlan";
 import { parseMoneyPlan } from "@m-visioning/core/schema/MoneyPlan";
 import type MyPageProperty from "@m-visioning/core/schema/MyPageProperty";
-import { usePlanListLabel } from "~/feature/plan-util";
+import {
+  matchesPlanRepeatTab,
+  type PlanRepeatTabValue,
+  usePlanListLabel
+} from "~/feature/plan-util";
 import { useMyPagePropertyTools } from "~/feature/my-page-property-database";
 import MockListView from "~/components/MockListView";
 import MockActionButton from "~/components/MockActionButton";
 import { calcDateInt } from "~/components/_provider/BankTableScene";
 import PlanFormPopup from "~/components/PlanFormPopup";
+import PlanRepeatTabs from "~/components/PlanRepeatTabs";
 
 const PlanListScene = ({
   planList,
@@ -46,6 +51,8 @@ const PlanListScene = ({
     data: MoneyPlan;
   } | null>(null);
 
+  const [activeTab, setActiveTab] = useState<PlanRepeatTabValue>("all");
+
   const toggleFav = useCallback(
     (v: string[]) => writeMyPageProperty({ favPlanList: v }),
     [writeMyPageProperty]
@@ -53,25 +60,30 @@ const PlanListScene = ({
 
   const list = useMemo(
     (): ComponentPropsWithoutRef<typeof MockListView<string>>["dataList"] =>
-      sortBy(planList, ({ data }) => {
-        const cd = new Date();
-        const { year, month, day, repeat } = data;
-        const td = new Date(year, month - 1, day);
-        if (repeat === "year") {
-          while (td < cd) {
-            td.setFullYear(td.getFullYear() + 1);
+      sortBy(
+        planList.filter(({ data }) =>
+          matchesPlanRepeatTab(data.repeat, activeTab)
+        ),
+        ({ data }) => {
+          const cd = new Date();
+          const { year, month, day, repeat } = data;
+          const td = new Date(year, month - 1, day);
+          if (repeat === "year") {
+            while (td < cd) {
+              td.setFullYear(td.getFullYear() + 1);
+            }
+          } else if (repeat === "month") {
+            while (td < cd) {
+              td.setMonth(td.getMonth() + 1);
+            }
+          } else if (repeat === "week") {
+            while (td < cd) {
+              td.setDate(td.getDate() + 7);
+            }
           }
-        } else if (repeat === "month") {
-          while (td < cd) {
-            td.setMonth(td.getMonth() + 1);
-          }
-        } else if (repeat === "week") {
-          while (td < cd) {
-            td.setDate(td.getDate() + 7);
-          }
+          return calcDateInt(td);
         }
-        return calcDateInt(td);
-      }).map(({ id, data }) => ({
+      ).map(({ id, data }) => ({
         key: id,
         fav: { checked: myPageProperty.favPlanList.includes(id) },
         title: calcPlanTitle(data),
@@ -91,6 +103,7 @@ const PlanListScene = ({
         ]
       })),
     [
+      activeTab,
       calcPlanSubTitle,
       calcPlanTitle,
       myPageProperty.favPlanList,
@@ -115,6 +128,7 @@ const PlanListScene = ({
           新規作成
         </MockActionButton>
       </p>
+      <PlanRepeatTabs value={activeTab} onChange={setActiveTab} />
       <MockListView
         dataList={list}
         fav={{ value: myPageProperty.favPlanList, onChange: toggleFav }}

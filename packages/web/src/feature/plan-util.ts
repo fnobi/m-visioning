@@ -10,7 +10,21 @@ import type MoneyPlan from "@m-visioning/core/schema/MoneyPlan";
 
 const WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"];
 
-// eslint-disable-next-line import/prefer-default-export
+export const PLAN_REPEAT_TABS = [
+  { value: "all", label: "すべて" },
+  { value: "year", label: "毎年" },
+  { value: "month", label: "毎月" },
+  { value: "week", label: "毎週" },
+  { value: "none", label: "単発" }
+] as const;
+
+export type PlanRepeatTabValue = (typeof PLAN_REPEAT_TABS)[number]["value"];
+
+export const matchesPlanRepeatTab = (
+  repeat: MoneyPlan["repeat"],
+  tab: PlanRepeatTabValue
+) => tab === "all" || (repeat ?? "none") === tab;
+
 export const usePlanListLabel = ({
   bankList,
   cardList
